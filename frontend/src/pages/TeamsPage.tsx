@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -29,7 +29,8 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import EditIcon from '@mui/icons-material/Edit';
 import SpeedIcon from '@mui/icons-material/Speed';
 import { useApp } from '../context/AppContext';
-import { Team, Sprint, SprintStatus, initialStories } from '../data/mockData';
+import { Team, Sprint, SprintStatus, initialStories, initialDeveloperProfiles, DeveloperProfile } from '../data/mockData';
+import { apiGetDevelopers } from '../api/api';
 
 const sprintStatusConfig: Record<SprintStatus, { color: 'default' | 'primary' | 'success'; label: string; bg: string; text: string }> = {
   planned: { color: 'default', label: 'Planned', bg: '#F1F5F9', text: '#64748b' },
@@ -41,7 +42,8 @@ const emptyTeamForm = { name: '', description: '', members: [] as string[] };
 const emptySprintForm = { name: '', startDate: '', endDate: '', status: 'planned' as SprintStatus, goal: '' };
 
 export default function TeamsPage() {
-  const { teams, sprints, developerProfiles, addTeam, updateTeam, addSprint, updateSprint } = useApp();
+  const { teams, sprints, developerProfiles, backendOnline, addTeam, updateTeam, addSprint, updateSprint } = useApp();
+  const [allDevelopers, setAllDevelopers] = useState<DeveloperProfile[]>(developerProfiles);
 
   const [teamDialog, setTeamDialog] = useState(false);
   const [editTeam, setEditTeam] = useState<Team | null>(null);
@@ -51,6 +53,18 @@ export default function TeamsPage() {
   const [sprintTeamId, setSprintTeamId] = useState('');
   const [editSprint, setEditSprint] = useState<Sprint | null>(null);
   const [sprintForm, setSprintForm] = useState(emptySprintForm);
+
+  // Always fetch fresh developer list when dialog opens so new/teamless devs appear
+  useEffect(() => {
+    if (!teamDialog) return;
+    if (backendOnline) {
+      apiGetDevelopers()
+        .then(setAllDevelopers)
+        .catch(() => setAllDevelopers(developerProfiles.length > 0 ? developerProfiles : initialDeveloperProfiles));
+    } else {
+      setAllDevelopers(developerProfiles.length > 0 ? developerProfiles : initialDeveloperProfiles);
+    }
+  }, [teamDialog]);
 
   const openAddTeam = () => {
     setTeamForm(emptyTeamForm);
@@ -291,7 +305,7 @@ export default function TeamsPage() {
                 Members
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {developerProfiles
+                {allDevelopers
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((dev) => (
                     <Chip
