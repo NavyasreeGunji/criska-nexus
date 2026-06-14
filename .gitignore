@@ -12,7 +12,6 @@ backend/*.jar
 backend/*.war
 backend/.mvn/wrapper/maven-wrapper.jar
 backend/src/main/resources/application-local.yml
-backend/src/main/resources/application.yml
 
 # IDE
 .idea/

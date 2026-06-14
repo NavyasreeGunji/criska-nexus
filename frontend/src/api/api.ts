@@ -3,7 +3,7 @@ import {
   DeveloperRole, ProjectType, StoryStatus, BugSeverity, BugStatus, DeploymentStatus, SprintStatus,
 } from '../data/mockData';
 
-const BASE = 'http://localhost:8080/api';
+const BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:8080') + '/api';
 
 async function req<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
