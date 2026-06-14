@@ -29,7 +29,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import EditIcon from '@mui/icons-material/Edit';
 import SpeedIcon from '@mui/icons-material/Speed';
 import { useApp } from '../context/AppContext';
-import { Team, Sprint, SprintStatus, developers, initialStories } from '../data/mockData';
+import { Team, Sprint, SprintStatus, initialStories } from '../data/mockData';
 
 const sprintStatusConfig: Record<SprintStatus, { color: 'default' | 'primary' | 'success'; label: string; bg: string; text: string }> = {
   planned: { color: 'default', label: 'Planned', bg: '#F1F5F9', text: '#64748b' },
@@ -41,7 +41,7 @@ const emptyTeamForm = { name: '', description: '', members: [] as string[] };
 const emptySprintForm = { name: '', startDate: '', endDate: '', status: 'planned' as SprintStatus, goal: '' };
 
 export default function TeamsPage() {
-  const { teams, sprints, addTeam, updateTeam, addSprint, updateSprint } = useApp();
+  const { teams, sprints, developerProfiles, addTeam, updateTeam, addSprint, updateSprint } = useApp();
 
   const [teamDialog, setTeamDialog] = useState(false);
   const [editTeam, setEditTeam] = useState<Team | null>(null);
@@ -291,16 +291,18 @@ export default function TeamsPage() {
                 Members
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {developers.map((dev) => (
-                  <Chip
-                    key={dev}
-                    label={dev}
-                    onClick={() => toggleMember(dev)}
-                    color={teamForm.members.includes(dev) ? 'primary' : 'default'}
-                    variant={teamForm.members.includes(dev) ? 'filled' : 'outlined'}
-                    sx={{ cursor: 'pointer' }}
-                  />
-                ))}
+                {developerProfiles
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((dev) => (
+                    <Chip
+                      key={dev.id}
+                      label={dev.name}
+                      onClick={() => toggleMember(dev.name)}
+                      color={teamForm.members.includes(dev.name) ? 'primary' : 'default'}
+                      variant={teamForm.members.includes(dev.name) ? 'filled' : 'outlined'}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                  ))}
               </Stack>
             </Box>
           </Stack>
