@@ -33,7 +33,6 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SpeedIcon from '@mui/icons-material/Speed';
-import ListAltIcon from '@mui/icons-material/ListAlt';
 import { Story, initialStories, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories, apiCreateStory, apiUpdateStory } from '../api/api';
@@ -97,7 +96,7 @@ export default function StoriesPage() {
       setStories(initialStories);
     }
   }, [backendChecked, backendOnline]);
-  const [viewBy, setViewBy] = useState<'sprint' | 'month' | 'all'>('sprint');
+  const [viewBy, setViewBy] = useState<'sprint' | 'month'>('sprint');
 
   // Sprint view state
   const [selectedTeamId, setSelectedTeamId] = useState('');
@@ -116,13 +115,8 @@ export default function StoriesPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  // All view date range
-  const [filterFromDate, setFilterFromDate] = useState('');
-  const [filterToDate, setFilterToDate] = useState('');
-
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('active_work');
   const [filterAssignee, setFilterAssignee] = useState('all');
-  const [filterSprint, setFilterSprint] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Story | null>(null);
   const [form, setForm] = useState<Omit<Story, 'id'>>(emptyForm());
@@ -156,26 +150,23 @@ export default function StoriesPage() {
   }, []);
 
   const baseFiltered = useMemo(() => {
-    if (viewBy === 'all') {
-      return stories.filter((s) =>
-        (!filterFromDate || s.createdDate >= filterFromDate) &&
-        (!filterToDate || s.createdDate <= filterToDate)
-      );
-    }
     if (viewBy === 'sprint') {
       if (selectedTeamId === 'all') return stories;
       return stories.filter((s) => s.teamId === selectedTeamId && s.sprintId === resolvedSprintId);
     }
     return stories.filter((s) => getMonthKey(s.createdDate) === selectedMonth);
-  }, [stories, viewBy, filterFromDate, filterToDate, selectedTeamId, resolvedSprintId, selectedMonth]);
+  }, [stories, viewBy, selectedTeamId, resolvedSprintId, selectedMonth]);
 
   const filtered = useMemo(
     () =>
       baseFiltered
-        .filter((s) => filterStatus === 'all' || s.status === filterStatus)
-        .filter((s) => filterAssignee === 'all' || s.assignee === filterAssignee)
-        .filter((s) => filterSprint === 'all' || s.sprintId === filterSprint),
-    [baseFiltered, filterStatus, filterAssignee, filterSprint]
+        .filter((s) => {
+          if (filterStatus === 'all') return true;
+          if (filterStatus === 'active_work') return s.status === 'in_progress' || s.status === 'to_do';
+          return s.status === filterStatus;
+        })
+        .filter((s) => filterAssignee === 'all' || s.assignee === filterAssignee),
+    [baseFiltered, filterStatus, filterAssignee]
   );
 
   const summary = useMemo(() => {
@@ -237,9 +228,7 @@ export default function StoriesPage() {
     }
   };
 
-  const viewLabel = viewBy === 'all'
-    ? 'All Stories'
-    : viewBy === 'sprint'
+  const viewLabel = viewBy === 'sprint'
     ? `${selectedTeam?.name ?? ''} · ${selectedSprint?.name ?? ''}`
     : formatMonth(selectedMonth);
 
@@ -258,9 +247,6 @@ export default function StoriesPage() {
           </ToggleButton>
           <ToggleButton value="month" sx={{ gap: 0.75, px: 2 }}>
             <CalendarMonthIcon fontSize="small" /> Monthly
-          </ToggleButton>
-          <ToggleButton value="all" sx={{ gap: 0.75, px: 2 }}>
-            <ListAltIcon fontSize="small" /> All
           </ToggleButton>
         </ToggleButtonGroup>
         <Box sx={{ flexGrow: 1 }} />
@@ -384,38 +370,11 @@ export default function StoriesPage() {
           </FormControl>
         )}
 
-        {/* All view: sprint filter + date range */}
-        {viewBy === 'all' && (
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel>Sprint</InputLabel>
-              <Select value={filterSprint} label="Sprint" onChange={(e) => setFilterSprint(e.target.value)}>
-                <MenuItem value="all">All Sprints</MenuItem>
-                {sprints.map((sp) => {
-                  const team = teams.find((t) => t.id === sp.teamId);
-                  return (
-                    <MenuItem key={sp.id} value={sp.id}>
-                      {sp.name}{team ? ` (${team.name})` : ''}
-                    </MenuItem>
-                  );
-                })}
-              </Select>
-            </FormControl>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>From</Typography>
-              <TextField type="date" size="small" value={filterFromDate}
-                onChange={(e) => setFilterFromDate(e.target.value)} sx={{ width: 140 }} />
-              <Typography variant="caption" color="text.secondary">To</Typography>
-              <TextField type="date" size="small" value={filterToDate}
-                onChange={(e) => setFilterToDate(e.target.value)} sx={{ width: 140 }} />
-            </Stack>
-          </Stack>
-        )}
-
-        <FormControl size="small" sx={{ minWidth: 140 }}>
+        <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel>Status</InputLabel>
           <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
             <MenuItem value="all">All Statuses</MenuItem>
+            <MenuItem value="active_work">In Progress / Planned</MenuItem>
             {statusOptions.map((o) => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
           </Select>
         </FormControl>
