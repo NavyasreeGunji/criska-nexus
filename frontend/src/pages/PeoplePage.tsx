@@ -46,6 +46,20 @@ const roles: DeveloperRole[] = [
   'HR', 'Sprint Master',
 ];
 
+const ROLE_PRIORITY: Record<DeveloperRole, number> = {
+  Manager: 1,
+  'Technical Manager': 2,
+  'Delivery Manager': 3,
+  'Associate Manager': 4,
+  'Tech Lead': 5,
+  'Sprint Master': 6,
+  HR: 7,
+  'Senior Developer': 8,
+  Developer: 9,
+  'QA Engineer': 10,
+  DevOps: 11,
+};
+
 const avatarColors = ['#2563EB', '#7C3AED', '#16a34a', '#d97706', '#dc2626', '#0891b2', '#be185d'];
 
 function getAvatarColor(name: string) {
@@ -96,7 +110,11 @@ export default function PeoplePage() {
       const team = teams.find((t) => t.id === filterTeam);
       return d.teamIds.includes(filterTeam) || (team?.members.includes(d.name) ?? false);
     })
-    .sort((a, b) => Number(a.id.replace('DEV-', '')) - Number(b.id.replace('DEV-', '')));
+    .sort((a, b) => {
+      const rDiff = (ROLE_PRIORITY[a.role] ?? 99) - (ROLE_PRIORITY[b.role] ?? 99);
+      if (rDiff !== 0) return rDiff;
+      return a.name.localeCompare(b.name);
+    });
 
   const openAdd = () => { setForm(emptyForm); setEditTarget(null); setEmailError(''); setNameError(''); setDialogOpen(true); };
   const openEdit = (d: DeveloperProfile) => {
