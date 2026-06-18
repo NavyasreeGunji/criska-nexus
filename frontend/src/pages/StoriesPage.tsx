@@ -33,6 +33,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SpeedIcon from '@mui/icons-material/Speed';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import { Story, initialStories, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories, apiCreateStory, apiUpdateStory } from '../api/api';
@@ -96,7 +97,7 @@ export default function StoriesPage() {
       setStories(initialStories);
     }
   }, [backendChecked, backendOnline]);
-  const [viewBy, setViewBy] = useState<'sprint' | 'month'>('sprint');
+  const [viewBy, setViewBy] = useState<'sprint' | 'month' | 'all'>('sprint');
 
   // Sprint view state
   const [selectedTeamId, setSelectedTeamId] = useState('');
@@ -142,6 +143,7 @@ export default function StoriesPage() {
   }, [stories]);
 
   const baseFiltered = useMemo(() => {
+    if (viewBy === 'all') return stories;
     if (viewBy === 'sprint') {
       if (selectedTeamId === 'all') return stories;
       return stories.filter((s) => s.teamId === selectedTeamId && s.sprintId === resolvedSprintId);
@@ -216,7 +218,9 @@ export default function StoriesPage() {
     }
   };
 
-  const viewLabel = viewBy === 'sprint'
+  const viewLabel = viewBy === 'all'
+    ? 'All Stories'
+    : viewBy === 'sprint'
     ? `${selectedTeam?.name ?? ''} · ${selectedSprint?.name ?? ''}`
     : formatMonth(selectedMonth);
 
@@ -235,6 +239,9 @@ export default function StoriesPage() {
           </ToggleButton>
           <ToggleButton value="month" sx={{ gap: 0.75, px: 2 }}>
             <CalendarMonthIcon fontSize="small" /> Monthly
+          </ToggleButton>
+          <ToggleButton value="all" sx={{ gap: 0.75, px: 2 }}>
+            <ListAltIcon fontSize="small" /> All
           </ToggleButton>
         </ToggleButtonGroup>
 
@@ -276,7 +283,7 @@ export default function StoriesPage() {
               </Stack>
             )}
           </Stack>
-        ) : (
+        ) : viewBy === 'month' ? (
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <InputLabel>Select Month</InputLabel>
             <Select
@@ -289,11 +296,11 @@ export default function StoriesPage() {
               ))}
             </Select>
           </FormControl>
-        )}
+        ) : null}
 
         <Box sx={{ flexGrow: 1 }} />
         <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}
-          disabled={viewBy === 'sprint' && (selectedTeamId === 'all' || !resolvedSprintId)}>
+          disabled={viewBy === 'sprint' && (selectedTeamId === 'all' || !resolvedSprintId) && viewBy !== 'all'}>
           Add Story
         </Button>
       </Stack>

@@ -28,6 +28,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import GroupsIcon from '@mui/icons-material/Groups';
 import EditIcon from '@mui/icons-material/Edit';
 import SpeedIcon from '@mui/icons-material/Speed';
+import HistoryIcon from '@mui/icons-material/History';
 import { useApp } from '../context/AppContext';
 import { Team, Sprint, SprintStatus, initialStories, initialDeveloperProfiles, DeveloperProfile } from '../data/mockData';
 import { apiGetDevelopers } from '../api/api';
@@ -37,6 +38,43 @@ const sprintStatusConfig: Record<SprintStatus, { color: 'default' | 'primary' | 
   active: { color: 'primary', label: 'Active', bg: '#dbeafe', text: '#2563EB' },
   completed: { color: 'success', label: 'Completed', bg: '#dcfce7', text: '#16a34a' },
 };
+
+function SprintCard({ sprint, onEdit, storyCount, points }: {
+  sprint: Sprint;
+  onEdit: (s: Sprint) => void;
+  storyCount: number;
+  points: number;
+}) {
+  const cfg = sprintStatusConfig[sprint.status];
+  return (
+    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+      <Stack direction="row" alignItems="flex-start">
+        <Box sx={{ flexGrow: 1 }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+            <Typography variant="body1" fontWeight={700}>{sprint.name}</Typography>
+            <Chip label={cfg.label} size="small" sx={{ bgcolor: cfg.bg, color: cfg.text, fontWeight: 600, fontSize: 11 }} />
+            {storyCount > 0 && (
+              <Chip label={`${storyCount} stories · ${points} pts`} size="small" variant="outlined" color="primary" />
+            )}
+          </Stack>
+          <Typography variant="caption" color="text.secondary">
+            {sprint.startDate} → {sprint.endDate}
+          </Typography>
+          {sprint.goal && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              Goal: {sprint.goal}
+            </Typography>
+          )}
+        </Box>
+        <Tooltip title="Edit sprint">
+          <IconButton size="small" onClick={() => onEdit(sprint)}>
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </Paper>
+  );
+}
 
 const emptyTeamForm = { name: '', description: '', members: [] as string[] };
 const emptySprintForm = { name: '', startDate: '', endDate: '', status: 'planned' as SprintStatus, goal: '' };
@@ -56,6 +94,14 @@ export default function TeamsPage() {
   const [sprintForm, setSprintForm] = useState(emptySprintForm);
   const [isSavingSprint, setIsSavingSprint] = useState(false);
   const [sprintDateError, setSprintDateError] = useState('');
+  const [showCompletedFor, setShowCompletedFor] = useState<Set<string>>(new Set());
+
+  const toggleCompleted = (teamId: string) =>
+    setShowCompletedFor((prev) => {
+      const next = new Set(prev);
+      next.has(teamId) ? next.delete(teamId) : next.add(teamId);
+      return next;
+    });
 
   // Always fetch fresh developer list when dialog opens so new/teamless devs appear
   useEffect(() => {
@@ -173,6 +219,9 @@ export default function TeamsPage() {
       {teams.map((team) => {
         const teamSprints = getTeamSprints(team.id);
         const activeSprint = teamSprints.find((s) => s.status === 'active');
+        const activePlannedSprints = teamSprints.filter((s) => s.status !== 'completed');
+        const completedSprints = teamSprints.filter((s) => s.status === 'completed');
+        const showingCompleted = showCompletedFor.has(team.id);
         return (
           <Accordion key={team.id} defaultExpanded sx={{ mb: 1.5, '&:before': { display: 'none' } }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 2.5 }}>
@@ -249,55 +298,35 @@ export default function TeamsPage() {
               )}
 
               <Stack spacing={1.5}>
-                {teamSprints.map((sprint) => {
-                  const cfg = sprintStatusConfig[sprint.status];
-                  const storyCount = getStoryCount(sprint.id);
-                  const points = getPoints(sprint.id);
-                  return (
-                    <Paper
-                      key={sprint.id}
-                      variant="outlined"
-                      sx={{ p: 2, borderRadius: 2 }}
-                    >
-                      <Stack direction="row" alignItems="flex-start">
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                            <Typography variant="body1" fontWeight={700}>
-                              {sprint.name}
-                            </Typography>
-                            <Chip
-                              label={cfg.label}
-                              size="small"
-                              sx={{ bgcolor: cfg.bg, color: cfg.text, fontWeight: 600, fontSize: 11 }}
-                            />
-                            {storyCount > 0 && (
-                              <Chip
-                                label={`${storyCount} stories · ${points} pts`}
-                                size="small"
-                                variant="outlined"
-                                color="primary"
-                              />
-                            )}
-                          </Stack>
-                          <Typography variant="caption" color="text.secondary">
-                            {sprint.startDate} → {sprint.endDate}
-                          </Typography>
-                          {sprint.goal && (
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                              Goal: {sprint.goal}
-                            </Typography>
-                          )}
-                        </Box>
-                        <Tooltip title="Edit sprint">
-                          <IconButton size="small" onClick={() => openEditSprint(sprint)}>
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </Paper>
-                  );
-                })}
+                {activePlannedSprints.map((sprint) => (
+                  <SprintCard key={sprint.id} sprint={sprint} onEdit={openEditSprint}
+                    storyCount={getStoryCount(sprint.id)} points={getPoints(sprint.id)} />
+                ))}
               </Stack>
+
+              {completedSprints.length > 0 && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Button
+                    size="small"
+                    startIcon={<HistoryIcon fontSize="small" />}
+                    onClick={() => toggleCompleted(team.id)}
+                    sx={{ color: 'text.secondary', fontWeight: 500 }}
+                  >
+                    {showingCompleted
+                      ? 'Hide completed sprints'
+                      : `Show ${completedSprints.length} completed sprint${completedSprints.length !== 1 ? 's' : ''}`}
+                  </Button>
+
+                  {showingCompleted && (
+                    <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+                      {completedSprints.map((sprint) => (
+                        <SprintCard key={sprint.id} sprint={sprint} onEdit={openEditSprint}
+                          storyCount={getStoryCount(sprint.id)} points={getPoints(sprint.id)} />
+                      ))}
+                    </Stack>
+                  )}
+                </Box>
+              )}
             </AccordionDetails>
           </Accordion>
         );
