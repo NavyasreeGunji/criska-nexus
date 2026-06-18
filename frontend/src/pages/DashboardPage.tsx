@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Grid,
@@ -60,6 +61,7 @@ const deployStatusLabel: Record<DeploymentStatus, string> = {
 };
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { backendOnline, backendChecked } = useApp();
   const [stories, setStories] = useState<Story[]>([]);
   const [bugs, setBugs] = useState<Bug[]>([]);
@@ -247,6 +249,7 @@ export default function DashboardPage() {
                   <ListItem disableGutters sx={{ py: 0.75 }}>
                     <ListItemAvatar sx={{ minWidth: 42 }}>
                       <Avatar
+                        onClick={() => navigate('/daily-log', { state: { developer: log.developer } })}
                         sx={{
                           width: 30,
                           height: 30,
@@ -254,6 +257,8 @@ export default function DashboardPage() {
                           fontWeight: 700,
                           bgcolor: '#2563EB18',
                           color: '#2563EB',
+                          cursor: 'pointer',
+                          '&:hover': { bgcolor: '#2563EB30' },
                         }}
                       >
                         {log.developer.split(' ').map((n) => n[0]).join('')}
@@ -261,7 +266,11 @@ export default function DashboardPage() {
                     </ListItemAvatar>
                     <ListItemText
                       primary={
-                        <Typography variant="body2" fontWeight={500}>
+                        <Typography
+                          variant="body2" fontWeight={500}
+                          onClick={() => navigate('/daily-log', { state: { developer: log.developer } })}
+                          sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+                        >
                           {log.developer}
                         </Typography>
                       }

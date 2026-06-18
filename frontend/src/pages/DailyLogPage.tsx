@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -21,6 +22,8 @@ import {
   InputLabel,
   Stack,
   Autocomplete,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import Alert from '@mui/material/Alert';
@@ -33,15 +36,51 @@ import {
 import { useApp } from '../context/AppContext';
 import { apiGetLogs, apiCreateLog, apiGetStories } from '../api/api';
 
+type FilterPeriod = 'today' | 'week' | 'month' | 'all';
+
+const today = new Date().toISOString().slice(0, 10);
+
+function getWeekRange(): [string, string] {
+  const now = new Date();
+  const day = now.getDay();
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  return [mon.toISOString().slice(0, 10), sun.toISOString().slice(0, 10)];
+}
+
+function getMonthRange(): [string, string] {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+  return [first, last];
+}
+
+function inPeriod(date: string, period: FilterPeriod): boolean {
+  if (period === 'all') return true;
+  if (period === 'today') return date === today;
+  if (period === 'week') {
+    const [mon, sun] = getWeekRange();
+    return date >= mon && date <= sun;
+  }
+  if (period === 'month') {
+    const [first, last] = getMonthRange();
+    return date >= first && date <= last;
+  }
+  return true;
+}
+
 const emptyForm = (): Omit<DailyLog, 'id'> => ({
   developer: '',
-  date: new Date().toISOString().slice(0, 10),
+  date: today,
   title: '',
   description: '',
   hours: 4,
 });
 
 export default function DailyLogPage() {
+  const location = useLocation();
   const { currentUser, developerProfiles, backendOnline, backendChecked } = useApp();
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [allStories, setAllStories] = useState<Story[]>([]);
@@ -57,8 +96,9 @@ export default function DailyLogPage() {
     }
   }, [backendChecked, backendOnline]);
 
-  const [filterDev, setFilterDev] = useState(currentUser?.name ?? 'all');
-  const [filterDate, setFilterDate] = useState('');
+  const navDeveloper = (location.state as any)?.developer ?? null;
+  const [filterDev, setFilterDev] = useState(navDeveloper ?? currentUser?.name ?? 'all');
+  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('today');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -68,15 +108,15 @@ export default function DailyLogPage() {
   });
 
   useEffect(() => {
+    if (navDeveloper) return;
     if (currentUser) setFilterDev(currentUser.name);
   }, [currentUser]);
 
-  // Stories assigned to the selected developer
   const devStories = allStories.filter((s) => s.assignee === form.developer);
 
   const filtered = logs
     .filter((l) => filterDev === 'all' || l.developer === filterDev)
-    .filter((l) => !filterDate || l.date === filterDate)
+    .filter((l) => inPeriod(l.date, filterPeriod))
     .sort((a, b) => b.date.localeCompare(a.date) || a.developer.localeCompare(b.developer));
 
   const totalHours = filtered.reduce((sum, l) => sum + l.hours, 0);
@@ -101,6 +141,8 @@ export default function DailyLogPage() {
     }
   };
 
+  const showDevColumn = filterDev === 'all';
+
   return (
     <Box>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -117,14 +159,19 @@ export default function DailyLogPage() {
             ))}
           </Select>
         </FormControl>
-        <TextField
-          label="Date"
-          type="date"
+
+        <ToggleButtonGroup
+          value={filterPeriod}
+          exclusive
+          onChange={(_, val) => { if (val) setFilterPeriod(val); }}
           size="small"
-          value={filterDate}
-          onChange={(e) => setFilterDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-        />
+        >
+          <ToggleButton value="today">Today</ToggleButton>
+          <ToggleButton value="week">This Week</ToggleButton>
+          <ToggleButton value="month">This Month</ToggleButton>
+          <ToggleButton value="all">All</ToggleButton>
+        </ToggleButtonGroup>
+
         <Typography variant="body2" color="text.secondary">
           {filtered.length} entries · {totalHours}h total
         </Typography>
@@ -147,28 +194,43 @@ export default function DailyLogPage() {
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
               <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', textAlign: 'center', width: '12%' }}>Date</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', textAlign: 'center', width: '28%' }}>Title</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', textAlign: 'center', width: '48%' }}>Description</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', textAlign: 'center', width: '12%' }}>Hours</TableCell>
+              {showDevColumn && (
+                <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', textAlign: 'center', width: '16%' }}>Developer</TableCell>
+              )}
+              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', textAlign: 'center', width: showDevColumn ? '24%' : '28%' }}>Title</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', textAlign: 'center' }}>Description</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', textAlign: 'center', width: '10%' }}>Hours</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filtered.map((log) => (
               <TableRow key={log.id} hover>
                 <TableCell sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ textAlign: 'center' }}>{log.date}</Typography>
+                  <Typography variant="body2">{log.date}</Typography>
+                </TableCell>
+                {showDevColumn && (
+                  <TableCell sx={{ textAlign: 'center' }}>
+                    <Typography variant="body2" fontWeight={500}>{log.developer}</Typography>
+                  </TableCell>
+                )}
+                <TableCell sx={{ textAlign: 'center' }}>
+                  <Typography variant="body2" fontWeight={600}>{log.title}</Typography>
                 </TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2" fontWeight={600} sx={{ textAlign: 'center' }}>{log.title}</Typography>
+                  <Typography variant="body2">{log.description}</Typography>
                 </TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ textAlign: 'center' }}>{log.description}</Typography>
-                </TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2" fontWeight={700} sx={{ textAlign: 'center' }}>{log.hours}h</Typography>
+                  <Typography variant="body2" fontWeight={700}>{log.hours}h</Typography>
                 </TableCell>
               </TableRow>
             ))}
+            {filtered.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={showDevColumn ? 5 : 4} sx={{ textAlign: 'center', py: 4, color: '#94a3b8' }}>
+                  No logs found for this period
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
