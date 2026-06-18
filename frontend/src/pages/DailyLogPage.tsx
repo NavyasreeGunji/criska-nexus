@@ -165,24 +165,24 @@ export default function DailyLogPage() {
           <ToggleButton value="week">This Week</ToggleButton>
         </ToggleButtonGroup>
 
-        <TextField
-          label="From"
-          type="date"
-          size="small"
-          value={fromDate}
-          onChange={(e) => { setFromDate(e.target.value); setFilterPeriod('custom'); }}
-          InputLabelProps={{ shrink: true }}
-          sx={{ width: 145 }}
-        />
-        <TextField
-          label="To"
-          type="date"
-          size="small"
-          value={toDate}
-          onChange={(e) => { setToDate(e.target.value); setFilterPeriod('custom'); }}
-          InputLabelProps={{ shrink: true }}
-          sx={{ width: 145 }}
-        />
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>From</Typography>
+          <TextField
+            type="date"
+            size="small"
+            value={fromDate}
+            onChange={(e) => { setFromDate(e.target.value); setFilterPeriod('custom'); }}
+            sx={{ width: 140 }}
+          />
+          <Typography variant="caption" color="text.secondary">To</Typography>
+          <TextField
+            type="date"
+            size="small"
+            value={toDate}
+            onChange={(e) => { setToDate(e.target.value); setFilterPeriod('custom'); }}
+            sx={{ width: 140 }}
+          />
+        </Stack>
 
         <Typography variant="body2" color="text.secondary">
           {filtered.length} entries · {totalHours}h total

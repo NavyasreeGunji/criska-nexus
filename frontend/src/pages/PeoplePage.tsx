@@ -28,6 +28,7 @@ import { useApp } from '../context/AppContext';
 
 const roleConfig: Record<DeveloperRole, { color: string; bg: string }> = {
   Developer: { color: '#2563EB', bg: '#dbeafe' },
+  'Senior Developer': { color: '#1d4ed8', bg: '#bfdbfe' },
   'QA Engineer': { color: '#7C3AED', bg: '#ede9fe' },
   DevOps: { color: '#16a34a', bg: '#dcfce7' },
   'Tech Lead': { color: '#d97706', bg: '#fef3c7' },
@@ -40,7 +41,7 @@ const roleConfig: Record<DeveloperRole, { color: string; bg: string }> = {
 };
 
 const roles: DeveloperRole[] = [
-  'Developer', 'QA Engineer', 'DevOps', 'Tech Lead',
+  'Developer', 'Senior Developer', 'QA Engineer', 'DevOps', 'Tech Lead',
   'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager',
   'HR', 'Sprint Master',
 ];
