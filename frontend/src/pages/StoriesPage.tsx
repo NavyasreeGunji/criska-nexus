@@ -110,8 +110,18 @@ export default function StoriesPage() {
     }
   }, [teams]);
 
-  // Month view state
-  const [selectedMonth, setSelectedMonth] = useState('2026-05');
+  // Month view state — default to current month
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  // All view state
+  const [allMode, setAllMode] = useState<'3months' | 'all'>('3months');
+  const [filterFromDate, setFilterFromDate] = useState(() => {
+    const d = new Date(); d.setMonth(d.getMonth() - 3); return d.toISOString().slice(0, 10);
+  });
+  const [filterToDate, setFilterToDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterAssignee, setFilterAssignee] = useState('all');
@@ -137,20 +147,31 @@ export default function StoriesPage() {
     return active?.id ?? teamSprints[0]?.id ?? '';
   }, [selectedSprintId, teamSprints, selectedTeamId]);
 
-  const availableMonths = useMemo(() => {
-    const keys = new Set(['2026-04', '2026-05', '2026-06', '2026-07', '2026-08']);
-    stories.forEach((s) => { const k = getMonthKey(s.createdDate); if (k) keys.add(k); });
-    return Array.from(keys).sort();
-  }, [stories]);
+  // Always generate 12 months (last 12 from today)
+  const yearMonths = useMemo(() => {
+    const months: string[] = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+    }
+    return months;
+  }, []);
 
   const baseFiltered = useMemo(() => {
-    if (viewBy === 'all') return stories;
+    if (viewBy === 'all') {
+      if (allMode === 'all') return stories;
+      return stories.filter((s) =>
+        (!filterFromDate || s.createdDate >= filterFromDate) &&
+        (!filterToDate || s.createdDate <= filterToDate)
+      );
+    }
     if (viewBy === 'sprint') {
       if (selectedTeamId === 'all') return stories;
       return stories.filter((s) => s.teamId === selectedTeamId && s.sprintId === resolvedSprintId);
     }
     return stories.filter((s) => getMonthKey(s.createdDate) === selectedMonth);
-  }, [stories, viewBy, selectedTeamId, resolvedSprintId, selectedMonth]);
+  }, [stories, viewBy, allMode, filterFromDate, filterToDate, selectedTeamId, resolvedSprintId, selectedMonth]);
 
   const filtered = useMemo(
     () =>
@@ -357,14 +378,39 @@ export default function StoriesPage() {
           </>
         )}
 
-        {/* Month view: month selector */}
+        {/* Month view: full 12-month selector */}
         {viewBy === 'month' && (
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <InputLabel>Select Month</InputLabel>
             <Select value={selectedMonth} label="Select Month" onChange={(e) => setSelectedMonth(e.target.value)}>
-              {availableMonths.map((m) => <MenuItem key={m} value={m}>{formatMonth(m)}</MenuItem>)}
+              {yearMonths.map((m) => <MenuItem key={m} value={m}>{formatMonth(m)}</MenuItem>)}
             </Select>
           </FormControl>
+        )}
+
+        {/* All view: 3 months vs all data toggle + date pickers */}
+        {viewBy === 'all' && (
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <ToggleButtonGroup
+              value={allMode}
+              exclusive
+              onChange={(_, v) => v && setAllMode(v)}
+              size="small"
+            >
+              <ToggleButton value="3months">Last 3 Months</ToggleButton>
+              <ToggleButton value="all">All Data</ToggleButton>
+            </ToggleButtonGroup>
+            {allMode === '3months' && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>From</Typography>
+                <TextField type="date" size="small" value={filterFromDate}
+                  onChange={(e) => setFilterFromDate(e.target.value)} sx={{ width: 140 }} />
+                <Typography variant="caption" color="text.secondary">To</Typography>
+                <TextField type="date" size="small" value={filterToDate}
+                  onChange={(e) => setFilterToDate(e.target.value)} sx={{ width: 140 }} />
+              </Stack>
+            )}
+          </Stack>
         )}
 
         <FormControl size="small" sx={{ minWidth: 140 }}>
