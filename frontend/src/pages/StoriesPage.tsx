@@ -265,7 +265,7 @@ export default function StoriesPage() {
       {/* Sprint goal banner */}
       {viewBy === 'sprint' && selectedSprint?.goal && (
         <Paper variant="outlined" sx={{ px: 2, py: 1.25, mb: 2, bgcolor: '#F8FAFC' }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
             <strong>Sprint Goal:</strong> {selectedSprint.goal}
             <Chip
               label={`${selectedSprint.startDate} → ${selectedSprint.endDate}`}

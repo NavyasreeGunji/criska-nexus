@@ -61,7 +61,7 @@ function SprintCard({ sprint, onEdit, storyCount, points }: {
             {sprint.startDate} → {sprint.endDate}
           </Typography>
           {sprint.goal && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, wordBreak: 'break-word', overflowWrap: 'break-word' }}>
               Goal: {sprint.goal}
             </Typography>
           )}
