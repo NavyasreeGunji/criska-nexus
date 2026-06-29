@@ -268,13 +268,13 @@ export default function PeoplePage() {
         )}
       </Stack>
 
-      <Grid container spacing={2}>
+      <Grid container spacing={2} alignItems="stretch">
         {displayed.map((dev) => {
           const rc = roleConfig[dev.role];
           const color = getAvatarColor(dev.name);
           const devTeams = teams.filter((t) => dev.teamIds.includes(t.id) || t.members.includes(dev.name));
           return (
-            <Grid item xs={12} sm={6} md={4} key={dev.id}>
+            <Grid item xs={12} sm={6} md={4} key={dev.id} sx={{ display: 'flex' }}>
               <Paper
                 sx={{
                   p: 2.5,
@@ -282,6 +282,9 @@ export default function PeoplePage() {
                   flexDirection: 'column',
                   gap: 1.5,
                   position: 'relative',
+                  width: '100%',
+                  height: 260,
+                  overflow: 'hidden',
                   '&:hover .edit-btn': { opacity: 1 },
                 }}
               >
@@ -337,11 +340,13 @@ export default function PeoplePage() {
                   sx={{ bgcolor: rc.bg, color: rc.color, fontWeight: 700, alignSelf: 'flex-start' }}
                 />
 
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  <EmailIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
-                  <Typography variant="caption" color="text.secondary">
-                    {dev.email}
-                  </Typography>
+                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
+                  <EmailIcon sx={{ fontSize: 14, color: 'text.disabled', flexShrink: 0 }} />
+                  <Tooltip title={dev.email}>
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {dev.email}
+                    </Typography>
+                  </Tooltip>
                 </Stack>
 
                 {(dev.projectTypes ?? []).length > 0 && (
@@ -354,11 +359,13 @@ export default function PeoplePage() {
                 )}
 
                 {devTeams.length > 0 && (
-                  <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ width: '100%' }}>
-                    {devTeams.map((t) => (
-                      <Chip key={t.id} label={t.name} size="small" variant="outlined" />
-                    ))}
-                  </Stack>
+                  <Box sx={{ overflow: 'hidden', maxHeight: 60 }}>
+                    <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ width: '100%' }}>
+                      {devTeams.map((t) => (
+                        <Chip key={t.id} label={t.name} size="small" variant="outlined" />
+                      ))}
+                    </Stack>
+                  </Box>
                 )}
               </Paper>
             </Grid>
