@@ -250,6 +250,8 @@ export default function BugsPage() {
               fullWidth
               size="small"
               required
+              error={form.title.length > 0 && !form.title.trim()}
+              helperText={form.title.length > 0 && !form.title.trim() ? 'Title cannot be only spaces' : ''}
             />
             <TextField
               label="Description"
@@ -318,6 +320,8 @@ export default function BugsPage() {
                 fullWidth
                 placeholder="Client or team member name"
                 required
+                error={form.reporter.length > 0 && !form.reporter.trim()}
+                helperText={form.reporter.length > 0 && !form.reporter.trim() ? 'Reporter cannot be only spaces' : ''}
               />
               <FormControl size="small" fullWidth required>
                 <InputLabel required>Assignee</InputLabel>

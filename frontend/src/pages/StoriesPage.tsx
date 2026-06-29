@@ -449,7 +449,13 @@ export default function StoriesPage() {
         <DialogTitle>{editTarget ? 'Edit Story' : 'Add Story'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField label="Title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} fullWidth size="small" required />
+            <TextField
+              label="Title" value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+              fullWidth size="small" required
+              error={form.title.length > 0 && !form.title.trim()}
+              helperText={form.title.length > 0 && !form.title.trim() ? 'Title cannot be only spaces' : ''}
+            />
             <TextField label="Description" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} fullWidth size="small" multiline rows={2} />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField label="Story Points" type="number" value={form.points}
@@ -499,6 +505,8 @@ export default function StoriesPage() {
                 fullWidth
                 placeholder="Client or team member name"
                 required
+                error={form.reporter.length > 0 && !form.reporter.trim()}
+                helperText={form.reporter.length > 0 && !form.reporter.trim() ? 'Reporter cannot be only spaces' : ''}
               />
               <FormControl size="small" fullWidth required>
                 <InputLabel required>Assignee</InputLabel>

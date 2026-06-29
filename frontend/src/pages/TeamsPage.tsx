@@ -135,12 +135,14 @@ export default function TeamsPage() {
   };
 
   const saveTeam = async () => {
+    const trimmedTeamForm = { ...teamForm, name: teamForm.name.trim() };
+    setTeamForm(trimmedTeamForm);
     setIsSavingTeam(true);
     try {
       if (editTeam) {
-        await updateTeam({ ...editTeam, ...teamForm });
+        await updateTeam({ ...editTeam, ...trimmedTeamForm });
       } else {
-        await addTeam(teamForm);
+        await addTeam(trimmedTeamForm);
       }
       setTeamDialog(false);
     } finally {
@@ -165,12 +167,14 @@ export default function TeamsPage() {
   };
 
   const saveSprint = async () => {
+    const trimmedSprintForm = { ...sprintForm, name: sprintForm.name.trim() };
+    setSprintForm(trimmedSprintForm);
     const today = new Date().toISOString().slice(0, 10);
-    if (!editSprint && sprintForm.startDate && sprintForm.startDate < today) {
+    if (!editSprint && trimmedSprintForm.startDate && trimmedSprintForm.startDate < today) {
       setSprintDateError('Start date must be today or in the future');
       return;
     }
-    if (sprintForm.startDate && sprintForm.endDate && sprintForm.endDate <= sprintForm.startDate) {
+    if (trimmedSprintForm.startDate && trimmedSprintForm.endDate && trimmedSprintForm.endDate <= trimmedSprintForm.startDate) {
       setSprintDateError('End date must be after start date');
       return;
     }
@@ -178,9 +182,9 @@ export default function TeamsPage() {
     setIsSavingSprint(true);
     try {
       if (editSprint) {
-        await updateSprint({ ...editSprint, ...sprintForm });
+        await updateSprint({ ...editSprint, ...trimmedSprintForm });
       } else {
-        await addSprint({ teamId: sprintTeamId, ...sprintForm });
+        await addSprint({ teamId: sprintTeamId, ...trimmedSprintForm });
       }
       setSprintDialog(false);
     } finally {
@@ -406,7 +410,7 @@ export default function TeamsPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setTeamDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={saveTeam} disabled={isSavingTeam || !teamForm.name}>
+          <Button variant="contained" onClick={saveTeam} disabled={isSavingTeam || !teamForm.name.trim()}>
             {isSavingTeam ? 'Saving…' : 'Save'}
           </Button>
         </DialogActions>
@@ -482,7 +486,7 @@ export default function TeamsPage() {
           <Button
             variant="contained"
             onClick={saveSprint}
-            disabled={isSavingSprint || !sprintForm.name || !sprintForm.startDate || !sprintForm.endDate}
+            disabled={isSavingSprint || !sprintForm.name.trim() || !sprintForm.startDate || !sprintForm.endDate}
           >
             {isSavingSprint ? 'Saving…' : 'Save'}
           </Button>
