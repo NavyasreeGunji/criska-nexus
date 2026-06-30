@@ -130,7 +130,7 @@ export default function DashboardPage() {
     },
   ];
 
-  const activeStories = stories.filter((s) => s.status !== 'done').slice(0, 5);
+  const activeStories = stories.filter((s) => s.status === 'in_progress').slice(0, 5);
   const openBugList = bugs.filter((b) => b.status === 'open' || b.status === 'in_progress');
   const recentDeployments = [...deployments].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
 
