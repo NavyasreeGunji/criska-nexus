@@ -128,11 +128,11 @@ export default function LoginPage() {
     >
       <Paper sx={{ p: 4, width: '100%', maxWidth: 400 }}>
         <Box sx={{ textAlign: 'center', mb: 3.5 }}>
-          <Typography variant="h5" fontWeight={800} color="#1e293b" letterSpacing={0.5}>
-            DevTrack
+          <Typography variant="h5" fontWeight={800} color="#1e293b" letterSpacing={1}>
+            CRISKA NEXUS
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            Converge Engineering Portal
+            Project Management Portal
           </Typography>
         </Box>
 

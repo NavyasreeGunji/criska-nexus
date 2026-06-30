@@ -59,11 +59,11 @@ function DrawerContent({ onNavigate }: { onNavigate: () => void }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ p: 3, pb: 2 }}>
-        <Typography variant="h6" fontWeight={700} color="white" letterSpacing={0.5}>
-          DevTrack
+        <Typography variant="h6" fontWeight={700} color="white" letterSpacing={1}>
+          CRISKA NEXUS
         </Typography>
         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)' }}>
-          Engineering Portal
+          Project Management Portal
         </Typography>
       </Box>
 
