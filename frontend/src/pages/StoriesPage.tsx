@@ -28,6 +28,7 @@ import {
   Grid,
   LinearProgress,
   Alert,
+  Divider,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -572,58 +573,59 @@ export default function StoriesPage() {
               <Stack spacing={2} sx={{ mt: 0.5 }}>
                 {vs.description && (
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Description</Typography>
-                    <Typography variant="body2" sx={{ mt: 0.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{vs.description}</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 0.5 }}>Description</Typography>
+                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.7 }}>{vs.description}</Typography>
                   </Box>
                 )}
-                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+
+                <Divider />
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>ID</Typography>
-                    <Typography variant="body2">{vs.id}</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Points</Typography>
+                    <Typography variant="body2" fontWeight={600}>{vs.points}</Typography>
                   </Box>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Points</Typography>
-                    <Typography variant="body2">{vs.points}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Team</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Team</Typography>
                     <Typography variant="body2">{team?.name ?? '—'}</Typography>
                   </Box>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Sprint</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Sprint</Typography>
                     <Typography variant="body2">{sprint?.name ?? '—'}</Typography>
                   </Box>
-                </Stack>
-                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                </Box>
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Reporter</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Reporter</Typography>
                     <Typography variant="body2">{vs.reporter || '—'}</Typography>
                   </Box>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Assignee</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Assignee</Typography>
                     <Typography variant="body2">{vs.assignee || '—'}</Typography>
                   </Box>
-                </Stack>
-                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                </Box>
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Created</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Created</Typography>
                     <Typography variant="body2">{fmtDate(vs.createdDate)}</Typography>
                   </Box>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Due Date</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Due Date</Typography>
                     <Typography variant="body2" sx={{ color: overdue ? '#dc2626' : 'inherit', fontWeight: overdue ? 700 : 400 }}>
-                      {fmtDate(vs.dueDate)}{overdue ? ' ⚠ Overdue' : ''}
+                      {fmtDate(vs.dueDate)}{overdue ? ' ⚠' : ''}
                     </Typography>
                   </Box>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Started</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Started</Typography>
                     <Typography variant="body2">{fmtDate(vs.startedDate)}</Typography>
                   </Box>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Completed</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Completed</Typography>
                     <Typography variant="body2">{fmtDate(vs.completedDate)}</Typography>
                   </Box>
-                </Stack>
+                </Box>
               </Stack>
             </DialogContent>
             <DialogActions>

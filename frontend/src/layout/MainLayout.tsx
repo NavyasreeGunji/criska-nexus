@@ -59,10 +59,21 @@ function DrawerContent({ onNavigate }: { onNavigate: () => void }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ p: 3, pb: 2 }}>
-        <Typography variant="h6" fontWeight={700} color="white" letterSpacing={1}>
-          CRISKA NEXUS
-        </Typography>
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.5 }}>
+          <Box sx={{
+            width: 32, height: 32, borderRadius: '8px',
+            background: 'rgba(255,255,255,0.15)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 900, color: 'white', letterSpacing: 0.5 }}>CN</Typography>
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 900, color: 'white', letterSpacing: 2, lineHeight: 1 }}>
+            CRISKA NEXUS
+          </Typography>
+        </Box>
+        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', pl: '44px' }}>
           Project Management Portal
         </Typography>
       </Box>
