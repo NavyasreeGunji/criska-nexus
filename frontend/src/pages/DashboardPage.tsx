@@ -180,14 +180,12 @@ export default function DashboardPage() {
                       }
                       secondary={`${story.assignee} · ${sprints.find((s) => s.id === story.sprintId)?.name ?? ''}`}
                     />
-                    <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexShrink: 0 }}>
-                      <Chip label={`${story.points}pt`} size="small" variant="outlined" color="primary" />
-                      <Chip
-                        label={storyStatusLabel[story.status]}
-                        size="small"
-                        color={storyStatusColor[story.status]}
-                      />
-                    </Box>
+                    <Chip
+                      label={storyStatusLabel[story.status]}
+                      size="small"
+                      color={storyStatusColor[story.status]}
+                      sx={{ flexShrink: 0 }}
+                    />
                   </ListItem>
                 </Box>
               ))}
