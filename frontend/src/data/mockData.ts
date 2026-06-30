@@ -24,6 +24,7 @@ export interface Sprint {
 
 export interface Story {
   id: string;
+  storyNumber: string;
   title: string;
   description: string;
   points: number;
@@ -152,49 +153,49 @@ export const initialSprints: Sprint[] = [
 
 export const initialStories: Story[] = [
   {
-    id: 'S-001', title: 'User Authentication Module',
+    id: 'S-001', storyNumber: 'US-001', title: 'User Authentication Module',
     description: 'Implement OAuth2 login flow with SSO support',
     points: 8, status: 'done', reporter: 'Navya Sree Gunji', assignee: 'Abdul Wahid Syed',
     createdDate: '2026-05-01', dueDate: '2026-05-12', startedDate: '2026-05-03', completedDate: '2026-05-10',
     teamId: 'T-001', sprintId: 'SP-001',
   },
   {
-    id: 'S-002', title: 'Dashboard Analytics',
+    id: 'S-002', storyNumber: 'US-002', title: 'Dashboard Analytics',
     description: 'Build real-time metrics dashboard with chart components',
     points: 13, status: 'in_progress', reporter: 'Nagaraju Gunji', assignee: 'Adnan Yousof',
     createdDate: '2026-06-01', dueDate: '2026-06-10', startedDate: '2026-06-05', completedDate: '',
     teamId: 'T-001', sprintId: 'SP-003',
   },
   {
-    id: 'S-003', title: 'Export to CSV Feature',
+    id: 'S-003', storyNumber: 'US-003', title: 'Export to CSV Feature',
     description: 'Allow data export in CSV and Excel formats',
     points: 5, status: 'backlog', reporter: 'Raghavendra Aadesh', assignee: 'Manideep Vennam',
     createdDate: '2026-06-01', dueDate: '', startedDate: '', completedDate: '',
     teamId: 'T-002', sprintId: 'SP-005',
   },
   {
-    id: 'S-004', title: 'Notification System',
+    id: 'S-004', storyNumber: 'US-004', title: 'Notification System',
     description: 'Email and in-app push notifications',
     points: 8, status: 'done', reporter: 'Abdul Shahid Syed', assignee: 'Navya Gujjeti',
     createdDate: '2026-05-15', dueDate: '2026-05-28', startedDate: '2026-05-16', completedDate: '2026-05-26',
     teamId: 'T-001', sprintId: 'SP-002',
   },
   {
-    id: 'S-005', title: 'Performance Optimization',
+    id: 'S-005', storyNumber: 'US-005', title: 'Performance Optimization',
     description: 'Database query tuning and caching layer',
     points: 5, status: 'done', reporter: 'Aakhil Shaik', assignee: 'Nithin Pillalamari',
     createdDate: '2026-05-01', dueDate: '2026-05-12', startedDate: '2026-05-04', completedDate: '2026-05-10',
     teamId: 'T-002', sprintId: 'SP-004',
   },
   {
-    id: 'S-006', title: 'Mobile Responsive Layout',
+    id: 'S-006', storyNumber: 'US-006', title: 'Mobile Responsive Layout',
     description: 'Responsive UI redesign for mobile devices',
     points: 13, status: 'backlog', reporter: 'Navya Sree Gunji', assignee: 'Abdul Shahid Syed',
     createdDate: '2026-06-02', dueDate: '', startedDate: '', completedDate: '',
     teamId: 'T-001', sprintId: 'SP-003',
   },
   {
-    id: 'S-007', title: 'Role-Based Access Control',
+    id: 'S-007', storyNumber: 'US-007', title: 'Role-Based Access Control',
     description: 'Admin, manager, and developer permission levels',
     points: 8, status: 'in_progress', reporter: 'Nagaraju Gunji', assignee: 'Mohan Meesala',
     createdDate: '2026-06-01', dueDate: '2026-06-08', startedDate: '2026-06-05', completedDate: '',

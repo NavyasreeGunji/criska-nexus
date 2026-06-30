@@ -8,4 +8,6 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     List<Story> findByTeamId(Long teamId);
     List<Story> findBySprintId(Long sprintId);
     List<Story> findByAssignee(String assignee);
+    boolean existsByStoryNumber(String storyNumber);
+    boolean existsByStoryNumberAndIdNot(String storyNumber, Long id);
 }

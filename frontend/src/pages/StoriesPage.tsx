@@ -83,6 +83,7 @@ function formatMonth(key: string) {
 const today = () => new Date().toISOString().slice(0, 10);
 
 const emptyForm = (teamId = '', sprintId = ''): Omit<Story, 'id'> => ({
+  storyNumber: '',
   title: '',
   description: '',
   points: 3,
@@ -411,7 +412,7 @@ export default function StoriesPage() {
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              {['Title', 'Points', 'Status', 'Reporter', 'Assignee', 'Created', 'Due Date', 'Started', 'Completed', ''].map((h) => (
+              {['Story #', 'Title', 'Points', 'Status', 'Reporter', 'Assignee', 'Created', 'Due Date', 'Started', 'Completed', ''].map((h) => (
                 <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>{h}</TableCell>
               ))}
             </TableRow>
@@ -419,13 +420,16 @@ export default function StoriesPage() {
           <TableBody>
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} sx={{ textAlign: 'center', py: 4 }}>
+                <TableCell colSpan={11} sx={{ textAlign: 'center', py: 4 }}>
                   <Typography color="text.secondary">No stories found</Typography>
                 </TableCell>
               </TableRow>
             )}
             {filtered.map((story) => (
               <TableRow key={story.id} hover>
+                <TableCell>
+                  <Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber || '—'}</Typography>
+                </TableCell>
                 <TableCell sx={{ maxWidth: 220, overflow: 'hidden' }}>
                   <Typography
                     variant="body2" fontWeight={500} noWrap
@@ -474,6 +478,27 @@ export default function StoriesPage() {
         <DialogTitle>{editTarget ? 'Edit Story' : 'Add Story'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Story Number" value={form.storyNumber}
+              onChange={(e) => setForm((f) => ({ ...f, storyNumber: e.target.value }))}
+              fullWidth size="small" required
+              placeholder="e.g. US-101"
+              error={
+                (form.storyNumber.length > 0 && !form.storyNumber.trim()) ||
+                (!!form.storyNumber.trim() && stories.some(
+                  (s) => s.storyNumber === form.storyNumber.trim() && s.id !== editTarget?.id
+                ))
+              }
+              helperText={
+                form.storyNumber.length > 0 && !form.storyNumber.trim()
+                  ? 'Story number cannot be only spaces'
+                  : !!form.storyNumber.trim() && stories.some(
+                      (s) => s.storyNumber === form.storyNumber.trim() && s.id !== editTarget?.id
+                    )
+                  ? 'This story number already exists'
+                  : ''
+              }
+            />
             <TextField
               label="Title" value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
@@ -555,7 +580,16 @@ export default function StoriesPage() {
         )}
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave} disabled={isSaving || !form.title.trim() || !form.reporter.trim() || !form.assignee || !form.teamId || !form.sprintId}>{isSaving ? 'Saving…' : 'Save'}</Button>
+          <Button variant="contained" onClick={handleSave} disabled={
+            isSaving ||
+            !form.storyNumber.trim() ||
+            !form.title.trim() ||
+            !form.reporter.trim() ||
+            !form.assignee ||
+            !form.teamId ||
+            !form.sprintId ||
+            stories.some((s) => s.storyNumber === form.storyNumber.trim() && s.id !== editTarget?.id)
+          }>{isSaving ? 'Saving…' : 'Save'}</Button>
         </DialogActions>
       </Dialog>
 
@@ -569,8 +603,13 @@ export default function StoriesPage() {
         return (
           <Dialog open={!!viewStory} onClose={() => setViewStory(null)} maxWidth="sm" fullWidth>
             <DialogTitle>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Typography variant="h6" fontWeight={700}>{vs.title}</Typography>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+                <Box>
+                  {vs.storyNumber && (
+                    <Typography variant="caption" color="primary" fontWeight={700} display="block">{vs.storyNumber}</Typography>
+                  )}
+                  <Typography variant="h6" fontWeight={700}>{vs.title}</Typography>
+                </Box>
                 <Chip label={statusLabel(vs.status)} size="small" color={statusColor(vs.status)} />
               </Stack>
             </DialogTitle>

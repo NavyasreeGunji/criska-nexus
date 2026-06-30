@@ -2,9 +2,11 @@ package com.converge.controller;
 
 import com.converge.entity.Story;
 import com.converge.repository.StoryRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/stories")
@@ -44,13 +46,23 @@ public class StoryController {
     }
 
     @PostMapping
-    public Story create(@RequestBody Story story) {
-        return repository.save(story);
+    public ResponseEntity<?> create(@RequestBody Story story) {
+        if (story.getStoryNumber() != null && !story.getStoryNumber().isBlank()
+                && repository.existsByStoryNumber(story.getStoryNumber())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "Story number '" + story.getStoryNumber() + "' already exists."));
+        }
+        return ResponseEntity.ok(repository.save(story));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Story> update(@PathVariable("id") Long id, @RequestBody Story story) {
+    public ResponseEntity<?> update(@PathVariable("id") Long id, @RequestBody Story story) {
         if (!repository.existsById(id)) return ResponseEntity.notFound().build();
+        if (story.getStoryNumber() != null && !story.getStoryNumber().isBlank()
+                && repository.existsByStoryNumberAndIdNot(story.getStoryNumber(), id)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "Story number '" + story.getStoryNumber() + "' already exists."));
+        }
         story.setId(id);
         return ResponseEntity.ok(repository.save(story));
     }

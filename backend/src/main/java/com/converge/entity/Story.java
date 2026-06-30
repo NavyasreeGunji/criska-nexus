@@ -11,6 +11,9 @@ public class Story {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "story_number", unique = true)
+    private String storyNumber;
+
     @Column(columnDefinition = "TEXT")
     private String title;
 
@@ -33,6 +36,8 @@ public class Story {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public String getStoryNumber() { return storyNumber; }
+    public void setStoryNumber(String storyNumber) { this.storyNumber = storyNumber; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }

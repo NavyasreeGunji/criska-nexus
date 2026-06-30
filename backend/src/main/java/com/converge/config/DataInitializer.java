@@ -48,6 +48,8 @@ public class DataInitializer implements CommandLineRunner {
         alterColumnToText("story", "title");
         alterColumnToText("daily_status", "task_name");
         alterColumnToText("daily_status", "work_description");
+        addColumnIfNotExists("story", "story_number", "VARCHAR(100)");
+        addUniqueConstraintIfNotExists("story", "story_number", "uq_story_story_number");
         migrateEmailDomain("criskasecurity.com");
         migrateProjectTypes();
         migrateRole("navya.sree", "QA Engineer");
@@ -74,6 +76,34 @@ public class DataInitializer implements CommandLineRunner {
 
         developerRepository.saveAll(developers);
         System.out.println("✓ Seeded " + developers.size() + " developers");
+    }
+
+    private void addColumnIfNotExists(String table, String column, String type) {
+        try {
+            Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = ? AND column_name = ?",
+                Integer.class, table, column);
+            if (count == null || count == 0) {
+                jdbc.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
+                System.out.println("✓ Added column " + table + "." + column);
+            }
+        } catch (Exception e) {
+            System.out.println("⚠ Could not add column " + table + "." + column + ": " + e.getMessage());
+        }
+    }
+
+    private void addUniqueConstraintIfNotExists(String table, String column, String constraintName) {
+        try {
+            Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.table_constraints WHERE table_name = ? AND constraint_name = ?",
+                Integer.class, table, constraintName);
+            if (count == null || count == 0) {
+                jdbc.execute("ALTER TABLE " + table + " ADD CONSTRAINT " + constraintName + " UNIQUE (" + column + ")");
+                System.out.println("✓ Added unique constraint " + constraintName);
+            }
+        } catch (Exception e) {
+            System.out.println("⚠ Could not add constraint " + constraintName + ": " + e.getMessage());
+        }
     }
 
     private void alterColumnToText(String table, String column) {
