@@ -27,7 +27,6 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
@@ -54,14 +53,10 @@ function avatarColor(name: string) {
 
 function DrawerContent({
   isOpen,
-  onToggle,
   onNavigate,
-  showToggle,
 }: {
   isOpen: boolean;
-  onToggle: () => void;
   onNavigate: () => void;
-  showToggle: boolean;
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -106,28 +101,6 @@ function DrawerContent({
           </Box>
         )}
       </Box>
-
-      {/* Collapse toggle (desktop only) */}
-      {showToggle && (
-        <Box sx={{ px: 1, pb: 1, display: 'flex', justifyContent: isOpen ? 'flex-end' : 'center' }}>
-          <Tooltip title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'} placement="right">
-            <IconButton
-              size="small"
-              onClick={onToggle}
-              sx={{
-                color: 'rgba(255,255,255,0.5)',
-                bgcolor: 'rgba(255,255,255,0.06)',
-                borderRadius: 1.5,
-                '&:hover': { color: 'white', bgcolor: 'rgba(255,255,255,0.12)' },
-                transition: 'transform 0.25s ease',
-                transform: isOpen ? 'rotate(0deg)' : 'rotate(180deg)',
-              }}
-            >
-              <ChevronLeftIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      )}
 
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
 
@@ -252,9 +225,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         >
           <DrawerContent
             isOpen={sidebarOpen}
-            onToggle={() => setSidebarOpen((v) => !v)}
             onNavigate={() => {}}
-            showToggle
           />
         </Drawer>
       )}
@@ -270,9 +241,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         >
           <DrawerContent
             isOpen
-            onToggle={() => {}}
             onNavigate={() => setMobileOpen(false)}
-            showToggle={false}
           />
         </Drawer>
       )}
