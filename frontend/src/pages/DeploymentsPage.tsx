@@ -76,6 +76,7 @@ export default function DeploymentsPage() {
   const [form, setForm] = useState<Omit<Deployment, 'id'>>(emptyForm());
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const today = new Date().toISOString().slice(0, 10);
 
   const upcoming = deployments
     .filter((d) => UPCOMING_STATUSES.includes(d.status))
@@ -378,6 +379,7 @@ export default function DeploymentsPage() {
                 onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
                 size="small"
                 InputLabelProps={{ shrink: true }}
+                inputProps={!editTarget && tab === 0 ? { min: today } : undefined}
                 fullWidth
               />
               <TextField
@@ -426,6 +428,8 @@ export default function DeploymentsPage() {
               rows={3}
               placeholder="What is being deployed? Any risks, steps, or notes for the team?"
               required
+              error={form.description.length > 0 && !form.description.trim()}
+              helperText={form.description.length > 0 && !form.description.trim() ? 'Description cannot be only spaces' : ''}
             />
             <TextField
               label="Short Notes (optional)"

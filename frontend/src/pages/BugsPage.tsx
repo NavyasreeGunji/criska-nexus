@@ -184,12 +184,9 @@ export default function BugsPage() {
                     {bug.id}
                   </Typography>
                 </TableCell>
-                <TableCell sx={{ maxWidth: 200, overflow: 'hidden' }}>
+                <TableCell sx={{ maxWidth: 220, overflow: 'hidden' }}>
                   <Typography variant="body2" fontWeight={500} noWrap>
                     {bug.title}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    {bug.description}
                   </Typography>
                 </TableCell>
                 <TableCell>

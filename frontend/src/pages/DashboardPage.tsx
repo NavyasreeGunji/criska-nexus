@@ -94,13 +94,14 @@ export default function DashboardPage() {
   const todayDevCount = new Set(todayLogs.map((l) => l.developer)).size;
   const doneStories = stories.filter((s) => s.status === 'done').length;
 
-  const metrics = [
+  const metrics: { label: string; value: number | string; sub: string; icon: JSX.Element; color: string; route: string; state?: object }[] = [
     {
       label: 'Total Story Points',
       value: totalPoints,
       sub: `${donePoints} pts delivered`,
       icon: <AssignmentIcon />,
       color: '#2563EB',
+      route: '/reports',
     },
     {
       label: 'Deployments',
@@ -108,6 +109,7 @@ export default function DashboardPage() {
       sub: `${successfulDeploys} successful`,
       icon: <RocketLaunchIcon />,
       color: '#0891b2',
+      route: '/deployments',
     },
     {
       label: 'Stories Completed',
@@ -115,6 +117,7 @@ export default function DashboardPage() {
       sub: `of ${stories.length} total`,
       icon: <CheckCircleIcon />,
       color: '#16a34a',
+      route: '/reports',
     },
     {
       label: 'Hours Logged Today',
@@ -122,6 +125,8 @@ export default function DashboardPage() {
       sub: `by ${todayDevCount} developer${todayDevCount !== 1 ? 's' : ''}`,
       icon: <AccessTimeIcon />,
       color: '#7C3AED',
+      route: '/daily-log',
+      state: { developer: 'all', period: 'today' },
     },
   ];
 
@@ -133,14 +138,13 @@ export default function DashboardPage() {
     <Box>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {metrics.map((m) => {
-          const isHours = m.label === 'Hours Logged Today';
           return (
             <Grid item xs={12} sm={6} md={3} key={m.label}>
               <Paper
-                onClick={isHours ? () => navigate('/daily-log', { state: { developer: 'all', period: 'today' } }) : undefined}
+                onClick={() => navigate(m.route, m.state ? { state: m.state } : undefined)}
                 sx={{
                   p: 2.5, display: 'flex', alignItems: 'center', gap: 2,
-                  ...(isHours && { cursor: 'pointer', '&:hover': { boxShadow: 4, bgcolor: '#FAFBFF' } }),
+                  cursor: 'pointer', '&:hover': { boxShadow: 4, bgcolor: '#FAFBFF' },
                 }}
               >
                 <Avatar sx={{ bgcolor: m.color + '18', color: m.color, width: 50, height: 50 }}>

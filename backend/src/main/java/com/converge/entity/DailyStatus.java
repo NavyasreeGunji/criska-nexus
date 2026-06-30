@@ -12,7 +12,11 @@ public class DailyStatus extends BaseAudit {
 
     private LocalDate date;
     private String jiraId;
+
+    @Column(columnDefinition = "TEXT")
     private String taskName;
+
+    @Column(columnDefinition = "TEXT")
     private String workDescription;
     private String status;
     private String blockerDescription;

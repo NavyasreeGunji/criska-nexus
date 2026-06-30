@@ -228,8 +228,8 @@ export default function DailyLogPage() {
                 <TableCell sx={{ textAlign: 'center' }}>
                   <Typography variant="body2" fontWeight={600}>{log.title}</Typography>
                 </TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2">{log.description}</Typography>
+                <TableCell sx={{ maxWidth: 300 }}>
+                  <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{log.description}</Typography>
                 </TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>
                   <Typography variant="body2" fontWeight={700}>{log.hours}h</Typography>
@@ -271,6 +271,7 @@ export default function DailyLogPage() {
                 onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
                 size="small"
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ max: today }}
                 fullWidth
                 required
               />

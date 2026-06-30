@@ -44,15 +44,20 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         alterColumnToText("sprint", "goal");
         alterColumnToText("team", "description");
+        alterColumnToText("bug", "title");
+        alterColumnToText("story", "title");
+        alterColumnToText("daily_status", "task_name");
+        alterColumnToText("daily_status", "work_description");
         migrateEmailDomain("criskasecurity.com");
         migrateProjectTypes();
+        migrateRole("navya.sree", "QA Engineer");
 
         if (developerRepository.count() > 0) return;
 
         List<Developer> developers = List.of(
             dev("Praneeth",           "praneeth@criskasecurity.com",    "Manager",  "1,2", "praneeth",    "Client,Internal"),
             dev("Anil Yerupala",      "anil.y@criskasecurity.com",      "Tech Lead","1,2", "anil.y",      "Client,Internal"),
-            dev("Navya Sree Gunji",   "navya.sree@criskasecurity.com",  "Developer","1",   "navya.sree",  "Client"),
+            dev("Navya Sree Gunji",   "navya.sree@criskasecurity.com",  "QA Engineer","1",   "navya.sree",  "Client"),
             dev("Nagaraju Gunji",     "nagaraju@criskasecurity.com",    "Developer","1",   "nagaraju",    "Client"),
             dev("Abdul Wahid Syed",   "wahid@criskasecurity.com",       "Developer","1",   "wahid",       "Client"),
             dev("Adnan Yousof",       "adnan@criskasecurity.com",       "Developer","1",   "adnan",       "Client"),
@@ -124,6 +129,16 @@ public class DataInitializer implements CommandLineRunner {
             developerRepository.saveAll(toUpdate);
             System.out.println("✓ Updated " + toUpdate.size() + " email(s) to @" + newDomain);
         }
+    }
+
+    private void migrateRole(String username, String newRole) {
+        developerRepository.findByUsername(username).ifPresent(d -> {
+            if (!newRole.equals(d.getRole())) {
+                d.setRole(newRole);
+                developerRepository.save(d);
+                System.out.println("✓ Updated role for " + username + " to " + newRole);
+            }
+        });
     }
 
     private Developer dev(String name, String email, String role, String teamIds, String username, String projectTypes) {

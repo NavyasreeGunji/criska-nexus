@@ -247,9 +247,6 @@ export default function TeamsPage() {
                   <Typography variant="subtitle1" fontWeight={700} noWrap>
                     {team.name}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    {team.description}
-                  </Typography>
                 </Box>
                 <Stack direction="row" spacing={1} sx={{ ml: 2, display: { xs: 'none', sm: 'flex' }, flexShrink: 0 }}>
                   {activeSprint && (
@@ -453,6 +450,7 @@ export default function TeamsPage() {
                 size="small"
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ min: !editSprint ? new Date().toISOString().slice(0, 10) : undefined }}
+                sx={{ minWidth: 160 }}
                 fullWidth
                 required
               />
@@ -466,6 +464,7 @@ export default function TeamsPage() {
                 required
                 size="small"
                 InputLabelProps={{ shrink: true }}
+                sx={{ minWidth: 160 }}
                 fullWidth
               />
             </Stack>

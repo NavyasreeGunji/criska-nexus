@@ -33,6 +33,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SpeedIcon from '@mui/icons-material/Speed';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Story, initialStories, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories, apiCreateStory, apiUpdateStory } from '../api/api';
@@ -49,6 +50,11 @@ const statusOptions: { value: StoryStatus; label: string; color: 'default' | 'pr
 
 const statusColor = (s: StoryStatus) => statusOptions.find((o) => o.value === s)?.color ?? 'default';
 const statusLabel = (s: StoryStatus) => statusOptions.find((o) => o.value === s)?.label ?? s;
+const fmtDate = (d?: string | null) => {
+  if (!d) return '—';
+  const [y, m, day] = d.split('-');
+  return `${day}-${m}-${y}`;
+};
 
 function getMonthKey(dateStr: string) {
   if (!dateStr) return '';
@@ -122,6 +128,7 @@ export default function StoriesPage() {
   const [form, setForm] = useState<Omit<Story, 'id'>>(emptyForm());
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [viewStory, setViewStory] = useState<Story | null>(null);
 
   const teamSprints = useMemo(
     () => selectedTeamId === 'all'
@@ -190,7 +197,9 @@ export default function StoriesPage() {
   const selectedTeam = teams.find((t) => t.id === selectedTeamId);
 
   const openAdd = () => {
-    setForm(emptyForm(selectedTeamId, resolvedSprintId));
+    const teamId = viewBy === 'sprint' && selectedTeamId !== 'all' ? selectedTeamId : '';
+    const sprintId = viewBy === 'sprint' && selectedTeamId !== 'all' ? resolvedSprintId : '';
+    setForm(emptyForm(teamId, sprintId));
     setEditTarget(null);
     setSaveError('');
     setDialogOpen(true);
@@ -251,7 +260,7 @@ export default function StoriesPage() {
         </ToggleButtonGroup>
         <Box sx={{ flexGrow: 1 }} />
         <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}
-          disabled={viewBy === 'month' || (viewBy === 'sprint' && (selectedTeamId === 'all' || !resolvedSprintId))}>
+          disabled={teams.length === 0 || viewBy === 'month'}>
           Add Story
         </Button>
       </Stack>
@@ -411,32 +420,42 @@ export default function StoriesPage() {
             {filtered.map((story) => (
               <TableRow key={story.id} hover>
                 <TableCell><Typography variant="caption" color="text.disabled" fontWeight={600}>{story.id}</Typography></TableCell>
-                <TableCell sx={{ maxWidth: 200, overflow: 'hidden' }}>
-                  <Typography variant="body2" fontWeight={500} noWrap>{story.title}</Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>{story.description}</Typography>
+                <TableCell sx={{ maxWidth: 220, overflow: 'hidden' }}>
+                  <Typography
+                    variant="body2" fontWeight={500} noWrap
+                    sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+                    onClick={() => setViewStory(story)}
+                  >
+                    {story.title}
+                  </Typography>
                 </TableCell>
                 <TableCell><Chip label={story.points} size="small" color="primary" variant="outlined" /></TableCell>
                 <TableCell><Chip label={statusLabel(story.status)} size="small" color={statusColor(story.status)} /></TableCell>
                 <TableCell><Typography variant="body2">{story.reporter}</Typography></TableCell>
                 <TableCell><Typography variant="body2">{story.assignee}</Typography></TableCell>
-                <TableCell><Typography variant="caption">{story.createdDate}</Typography></TableCell>
+                <TableCell><Typography variant="caption">{fmtDate(story.createdDate)}</Typography></TableCell>
                 <TableCell>
                   {story.dueDate ? (() => {
                     const today = new Date().toISOString().slice(0, 10);
                     const overdue = story.dueDate < today && !story.completedDate;
                     return (
                       <Typography variant="caption" sx={{ fontWeight: overdue ? 700 : 400, color: overdue ? '#dc2626' : 'text.secondary' }}>
-                        {story.dueDate}
+                        {fmtDate(story.dueDate)}
                       </Typography>
                     );
                   })() : <Typography variant="caption" color="text.disabled">—</Typography>}
                 </TableCell>
-                <TableCell><Typography variant="caption">{story.startedDate || '—'}</Typography></TableCell>
-                <TableCell><Typography variant="caption">{story.completedDate || '—'}</Typography></TableCell>
+                <TableCell><Typography variant="caption">{fmtDate(story.startedDate)}</Typography></TableCell>
+                <TableCell><Typography variant="caption">{fmtDate(story.completedDate)}</Typography></TableCell>
                 <TableCell>
-                  <Tooltip title="Edit">
-                    <IconButton size="small" onClick={() => openEdit(story)}><EditIcon fontSize="small" /></IconButton>
-                  </Tooltip>
+                  <Stack direction="row" spacing={0.5}>
+                    <Tooltip title="View">
+                      <IconButton size="small" onClick={() => setViewStory(story)}><VisibilityIcon fontSize="small" /></IconButton>
+                    </Tooltip>
+                    <Tooltip title="Edit">
+                      <IconButton size="small" onClick={() => openEdit(story)}><EditIcon fontSize="small" /></IconButton>
+                    </Tooltip>
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}
@@ -516,7 +535,7 @@ export default function StoriesPage() {
               </FormControl>
             </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField label="Created Date" type="date" value={form.createdDate} onChange={(e) => setForm((f) => ({ ...f, createdDate: e.target.value }))} size="small" InputLabelProps={{ shrink: true }} fullWidth />
+              <TextField label="Created Date" type="date" value={form.createdDate} size="small" InputLabelProps={{ shrink: true }} InputProps={{ readOnly: true }} fullWidth />
               <TextField label="Due Date" type="date" value={form.dueDate} onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))} size="small" InputLabelProps={{ shrink: true }} fullWidth />
             </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -533,6 +552,87 @@ export default function StoriesPage() {
           <Button variant="contained" onClick={handleSave} disabled={isSaving || !form.title.trim() || !form.reporter.trim() || !form.assignee || !form.teamId || !form.sprintId}>{isSaving ? 'Saving…' : 'Save'}</Button>
         </DialogActions>
       </Dialog>
+
+      {/* View Story Dialog */}
+      {viewStory && (() => {
+        const vs = viewStory;
+        const sprint = sprints.find((s) => s.id === vs.sprintId);
+        const team = teams.find((t) => t.id === vs.teamId);
+        const today = new Date().toISOString().slice(0, 10);
+        const overdue = vs.dueDate && vs.dueDate < today && !vs.completedDate;
+        return (
+          <Dialog open={!!viewStory} onClose={() => setViewStory(null)} maxWidth="sm" fullWidth>
+            <DialogTitle>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Typography variant="h6" fontWeight={700}>{vs.title}</Typography>
+                <Chip label={statusLabel(vs.status)} size="small" color={statusColor(vs.status)} />
+              </Stack>
+            </DialogTitle>
+            <DialogContent>
+              <Stack spacing={2} sx={{ mt: 0.5 }}>
+                {vs.description && (
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Description</Typography>
+                    <Typography variant="body2" sx={{ mt: 0.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{vs.description}</Typography>
+                  </Box>
+                )}
+                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>ID</Typography>
+                    <Typography variant="body2">{vs.id}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Points</Typography>
+                    <Typography variant="body2">{vs.points}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Team</Typography>
+                    <Typography variant="body2">{team?.name ?? '—'}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Sprint</Typography>
+                    <Typography variant="body2">{sprint?.name ?? '—'}</Typography>
+                  </Box>
+                </Stack>
+                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Reporter</Typography>
+                    <Typography variant="body2">{vs.reporter || '—'}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Assignee</Typography>
+                    <Typography variant="body2">{vs.assignee || '—'}</Typography>
+                  </Box>
+                </Stack>
+                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Created</Typography>
+                    <Typography variant="body2">{fmtDate(vs.createdDate)}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Due Date</Typography>
+                    <Typography variant="body2" sx={{ color: overdue ? '#dc2626' : 'inherit', fontWeight: overdue ? 700 : 400 }}>
+                      {fmtDate(vs.dueDate)}{overdue ? ' ⚠ Overdue' : ''}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Started</Typography>
+                    <Typography variant="body2">{fmtDate(vs.startedDate)}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Completed</Typography>
+                    <Typography variant="body2">{fmtDate(vs.completedDate)}</Typography>
+                  </Box>
+                </Stack>
+              </Stack>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setViewStory(null)}>Close</Button>
+              <Button variant="contained" onClick={() => { setViewStory(null); openEdit(vs); }}>Edit</Button>
+            </DialogActions>
+          </Dialog>
+        );
+      })()}
     </Box>
   );
 }

@@ -89,7 +89,7 @@ export interface DeveloperProfile {
 export const initialDeveloperProfiles: DeveloperProfile[] = [
   { id: 'DEV-001', name: 'Praneeth', role: 'Manager', email: 'praneeth@criskasecurity.com', teamIds: ['T-001', 'T-002'], projectTypes: ['Client', 'Internal'], username: 'praneeth', password: 'Converge@2026' },
   { id: 'DEV-002', name: 'Anil Yerupala', role: 'Tech Lead', email: 'anil.y@criskasecurity.com', teamIds: ['T-001', 'T-002'], projectTypes: ['Client', 'Internal'], username: 'anil.y', password: 'Converge@2026' },
-  { id: 'DEV-003', name: 'Navya Sree Gunji', role: 'Developer', email: 'navya.sree@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'navya.sree', password: 'Converge@2026' },
+  { id: 'DEV-003', name: 'Navya Sree Gunji', role: 'QA Engineer', email: 'navya.sree@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'navya.sree', password: 'Converge@2026' },
   { id: 'DEV-004', name: 'Nagaraju Gunji', role: 'Developer', email: 'nagaraju@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'nagaraju', password: 'Converge@2026' },
   { id: 'DEV-005', name: 'Abdul Wahid Syed', role: 'Developer', email: 'wahid@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'wahid', password: 'Converge@2026' },
   { id: 'DEV-006', name: 'Adnan Yousof', role: 'Developer', email: 'adnan@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'adnan', password: 'Converge@2026' },
