@@ -299,7 +299,7 @@ export default function StoriesPage() {
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
           <Typography variant="subtitle1" fontWeight={700}>{viewLabel}</Typography>
           <Typography variant="body2" color="text.secondary">
-            — {baseFiltered.length} stories · {summary.total} pts
+            {baseFiltered.length} stories · {summary.total} pts
           </Typography>
         </Stack>
 
@@ -412,7 +412,7 @@ export default function StoriesPage() {
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              {['Story #', 'Title', 'Points', 'Status', 'Reporter', 'Assignee', 'Created', 'Due Date', 'Started', 'Completed', ''].map((h) => (
+              {['Story No.', 'Title', 'Points', 'Status', 'Reporter', 'Assignee', 'Created', 'Due Date', 'Started', 'Completed', ''].map((h) => (
                 <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>{h}</TableCell>
               ))}
             </TableRow>
