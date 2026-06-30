@@ -80,7 +80,7 @@ export default function ReportsPage() {
 
   const totalPoints = filtered.reduce((sum, s) => sum + s.points, 0);
   const donePoints = filtered.filter((s) => s.status === 'done').reduce((sum, s) => sum + s.points, 0);
-  const forQEPoints = filtered.filter((s) => s.status === 'for_qe_testing').reduce((sum, s) => sum + s.points, 0);
+  const onHoldPoints = filtered.filter((s) => s.status === 'on_hold').reduce((sum, s) => sum + s.points, 0);
   const inProgressPoints = filtered.filter((s) => s.status === 'in_progress').reduce((sum, s) => sum + s.points, 0);
 
   const byAssignee = useMemo(
@@ -93,7 +93,7 @@ export default function ReportsPage() {
             count: devStories.length,
             total: devStories.reduce((sum, s) => sum + s.points, 0),
             done: devStories.filter((s) => s.status === 'done').reduce((sum, s) => sum + s.points, 0),
-            forQE: devStories.filter((s) => s.status === 'for_qe_testing').reduce((sum, s) => sum + s.points, 0),
+            onHold: devStories.filter((s) => s.status === 'on_hold').reduce((sum, s) => sum + s.points, 0),
             inProgress: devStories.filter((s) => s.status === 'in_progress').reduce((sum, s) => sum + s.points, 0),
           };
         })
@@ -129,7 +129,7 @@ export default function ReportsPage() {
         {[
           { label: 'Total Points', value: totalPoints, sub: `${filtered.length} stories`, color: 'primary.main' },
           { label: 'Points Delivered', value: donePoints, sub: `${totalPoints > 0 ? Math.round((donePoints / totalPoints) * 100) : 0}% completion`, color: 'success.main' },
-          { label: 'Review / Testing', value: forQEPoints, sub: `${filtered.filter((s) => s.status === 'for_qe_testing').length} stories`, color: '#0891b2' },
+          { label: 'On Hold', value: onHoldPoints, sub: `${filtered.filter((s) => s.status === 'on_hold').length} stories`, color: '#ea580c' },
           { label: 'In Progress', value: inProgressPoints, sub: `${filtered.filter((s) => s.status === 'in_progress').length} stories`, color: 'warning.main' },
         ].map((m) => (
           <Grid item xs={12} sm={6} md={3} key={m.label}>
@@ -339,7 +339,7 @@ export default function ReportsPage() {
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              {['Developer', 'Stories', 'Total Pts', 'Delivered', 'For QE', 'In Progress', 'Delivery Rate'].map((h) => (
+              {['Developer', 'Stories', 'Total Pts', 'Delivered', 'On Hold', 'In Progress', 'Delivery Rate'].map((h) => (
                 <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>
                   {h}
                 </TableCell>
@@ -355,7 +355,7 @@ export default function ReportsPage() {
                   <TableCell><Typography variant="body2">{row.count}</Typography></TableCell>
                   <TableCell><Typography variant="body2" fontWeight={700}>{row.total}</Typography></TableCell>
                   <TableCell><Typography variant="body2" fontWeight={700} color="success.main">{row.done}</Typography></TableCell>
-                  <TableCell><Typography variant="body2" fontWeight={700} sx={{ color: '#0891b2' }}>{row.forQE}</Typography></TableCell>
+                  <TableCell><Typography variant="body2" fontWeight={700} sx={{ color: '#ea580c' }}>{row.onHold}</Typography></TableCell>
                   <TableCell><Typography variant="body2" fontWeight={700} color="warning.main">{row.inProgress}</Typography></TableCell>
                   <TableCell>
                     <Chip label={`${rate}%`} size="small" color={rate >= 50 ? 'success' : rate >= 25 ? 'warning' : 'default'} />
