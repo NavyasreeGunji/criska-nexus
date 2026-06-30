@@ -54,6 +54,12 @@ const statusLabel = (s: StoryStatus) => statusOptions.find((o) => o.value === s)
 const fmtDate = (d?: string | null) => {
   if (!d) return '—';
   const [y, m, day] = d.split('-');
+  return `${day}-${m}-${y.slice(2)}`;
+};
+
+const fmtDateFull = (d?: string | null) => {
+  if (!d) return '—';
+  const [y, m, day] = d.split('-');
   return `${day}-${m}-${y}`;
 };
 
@@ -609,21 +615,21 @@ export default function StoriesPage() {
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
                   <Box>
                     <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Created</Typography>
-                    <Typography variant="body2">{fmtDate(vs.createdDate)}</Typography>
+                    <Typography variant="body2">{fmtDateFull(vs.createdDate)}</Typography>
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Due Date</Typography>
                     <Typography variant="body2" sx={{ color: overdue ? '#dc2626' : 'inherit', fontWeight: overdue ? 700 : 400 }}>
-                      {fmtDate(vs.dueDate)}{overdue ? ' ⚠' : ''}
+                      {fmtDateFull(vs.dueDate)}{overdue ? ' ⚠' : ''}
                     </Typography>
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Started</Typography>
-                    <Typography variant="body2">{fmtDate(vs.startedDate)}</Typography>
+                    <Typography variant="body2">{fmtDateFull(vs.startedDate)}</Typography>
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Completed</Typography>
-                    <Typography variant="body2">{fmtDate(vs.completedDate)}</Typography>
+                    <Typography variant="body2">{fmtDateFull(vs.completedDate)}</Typography>
                   </Box>
                 </Box>
               </Stack>
