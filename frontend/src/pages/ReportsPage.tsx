@@ -74,7 +74,8 @@ export default function ReportsPage() {
         .filter((s) => filterTeamId === 'all' || s.teamId === filterTeamId)
         .filter((s) => filterSprintId === 'all' || s.sprintId === filterSprintId)
         .filter((s) => !dateFrom || (s.createdDate && s.createdDate >= dateFrom))
-        .filter((s) => !dateTo || (s.createdDate && s.createdDate <= dateTo)),
+        .filter((s) => !dateTo || (s.createdDate && s.createdDate <= dateTo))
+        .sort((a, b) => (b.createdDate ?? '').localeCompare(a.createdDate ?? '')),
     [stories, filterStatus, filterAssignee, filterTeamId, filterSprintId, dateFrom, dateTo]
   );
 

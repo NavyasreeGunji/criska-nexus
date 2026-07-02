@@ -178,7 +178,8 @@ export default function StoriesPage() {
     () =>
       baseFiltered
         .filter((s) => filterStatus === 'all' || s.status === filterStatus)
-        .filter((s) => filterAssignee === 'all' || s.assignee === filterAssignee),
+        .filter((s) => filterAssignee === 'all' || s.assignee === filterAssignee)
+        .sort((a, b) => (b.createdDate ?? '').localeCompare(a.createdDate ?? '')),
     [baseFiltered, filterStatus, filterAssignee]
   );
 
