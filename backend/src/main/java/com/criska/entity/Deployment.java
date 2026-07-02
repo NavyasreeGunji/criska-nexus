@@ -23,6 +23,7 @@ public class Deployment {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
     private String notes;
     private Double hours;
 

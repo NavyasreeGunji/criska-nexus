@@ -379,7 +379,7 @@ export default function DeploymentsPage() {
                 onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
                 size="small"
                 InputLabelProps={{ shrink: true }}
-                inputProps={!editTarget && tab === 0 ? { min: today } : undefined}
+                inputProps={{ min: today }}
                 fullWidth
               />
               <TextField

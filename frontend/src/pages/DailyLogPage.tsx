@@ -381,7 +381,9 @@ export default function DailyLogPage() {
               </FormControl>
               <TextField label="Date" type="date" value={form.date}
                 onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-                size="small" InputLabelProps={{ shrink: true }} inputProps={{ max: today }}
+                size="small" InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getWeekRange()[0], max: getWeekRange()[1] }}
+                helperText="Current week only"
                 fullWidth required />
             </Stack>
 

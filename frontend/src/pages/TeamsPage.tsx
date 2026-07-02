@@ -239,11 +239,11 @@ export default function TeamsPage() {
         return (
           <Accordion key={team.id} defaultExpanded sx={{ mb: 1.5, '&:before': { display: 'none' } }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 2.5 }}>
-              <Stack direction="row" alignItems="center" spacing={2} sx={{ flexGrow: 1, mr: 2, minWidth: 0 }}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ flexGrow: 1, mr: 2, minWidth: 0, overflow: 'hidden' }}>
                 <Avatar sx={{ bgcolor: '#2563EB18', color: '#2563EB', width: 40, height: 40, flexShrink: 0 }}>
                   <GroupsIcon fontSize="small" />
                 </Avatar>
-                <Box sx={{ minWidth: 0 }}>
+                <Box sx={{ minWidth: 80, flexShrink: 1, overflow: 'hidden' }}>
                   <Typography variant="subtitle1" fontWeight={700} noWrap>
                     {team.name}
                   </Typography>
@@ -256,6 +256,7 @@ export default function TeamsPage() {
                       size="small"
                       color="primary"
                       variant="outlined"
+                      sx={{ maxWidth: 200 }}
                     />
                   )}
                   <Chip label={`${teamSprints.length} sprints`} size="small" variant="outlined" />

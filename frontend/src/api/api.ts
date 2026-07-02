@@ -1,5 +1,5 @@
 import {
-  DeveloperProfile, Team, Sprint, Story, Bug, DailyLog, Deployment,
+  DeveloperProfile, Team, Sprint, Story, Bug, DailyLog, Deployment, Project,
   DeveloperRole, ProjectType, StoryStatus, BugSeverity, BugStatus, DeploymentStatus, SprintStatus,
 } from '../data/mockData';
 
@@ -32,14 +32,22 @@ function toDateStr(d: any): string {
 
 // ─── Mappers: backend → frontend ────────────────────────────────────────────
 
+// Maps legacy "Client"/"Internal" values stored in DB to project IDs
+function legacyTypeToProjectId(val: string): string {
+  if (val === 'Client') return 'P-001';
+  if (val === 'Internal') return 'P-002';
+  return val;
+}
+
 function mapDeveloper(d: any): DeveloperProfile {
+  const raw: string = d.projectIds ?? d.projectTypes ?? '';
   return {
     id: String(d.id),
     name: d.name ?? '',
     email: d.email ?? '',
     role: (d.role ?? 'Developer') as DeveloperRole,
     teamIds: d.teamIds ? d.teamIds.split(',').filter(Boolean) : [],
-    projectTypes: d.projectTypes ? (d.projectTypes as string).split(',').filter(Boolean) as ProjectType[] : [],
+    projectIds: raw.split(',').filter(Boolean).map(legacyTypeToProjectId),
     username: d.username ?? '',
     password: d.password ?? '',
   };
@@ -131,7 +139,7 @@ function unmapDeveloper(d: Omit<DeveloperProfile, 'id'>) {
   return {
     name: d.name, email: d.email, role: d.role,
     teamIds: d.teamIds.join(','),
-    projectTypes: (d.projectTypes ?? []).join(','),
+    projectIds: (d.projectIds ?? []).join(','),
     username: d.username, password: d.password,
   };
 }
@@ -150,6 +158,7 @@ function unmapSprint(s: Omit<Sprint, 'id'>) {
 
 function unmapStory(s: Omit<Story, 'id'>) {
   return {
+    storyNumber: s.storyNumber,
     title: s.title, description: s.description, points: s.points,
     status: s.status, reporter: s.reporter, assignee: s.assignee,
     teamId: Number(s.teamId), sprintId: Number(s.sprintId),
@@ -188,6 +197,33 @@ function unmapDeployment(d: Omit<Deployment, 'id'>) {
     hours: d.hours ?? null,
   };
 }
+
+function mapProject(p: any): Project {
+  return {
+    id: String(p.id),
+    name: p.name ?? '',
+    type: (p.type ?? 'Internal') as ProjectType,
+    description: p.description ?? '',
+  };
+}
+
+// ─── Projects ────────────────────────────────────────────────────────────────
+
+export const apiGetProjects = () => req<any[]>('/projects').then(list => list.map(mapProject));
+export const apiCreateProject = (p: Omit<Project, 'id'>) =>
+  req<any>('/projects', { method: 'POST', body: JSON.stringify(p) }).then(mapProject);
+export const apiUpdateProject = (id: string, p: Omit<Project, 'id'>) =>
+  req<any>(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(p) }).then(mapProject);
+export const apiDeleteProject = async (id: string): Promise<void> => {
+  const res = await fetch(`${BASE}/projects/${id}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.message ?? err.error ?? res.statusText);
+  }
+};
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 

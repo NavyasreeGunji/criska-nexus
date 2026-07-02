@@ -27,6 +27,11 @@ import EmailIcon from '@mui/icons-material/Email';
 import { DeveloperProfile, DeveloperRole, ProjectType } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 
+const projectTypeColor: Record<ProjectType, { color: string; bg: string }> = {
+  Client:   { color: '#0891b2', bg: '#e0f2fe' },
+  Internal: { color: '#7C3AED', bg: '#ede9fe' },
+};
+
 const roleConfig: Record<DeveloperRole, { color: string; bg: string }> = {
   Developer: { color: '#2563EB', bg: '#dbeafe' },
   'Senior Developer': { color: '#1d4ed8', bg: '#bfdbfe' },
@@ -73,13 +78,7 @@ function initials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase();
 }
 
-const PROJECT_TYPES: ProjectType[] = ['Client', 'Internal'];
-const ptColor: Record<ProjectType, { color: string; bg: string }> = {
-  Client:   { color: '#0891b2', bg: '#e0f2fe' },
-  Internal: { color: '#7C3AED', bg: '#ede9fe' },
-};
-
-const emptyForm = { name: '', email: '', role: 'Developer' as DeveloperRole, teamIds: [] as string[], projectTypes: [] as ProjectType[] };
+const emptyForm = { name: '', email: '', role: 'Developer' as DeveloperRole, teamIds: [] as string[], projectIds: [] as string[] };
 
 function isValidEmail(email: string): boolean {
   if (!/^[a-zA-Z0-9_%+\-]+(\.[a-zA-Z0-9_%+\-]+)*@[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(email)) return false;
@@ -93,7 +92,7 @@ function isValidName(name: string): boolean {
 }
 
 export default function PeoplePage() {
-  const { teams, developerProfiles, currentUser, addDeveloper, updateDeveloper, updateTeam, deleteDeveloper } = useApp();
+  const { projects, teams, developerProfiles, currentUser, addDeveloper, updateDeveloper, updateTeam, deleteDeveloper } = useApp();
 
   const PRIVILEGED_ROLES: DeveloperRole[] = ['Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'Tech Lead', 'HR', 'Sprint Master'];
   const canEditAll = currentUser ? PRIVILEGED_ROLES.includes(currentUser.role) : false;
@@ -101,6 +100,7 @@ export default function PeoplePage() {
   const canEdit = (dev: DeveloperProfile) => canEditAll || currentUser?.id === dev.id;
   const [filterRole, setFilterRole] = useState('all');
   const [filterTeam, setFilterTeam] = useState('all');
+  const [filterProject, setFilterProject] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<DeveloperProfile | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -117,6 +117,7 @@ export default function PeoplePage() {
       const team = teams.find((t) => t.id === filterTeam);
       return d.teamIds.includes(filterTeam) || (team?.members.includes(d.name) ?? false);
     })
+    .filter((d) => filterProject === 'all' || (d.projectIds ?? []).includes(filterProject))
     .sort((a, b) => {
       const rDiff = (ROLE_PRIORITY[a.role] ?? 99) - (ROLE_PRIORITY[b.role] ?? 99);
       if (rDiff !== 0) return rDiff;
@@ -125,7 +126,7 @@ export default function PeoplePage() {
 
   const openAdd = () => { setForm(emptyForm); setEditTarget(null); setEmailError(''); setNameError(''); setDialogOpen(true); };
   const openEdit = (d: DeveloperProfile) => {
-    setForm({ name: d.name, email: d.email, role: d.role, teamIds: [...d.teamIds], projectTypes: [...(d.projectTypes ?? [])] });
+    setForm({ name: d.name, email: d.email, role: d.role, teamIds: [...d.teamIds], projectIds: [...(d.projectIds ?? [])] });
     setEditTarget(d);
     setEmailError('');
     setNameError('');
@@ -201,11 +202,11 @@ export default function PeoplePage() {
       const oldTeamIds = editTarget?.teamIds ?? [];
       const oldName = editTarget?.name ?? '';
       if (editTarget) {
-        await updateDeveloper({ ...editTarget, ...form });
+        await updateDeveloper({ ...editTarget, name: form.name, email: form.email, role: form.role, teamIds: form.teamIds, projectIds: form.projectIds });
       } else {
         const newId = `DEV-${String(developerProfiles.length + 1).padStart(3, '0')}`;
         const username = form.name.split(' ')[0].toLowerCase();
-        await addDeveloper({ id: newId, ...form, username, password: 'Converge@2026' });
+        await addDeveloper({ id: newId, name: form.name, email: form.email, role: form.role, teamIds: form.teamIds, projectIds: form.projectIds, username, password: 'Converge@2026' });
       }
       await syncTeamMembers(form.name, oldName, oldTeamIds, form.teamIds);
       setDialogOpen(false);
@@ -234,12 +235,12 @@ export default function PeoplePage() {
     }));
   };
 
-  const toggleProjectType = (pt: ProjectType) => {
+  const toggleProject = (projectId: string) => {
     setForm((f) => ({
       ...f,
-      projectTypes: f.projectTypes.includes(pt)
-        ? f.projectTypes.filter((p) => p !== pt)
-        : [...f.projectTypes, pt],
+      projectIds: f.projectIds.includes(projectId)
+        ? f.projectIds.filter((p) => p !== projectId)
+        : [...f.projectIds, projectId],
     }));
   };
 
@@ -258,6 +259,13 @@ export default function PeoplePage() {
           <Select value={filterTeam} label="Team" onChange={(e) => setFilterTeam(e.target.value)}>
             <MenuItem value="all">All Teams</MenuItem>
             {teams.map((t) => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>Project</InputLabel>
+          <Select value={filterProject} label="Project" onChange={(e) => setFilterProject(e.target.value)}>
+            <MenuItem value="all">All Projects</MenuItem>
+            {projects.map((p) => <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>)}
           </Select>
         </FormControl>
         <Typography variant="body2" color="text.secondary">
@@ -352,12 +360,17 @@ export default function PeoplePage() {
                   </Tooltip>
                 </Stack>
 
-                {(dev.projectTypes ?? []).length > 0 && (
+                {(dev.projectIds ?? []).length > 0 && (
                   <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
-                    {(dev.projectTypes ?? []).map((pt) => (
-                      <Chip key={pt} label={pt} size="small"
-                        sx={{ bgcolor: ptColor[pt].bg, color: ptColor[pt].color, fontWeight: 600, fontSize: 11 }} />
-                    ))}
+                    {(dev.projectIds ?? []).map((pid) => {
+                      const proj = projects.find((p) => p.id === pid);
+                      if (!proj) return null;
+                      const c = projectTypeColor[proj.type];
+                      return (
+                        <Chip key={pid} label={proj.name} size="small"
+                          sx={{ bgcolor: c.bg, color: c.color, fontWeight: 600, fontSize: 11 }} />
+                      );
+                    })}
                   </Stack>
                 )}
 
@@ -442,22 +455,23 @@ export default function PeoplePage() {
             </FormControl>
             <Box>
               <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
-                Project Type <Typography component="span" variant="caption" color="text.secondary">(select all that apply)</Typography>
+                Projects <Typography component="span" variant="caption" color="text.secondary">(select all that apply)</Typography>
               </Typography>
-              <Stack direction="row" spacing={1}>
-                {PROJECT_TYPES.map((pt) => {
-                  const selected = form.projectTypes.includes(pt);
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {projects.map((proj) => {
+                  const selected = form.projectIds.includes(proj.id);
+                  const c = projectTypeColor[proj.type];
                   return (
                     <Chip
-                      key={pt}
-                      label={pt}
-                      onClick={() => toggleProjectType(pt)}
+                      key={proj.id}
+                      label={proj.name}
+                      onClick={() => toggleProject(proj.id)}
                       sx={{
                         cursor: 'pointer',
                         fontWeight: 600,
-                        bgcolor: selected ? ptColor[pt].bg : undefined,
-                        color: selected ? ptColor[pt].color : undefined,
-                        borderColor: selected ? ptColor[pt].color : undefined,
+                        bgcolor: selected ? c.bg : undefined,
+                        color: selected ? c.color : undefined,
+                        borderColor: selected ? c.color : undefined,
                       }}
                       variant={selected ? 'filled' : 'outlined'}
                     />
