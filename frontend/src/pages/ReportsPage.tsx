@@ -248,7 +248,12 @@ export default function ReportsPage() {
                   </TableCell>
                   <TableCell sx={{ maxWidth: 220 }}>
                     <Stack direction="row" alignItems="center" spacing={0.75}>
-                      <Typography variant="body2" fontWeight={500}>
+                      <Typography variant="body2" fontWeight={500} sx={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}>
                         {story.title}
                       </Typography>
                       {isOverdue && (

@@ -433,8 +433,15 @@ export default function StoriesPage() {
                 </TableCell>
                 <TableCell sx={{ maxWidth: 220, overflow: 'hidden' }}>
                   <Typography
-                    variant="body2" fontWeight={500} noWrap
-                    sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+                    variant="body2" fontWeight={500}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': { color: 'primary.main', textDecoration: 'underline' },
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
                     onClick={() => setViewStory(story)}
                   >
                     {story.title}
