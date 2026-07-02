@@ -6,6 +6,7 @@ A full-stack project management and engineering productivity platform for tracki
 
 - **Frontend:** https://devtrack-converge.vercel.app
 - **Backend API:** https://devtrack-converge.onrender.com/api
+- **GitHub:** https://github.com/NavyasreeGunji/criska-nexus
 
 ## Tech Stack
 
