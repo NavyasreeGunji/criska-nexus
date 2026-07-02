@@ -14,8 +14,7 @@ public class Developer {
     private String email;
     private String role;
     private String teamIds;
-    @Column(name = "project_types")
-    private String projectIds; // comma-separated project IDs (e.g. P-001,P-002)
+    private String projectTypes; // comma-separated: "Client" | "Internal"
     private String username;
     private String password;
 
@@ -29,8 +28,8 @@ public class Developer {
     public void setRole(String role) { this.role = role; }
     public String getTeamIds() { return teamIds; }
     public void setTeamIds(String teamIds) { this.teamIds = teamIds; }
-    public String getProjectIds() { return projectIds; }
-    public void setProjectIds(String projectIds) { this.projectIds = projectIds; }
+    public String getProjectTypes() { return projectTypes; }
+    public void setProjectTypes(String projectTypes) { this.projectTypes = projectTypes; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
     public String getPassword() { return password; }

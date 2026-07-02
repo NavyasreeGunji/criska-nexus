@@ -1,13 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
-  Team, Sprint, DeveloperProfile, Project,
-  initialTeams, initialSprints, initialDeveloperProfiles, initialProjects,
+  Team, Sprint, DeveloperProfile,
+  initialTeams, initialSprints, initialDeveloperProfiles,
 } from '../data/mockData';
 import {
   apiLogin, apiGetDevelopers, apiCreateDeveloper, apiUpdateDeveloper, apiDeleteDeveloper,
   apiGetTeams, apiCreateTeam, apiUpdateTeam,
   apiGetSprints, apiCreateSprint, apiUpdateSprint,
-  apiGetProjects, apiCreateProject, apiUpdateProject, apiDeleteProject,
 } from '../api/api';
 
 const STORAGE_KEY = 'devtrack_user';
@@ -15,7 +14,6 @@ const WAKE_TIMEOUT_MS = 90_000; // give Render 90 s to cold-start
 const RETRY_INTERVAL_MS = 5_000;
 
 interface AppContextType {
-  projects: Project[];
   teams: Team[];
   sprints: Sprint[];
   developerProfiles: DeveloperProfile[];
@@ -25,9 +23,6 @@ interface AppContextType {
   backendWaking: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  addProject: (project: Omit<Project, 'id'>) => Promise<void>;
-  updateProject: (project: Project) => Promise<void>;
-  deleteProject: (id: string) => Promise<void>;
   addTeam: (team: Omit<Team, 'id'>) => Promise<void>;
   updateTeam: (team: Team) => Promise<void>;
   addSprint: (sprint: Omit<Sprint, 'id'>) => Promise<void>;
@@ -49,7 +44,6 @@ function loadUser(): DeveloperProfile | null {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [developerProfiles, setDeveloperProfiles] = useState<DeveloperProfile[]>([]);
@@ -67,12 +61,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       while (Date.now() < deadline) {
         try {
-          const [t, s, d, p] = await Promise.all([apiGetTeams(), apiGetSprints(), apiGetDevelopers(), apiGetProjects()]);
+          const [t, s, d] = await Promise.all([apiGetTeams(), apiGetSprints(), apiGetDevelopers()]);
           if (cancelled) return;
           setTeams(t);
           setSprints(s);
           setDeveloperProfiles(d);
-          setProjects(p.length > 0 ? p : initialProjects);
           setBackendOnline(true);
           setBackendChecked(true);
           setBackendWaking(false);
@@ -88,7 +81,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setTeams(initialTeams);
         setSprints(initialSprints);
         setDeveloperProfiles(initialDeveloperProfiles);
-        setProjects(initialProjects);
         setBackendOnline(false);
         setBackendChecked(true);
         setBackendWaking(false);
@@ -127,32 +119,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem(STORAGE_KEY);
     setCurrentUser(null);
-  };
-
-  const addProject = async (project: Omit<Project, 'id'>) => {
-    if (backendOnline) {
-      const created = await apiCreateProject(project);
-      setProjects((prev) => [...prev, created]);
-    } else {
-      const newId = `P-${String(projects.length + 1).padStart(3, '0')}`;
-      setProjects((prev) => [...prev, { ...project, id: newId }]);
-    }
-  };
-
-  const updateProject = async (project: Project) => {
-    if (backendOnline) {
-      const updated = await apiUpdateProject(project.id, project);
-      setProjects((prev) => prev.map((p) => (p.id === project.id ? updated : p)));
-    } else {
-      setProjects((prev) => prev.map((p) => (p.id === project.id ? project : p)));
-    }
-  };
-
-  const deleteProject = async (id: string) => {
-    if (backendOnline) {
-      await apiDeleteProject(id);
-    }
-    setProjects((prev) => prev.filter((p) => p.id !== id));
   };
 
   const addTeam = async (team: Omit<Team, 'id'>) => {
@@ -235,9 +201,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      projects, teams, sprints, developerProfiles, currentUser, backendOnline, backendChecked, backendWaking,
+      teams, sprints, developerProfiles, currentUser, backendOnline, backendChecked, backendWaking,
       login, logout,
-      addProject, updateProject, deleteProject,
       addTeam, updateTeam, addSprint, updateSprint,
       addDeveloper, updateDeveloper, deleteDeveloper,
     }}>

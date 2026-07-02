@@ -124,10 +124,10 @@ public class DataInitializer implements CommandLineRunner {
         List<Developer> all = developerRepository.findAll();
         List<Developer> toUpdate = new ArrayList<>();
         for (Developer d : all) {
-            if (d.getProjectIds() == null || d.getProjectIds().isBlank()) {
+            if (d.getProjectTypes() == null || d.getProjectTypes().isBlank()) {
                 String pts = PROJECT_TYPES_BY_USERNAME.get(d.getUsername());
                 if (pts != null) {
-                    d.setProjectIds(pts);
+                    d.setProjectTypes(pts);
                     toUpdate.add(d);
                 }
             }
@@ -179,7 +179,7 @@ public class DataInitializer implements CommandLineRunner {
         d.setTeamIds(teamIds);
         d.setUsername(username);
         d.setPassword("Converge@2026");
-        d.setProjectIds(projectTypes);
+        d.setProjectTypes(projectTypes);
         return d;
     }
 }

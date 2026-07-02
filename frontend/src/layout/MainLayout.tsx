@@ -20,7 +20,6 @@ import {
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import GroupsIcon from '@mui/icons-material/Groups';
-import FolderIcon from '@mui/icons-material/Folder';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import BugReportIcon from '@mui/icons-material/BugReport';
@@ -38,7 +37,6 @@ const navItems = [
   { label: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { label: 'People', icon: <PeopleIcon />, path: '/people' },
   { label: 'Teams', icon: <GroupsIcon />, path: '/teams' },
-  { label: 'Projects', icon: <FolderIcon />, path: '/projects' },
   { label: 'Stories', icon: <AssignmentIcon />, path: '/stories' },
   { label: 'Daily Log', icon: <EventNoteIcon />, path: '/daily-log' },
   { label: 'Bugs & Issues', icon: <BugReportIcon />, path: '/bugs' },

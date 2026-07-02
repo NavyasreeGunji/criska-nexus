@@ -1,5 +1,5 @@
 import {
-  DeveloperProfile, Team, Sprint, Story, Bug, DailyLog, Deployment, Project,
+  DeveloperProfile, Team, Sprint, Story, Bug, DailyLog, Deployment,
   DeveloperRole, ProjectType, StoryStatus, BugSeverity, BugStatus, DeploymentStatus, SprintStatus,
 } from '../data/mockData';
 
@@ -32,22 +32,15 @@ function toDateStr(d: any): string {
 
 // ─── Mappers: backend → frontend ────────────────────────────────────────────
 
-// Maps legacy "Client"/"Internal" values stored in DB to project IDs
-function legacyTypeToProjectId(val: string): string {
-  if (val === 'Client') return 'P-001';
-  if (val === 'Internal') return 'P-002';
-  return val;
-}
-
 function mapDeveloper(d: any): DeveloperProfile {
-  const raw: string = d.projectIds ?? d.projectTypes ?? '';
+  const raw: string = d.projectTypes ?? d.projectIds ?? '';
   return {
     id: String(d.id),
     name: d.name ?? '',
     email: d.email ?? '',
     role: (d.role ?? 'Developer') as DeveloperRole,
     teamIds: d.teamIds ? d.teamIds.split(',').filter(Boolean) : [],
-    projectIds: raw.split(',').filter(Boolean).map(legacyTypeToProjectId),
+    projectTypes: raw.split(',').filter(Boolean) as ProjectType[],
     username: d.username ?? '',
     password: d.password ?? '',
   };
@@ -139,7 +132,7 @@ function unmapDeveloper(d: Omit<DeveloperProfile, 'id'>) {
   return {
     name: d.name, email: d.email, role: d.role,
     teamIds: d.teamIds.join(','),
-    projectIds: (d.projectIds ?? []).join(','),
+    projectTypes: (d.projectTypes ?? []).join(','),
     username: d.username, password: d.password,
   };
 }
@@ -197,33 +190,6 @@ function unmapDeployment(d: Omit<Deployment, 'id'>) {
     hours: d.hours ?? null,
   };
 }
-
-function mapProject(p: any): Project {
-  return {
-    id: String(p.id),
-    name: p.name ?? '',
-    type: (p.type ?? 'Internal') as ProjectType,
-    description: p.description ?? '',
-  };
-}
-
-// ─── Projects ────────────────────────────────────────────────────────────────
-
-export const apiGetProjects = () => req<any[]>('/projects').then(list => list.map(mapProject));
-export const apiCreateProject = (p: Omit<Project, 'id'>) =>
-  req<any>('/projects', { method: 'POST', body: JSON.stringify(p) }).then(mapProject);
-export const apiUpdateProject = (id: string, p: Omit<Project, 'id'>) =>
-  req<any>(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(p) }).then(mapProject);
-export const apiDeleteProject = async (id: string): Promise<void> => {
-  const res = await fetch(`${BASE}/projects/${id}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.message ?? err.error ?? res.statusText);
-  }
-};
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 

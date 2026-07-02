@@ -4,7 +4,6 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import PeoplePage from './pages/PeoplePage';
 import TeamsPage from './pages/TeamsPage';
-import ProjectsPage from './pages/ProjectsPage';
 import StoriesPage from './pages/StoriesPage';
 import DailyLogPage from './pages/DailyLogPage';
 import BugsPage from './pages/BugsPage';
@@ -23,7 +22,6 @@ export default function AppRoutes() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/people" element={<PeoplePage />} />
         <Route path="/teams" element={<TeamsPage />} />
-        <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/stories" element={<StoriesPage />} />
         <Route path="/daily-log" element={<DailyLogPage />} />
         <Route path="/bugs" element={<BugsPage />} />
