@@ -23,21 +23,21 @@ public class DataInitializer implements CommandLineRunner {
 
     // username → projectTypes string for migration of existing records
     private static final Map<String, String> PROJECT_TYPES_BY_USERNAME = Map.ofEntries(
-        Map.entry("praneeth",    "Client,Internal"),
-        Map.entry("anil.y",      "Client,Internal"),
-        Map.entry("navya.sree",  "Client"),
-        Map.entry("nagaraju",    "Client"),
-        Map.entry("wahid",       "Client"),
-        Map.entry("adnan",       "Client"),
-        Map.entry("shahid",      "Client"),
-        Map.entry("navya.g",     "Client"),
-        Map.entry("raghavendra", "Client"),
-        Map.entry("manideep",    "Client"),
-        Map.entry("aadil",       "Internal"),
-        Map.entry("aakhil",      "Internal"),
-        Map.entry("mohan",       "Client"),
-        Map.entry("nithin",      "Client"),
-        Map.entry("anil.m",      "Client")
+        Map.entry("praneeth",              "Client,Internal"),
+        Map.entry("anil.yerupala",         "Client,Internal"),
+        Map.entry("navya.gunji",           "Client"),
+        Map.entry("nagaraju.gunji",        "Client"),
+        Map.entry("wahid.syed",            "Client"),
+        Map.entry("adnan.yousof",          "Client"),
+        Map.entry("shahid.syed",           "Client"),
+        Map.entry("navya.gujjeti",         "Client"),
+        Map.entry("raghavendra.aadesh",    "Client"),
+        Map.entry("manideep.vennam",       "Client"),
+        Map.entry("aadil.shaik",           "Internal"),
+        Map.entry("aakhil.shaik",          "Internal"),
+        Map.entry("mohan.meesala",         "Client"),
+        Map.entry("nithin.pillalamari",    "Client"),
+        Map.entry("anil.meesala",          "Client")
     );
 
     @Override
@@ -51,27 +51,43 @@ public class DataInitializer implements CommandLineRunner {
         addColumnIfNotExists("story", "story_number", "VARCHAR(100)");
         addUniqueConstraintIfNotExists("story", "story_number", "uq_story_story_number");
         migrateEmailDomain("criskasecurity.com");
+        migrateUsernameByEmail("praneeth@criskasecurity.com",    "praneeth");
+        migrateUsernameByEmail("anil.y@criskasecurity.com",      "anil.yerupala");
+        migrateUsernameByEmail("navya.sree@criskasecurity.com",  "navya.gunji");
+        migrateUsernameByEmail("nagaraju@criskasecurity.com",    "nagaraju.gunji");
+        migrateUsernameByEmail("wahid@criskasecurity.com",       "wahid.syed");
+        migrateUsernameByEmail("adnan@criskasecurity.com",       "adnan.yousof");
+        migrateUsernameByEmail("shahid@criskasecurity.com",      "shahid.syed");
+        migrateUsernameByEmail("navya.g@criskasecurity.com",     "navya.gujjeti");
+        migrateUsernameByEmail("raghavendra@criskasecurity.com", "raghavendra.aadesh");
+        migrateUsernameByEmail("manideep@criskasecurity.com",    "manideep.vennam");
+        migrateUsernameByEmail("aadil@criskasecurity.com",       "aadil.shaik");
+        migrateUsernameByEmail("aakhil@criskasecurity.com",      "aakhil.shaik");
+        migrateUsernameByEmail("mohan@criskasecurity.com",       "mohan.meesala");
+        migrateUsernameByEmail("nithin@criskasecurity.com",      "nithin.pillalamari");
+        migrateUsernameByEmail("anil.m@criskasecurity.com",      "anil.meesala");
         migrateProjectTypes();
-        migrateRole("navya.sree", "QA Engineer");
+        migrateRole("navya.gunji", "QA Engineer");
+        migratePasswords("criska@123");
 
         if (developerRepository.count() > 0) return;
 
         List<Developer> developers = List.of(
-            dev("Praneeth",           "praneeth@criskasecurity.com",    "Manager",  "1,2", "praneeth",    "Client,Internal"),
-            dev("Anil Yerupala",      "anil.y@criskasecurity.com",      "Tech Lead","1,2", "anil.y",      "Client,Internal"),
-            dev("Navya Sree Gunji",   "navya.sree@criskasecurity.com",  "QA Engineer","1",   "navya.sree",  "Client"),
-            dev("Nagaraju Gunji",     "nagaraju@criskasecurity.com",    "Developer","1",   "nagaraju",    "Client"),
-            dev("Abdul Wahid Syed",   "wahid@criskasecurity.com",       "Developer","1",   "wahid",       "Client"),
-            dev("Adnan Yousof",       "adnan@criskasecurity.com",       "Developer","1",   "adnan",       "Client"),
-            dev("Abdul Shahid Syed",  "shahid@criskasecurity.com",      "Developer","1",   "shahid",      "Client"),
-            dev("Navya Gujjeti",      "navya.g@criskasecurity.com",     "Developer","2",   "navya.g",     "Client"),
-            dev("Raghavendra Aadesh", "raghavendra@criskasecurity.com", "Developer","2",   "raghavendra", "Client"),
-            dev("Manideep Vennam",    "manideep@criskasecurity.com",    "Developer","2",   "manideep",    "Client"),
-            dev("Aadil Shaik",        "aadil@criskasecurity.com",       "Developer","1",   "aadil",       "Internal"),
-            dev("Aakhil Shaik",       "aakhil@criskasecurity.com",      "Developer","2",   "aakhil",      "Internal"),
-            dev("Mohan Meesala",      "mohan@criskasecurity.com",       "Developer","2",   "mohan",       "Client"),
-            dev("Nithin Pillalamari", "nithin@criskasecurity.com",      "Developer","2",   "nithin",      "Client"),
-            dev("Anil Meesala",       "anil.m@criskasecurity.com",      "Developer","2",   "anil.m",      "Client")
+            dev("Praneeth",           "praneeth@criskasecurity.com",    "Manager",     "1,2", "praneeth",           "Client,Internal"),
+            dev("Anil Yerupala",      "anil.y@criskasecurity.com",      "Tech Lead",   "1,2", "anil.yerupala",      "Client,Internal"),
+            dev("Navya Sree Gunji",   "navya.sree@criskasecurity.com",  "QA Engineer", "1",   "navya.gunji",        "Client"),
+            dev("Nagaraju Gunji",     "nagaraju@criskasecurity.com",    "Developer",   "1",   "nagaraju.gunji",     "Client"),
+            dev("Abdul Wahid Syed",   "wahid@criskasecurity.com",       "Developer",   "1",   "wahid.syed",         "Client"),
+            dev("Adnan Yousof",       "adnan@criskasecurity.com",       "Developer",   "1",   "adnan.yousof",       "Client"),
+            dev("Abdul Shahid Syed",  "shahid@criskasecurity.com",      "Developer",   "1",   "shahid.syed",        "Client"),
+            dev("Navya Gujjeti",      "navya.g@criskasecurity.com",     "Developer",   "2",   "navya.gujjeti",      "Client"),
+            dev("Raghavendra Aadesh", "raghavendra@criskasecurity.com", "Developer",   "2",   "raghavendra.aadesh", "Client"),
+            dev("Manideep Vennam",    "manideep@criskasecurity.com",    "Developer",   "2",   "manideep.vennam",    "Client"),
+            dev("Aadil Shaik",        "aadil@criskasecurity.com",       "Developer",   "1",   "aadil.shaik",        "Internal"),
+            dev("Aakhil Shaik",       "aakhil@criskasecurity.com",      "Developer",   "2",   "aakhil.shaik",       "Internal"),
+            dev("Mohan Meesala",      "mohan@criskasecurity.com",       "Developer",   "2",   "mohan.meesala",      "Client"),
+            dev("Nithin Pillalamari", "nithin@criskasecurity.com",      "Developer",   "2",   "nithin.pillalamari", "Client"),
+            dev("Anil Meesala",       "anil.m@criskasecurity.com",      "Developer",   "2",   "anil.meesala",       "Client")
         );
 
         developerRepository.saveAll(developers);
@@ -171,6 +187,32 @@ public class DataInitializer implements CommandLineRunner {
         });
     }
 
+    private void migrateUsernameByEmail(String email, String newUsername) {
+        developerRepository.findAll().stream()
+            .filter(d -> email.equals(d.getEmail()) && !newUsername.equals(d.getUsername()))
+            .findFirst()
+            .ifPresent(d -> {
+                d.setUsername(newUsername);
+                developerRepository.save(d);
+                System.out.println("✓ Updated username for " + email + " to " + newUsername);
+            });
+    }
+
+    private void migratePasswords(String newPassword) {
+        List<Developer> all = developerRepository.findAll();
+        List<Developer> toUpdate = new ArrayList<>();
+        for (Developer d : all) {
+            if (!newPassword.equals(d.getPassword())) {
+                d.setPassword(newPassword);
+                toUpdate.add(d);
+            }
+        }
+        if (!toUpdate.isEmpty()) {
+            developerRepository.saveAll(toUpdate);
+            System.out.println("✓ Updated password for " + toUpdate.size() + " developer(s)");
+        }
+    }
+
     private Developer dev(String name, String email, String role, String teamIds, String username, String projectTypes) {
         Developer d = new Developer();
         d.setName(name);
@@ -178,7 +220,7 @@ public class DataInitializer implements CommandLineRunner {
         d.setRole(role);
         d.setTeamIds(teamIds);
         d.setUsername(username);
-        d.setPassword("Converge@2026");
+        d.setPassword("criska@123");
         d.setProjectTypes(projectTypes);
         return d;
     }

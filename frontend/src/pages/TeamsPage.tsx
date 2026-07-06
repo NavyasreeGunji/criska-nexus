@@ -169,11 +169,6 @@ export default function TeamsPage() {
   const saveSprint = async () => {
     const trimmedSprintForm = { ...sprintForm, name: sprintForm.name.trim() };
     setSprintForm(trimmedSprintForm);
-    const today = new Date().toISOString().slice(0, 10);
-    if (!editSprint && trimmedSprintForm.startDate && trimmedSprintForm.startDate < today) {
-      setSprintDateError('Start date must be today or in the future');
-      return;
-    }
     if (trimmedSprintForm.startDate && trimmedSprintForm.endDate && trimmedSprintForm.endDate <= trimmedSprintForm.startDate) {
       setSprintDateError('End date must be after start date');
       return;
@@ -450,7 +445,7 @@ export default function TeamsPage() {
                 onChange={(e) => { setSprintForm((f) => ({ ...f, startDate: e.target.value })); setSprintDateError(''); }}
                 size="small"
                 InputLabelProps={{ shrink: true }}
-                inputProps={{ min: !editSprint ? new Date().toISOString().slice(0, 10) : undefined }}
+                inputProps={{  }}
                 sx={{ minWidth: 160 }}
                 fullWidth
                 required

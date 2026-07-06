@@ -88,21 +88,21 @@ export interface DeveloperProfile {
 }
 
 export const initialDeveloperProfiles: DeveloperProfile[] = [
-  { id: 'DEV-001', name: 'Praneeth', role: 'Manager', email: 'praneeth@criskasecurity.com', teamIds: ['T-001', 'T-002'], projectTypes: ['Client', 'Internal'], username: 'praneeth', password: 'Converge@2026' },
-  { id: 'DEV-002', name: 'Anil Yerupala', role: 'Tech Lead', email: 'anil.y@criskasecurity.com', teamIds: ['T-001', 'T-002'], projectTypes: ['Client', 'Internal'], username: 'anil.y', password: 'Converge@2026' },
-  { id: 'DEV-003', name: 'Navya Sree Gunji', role: 'QA Engineer', email: 'navya.sree@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'navya.sree', password: 'Converge@2026' },
-  { id: 'DEV-004', name: 'Nagaraju Gunji', role: 'Developer', email: 'nagaraju@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'nagaraju', password: 'Converge@2026' },
-  { id: 'DEV-005', name: 'Abdul Wahid Syed', role: 'Developer', email: 'wahid@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'wahid', password: 'Converge@2026' },
-  { id: 'DEV-006', name: 'Adnan Yousof', role: 'Developer', email: 'adnan@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'adnan', password: 'Converge@2026' },
-  { id: 'DEV-007', name: 'Abdul Shahid Syed', role: 'Developer', email: 'shahid@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'shahid', password: 'Converge@2026' },
-  { id: 'DEV-008', name: 'Navya Gujjeti', role: 'Developer', email: 'navya.g@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'navya.g', password: 'Converge@2026' },
-  { id: 'DEV-009', name: 'Raghavendra Aadesh', role: 'Developer', email: 'raghvendra@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'raghavendra', password: 'Converge@2026' },
-  { id: 'DEV-010', name: 'Manideep Vennam', role: 'Developer', email: 'manideep@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'manideep', password: 'Converge@2026' },
-  { id: 'DEV-011', name: 'Aadil Shaik', role: 'Developer', email: 'aadil@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Internal'], username: 'aadil', password: 'Converge@2026' },
-  { id: 'DEV-012', name: 'Aakhil Shaik', role: 'Developer', email: 'aakhil@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Internal'], username: 'aakhil', password: 'Converge@2026' },
-  { id: 'DEV-013', name: 'Mohan Meesala', role: 'Developer', email: 'mohan@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'mohan', password: 'Converge@2026' },
-  { id: 'DEV-014', name: 'Nithin Pillalamari', role: 'Developer', email: 'nithin@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'nithin', password: 'Converge@2026' },
-  { id: 'DEV-015', name: 'Anil Meesala', role: 'Developer', email: 'anil.m@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'anil.m', password: 'Converge@2026' },
+  { id: 'DEV-001', name: 'Praneeth', role: 'Manager', email: 'praneeth@criskasecurity.com', teamIds: ['T-001', 'T-002'], projectTypes: ['Client', 'Internal'], username: 'praneeth', password: 'criska@123' },
+  { id: 'DEV-002', name: 'Anil Yerupala', role: 'Tech Lead', email: 'anil.y@criskasecurity.com', teamIds: ['T-001', 'T-002'], projectTypes: ['Client', 'Internal'], username: 'anil.yerupala', password: 'criska@123' },
+  { id: 'DEV-003', name: 'Navya Sree Gunji', role: 'QA Engineer', email: 'navya.sree@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'navya.gunji', password: 'criska@123' },
+  { id: 'DEV-004', name: 'Nagaraju Gunji', role: 'Developer', email: 'nagaraju@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'nagaraju.gunji', password: 'criska@123' },
+  { id: 'DEV-005', name: 'Abdul Wahid Syed', role: 'Developer', email: 'wahid@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'wahid.syed', password: 'criska@123' },
+  { id: 'DEV-006', name: 'Adnan Yousof', role: 'Developer', email: 'adnan@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'adnan.yousof', password: 'criska@123' },
+  { id: 'DEV-007', name: 'Abdul Shahid Syed', role: 'Developer', email: 'shahid@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Client'], username: 'shahid.syed', password: 'criska@123' },
+  { id: 'DEV-008', name: 'Navya Gujjeti', role: 'Developer', email: 'navya.g@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'navya.gujjeti', password: 'criska@123' },
+  { id: 'DEV-009', name: 'Raghavendra Aadesh', role: 'Developer', email: 'raghvendra@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'raghavendra.aadesh', password: 'criska@123' },
+  { id: 'DEV-010', name: 'Manideep Vennam', role: 'Developer', email: 'manideep@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'manideep.vennam', password: 'criska@123' },
+  { id: 'DEV-011', name: 'Aadil Shaik', role: 'Developer', email: 'aadil@criskasecurity.com', teamIds: ['T-001'], projectTypes: ['Internal'], username: 'aadil.shaik', password: 'criska@123' },
+  { id: 'DEV-012', name: 'Aakhil Shaik', role: 'Developer', email: 'aakhil@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Internal'], username: 'aakhil.shaik', password: 'criska@123' },
+  { id: 'DEV-013', name: 'Mohan Meesala', role: 'Developer', email: 'mohan@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'mohan.meesala', password: 'criska@123' },
+  { id: 'DEV-014', name: 'Nithin Pillalamari', role: 'Developer', email: 'nithin@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'nithin.pillalamari', password: 'criska@123' },
+  { id: 'DEV-015', name: 'Anil Meesala', role: 'Developer', email: 'anil.m@criskasecurity.com', teamIds: ['T-002'], projectTypes: ['Client'], username: 'anil.meesala', password: 'criska@123' },
 ];
 
 // Derived string list — used by dropdowns across the app
