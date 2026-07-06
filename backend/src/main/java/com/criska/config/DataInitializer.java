@@ -187,13 +187,11 @@ public class DataInitializer implements CommandLineRunner {
 
     private void migrateUsernames() {
         List<Developer> all = developerRepository.findAll();
-        System.out.println("Username migration: found " + all.size() + " developer(s)");
         List<Developer> toUpdate = new ArrayList<>();
         for (Developer d : all) {
             if (d.getName() == null || d.getName().isBlank()) continue;
             String trimmed = d.getName().trim();
             String newUsername = USERNAME_OVERRIDES.getOrDefault(trimmed, deriveUsername(trimmed));
-            System.out.println("  " + trimmed + " | current=" + d.getUsername() + " | target=" + newUsername);
             if (!newUsername.equals(d.getUsername())) {
                 d.setUsername(newUsername);
                 toUpdate.add(d);
