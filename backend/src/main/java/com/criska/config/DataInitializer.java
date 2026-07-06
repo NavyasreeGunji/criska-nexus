@@ -173,42 +173,37 @@ public class DataInitializer implements CommandLineRunner {
         });
     }
 
-    private static final Map<String, String> USERNAME_BY_EMAIL = Map.ofEntries(
-        Map.entry("praneeth@criskasecurity.com",    "praneeth"),
-        Map.entry("anil.y@criskasecurity.com",      "anil.yerupala"),
-        Map.entry("navya.sree@criskasecurity.com",  "navya.gunji"),
-        Map.entry("nagaraju@criskasecurity.com",    "nagaraju.gunji"),
-        Map.entry("wahid@criskasecurity.com",       "wahid.syed"),
-        Map.entry("adnan@criskasecurity.com",       "adnan.yousof"),
-        Map.entry("shahid@criskasecurity.com",      "shahid.syed"),
-        Map.entry("navya.g@criskasecurity.com",     "navya.gujjeti"),
-        Map.entry("raghavendra@criskasecurity.com", "raghavendra.aadesh"),
-        Map.entry("manideep@criskasecurity.com",    "manideep.vennam"),
-        Map.entry("aadil@criskasecurity.com",       "aadil.shaik"),
-        Map.entry("aakhil@criskasecurity.com",      "aakhil.shaik"),
-        Map.entry("mohan@criskasecurity.com",       "mohan.meesala"),
-        Map.entry("nithin@criskasecurity.com",      "nithin.pillalamari"),
-        Map.entry("anil.m@criskasecurity.com",      "anil.meesala")
+    // old username → new username
+    private static final Map<String, String> USERNAME_MIGRATIONS = Map.ofEntries(
+        Map.entry("anil.y",      "anil.yerupala"),
+        Map.entry("navya.sree",  "navya.gunji"),
+        Map.entry("nagaraju",    "nagaraju.gunji"),
+        Map.entry("wahid",       "wahid.syed"),
+        Map.entry("adnan",       "adnan.yousof"),
+        Map.entry("shahid",      "shahid.syed"),
+        Map.entry("navya.g",     "navya.gujjeti"),
+        Map.entry("raghavendra", "raghavendra.aadesh"),
+        Map.entry("manideep",    "manideep.vennam"),
+        Map.entry("aadil",       "aadil.shaik"),
+        Map.entry("aakhil",      "aakhil.shaik"),
+        Map.entry("mohan",       "mohan.meesala"),
+        Map.entry("nithin",      "nithin.pillalamari"),
+        Map.entry("anil.m",      "anil.meesala")
     );
 
     private void migrateUsernames() {
-        int[] updated = {0};
-        USERNAME_BY_EMAIL.forEach((email, newUsername) -> {
+        USERNAME_MIGRATIONS.forEach((oldUsername, newUsername) -> {
             try {
                 int rows = jdbc.update(
-                    "UPDATE developer SET username = ? WHERE email = ? AND username != ?",
-                    newUsername, email, newUsername);
+                    "UPDATE developer SET username = ? WHERE username = ?",
+                    newUsername, oldUsername);
                 if (rows > 0) {
-                    updated[0] += rows;
-                    System.out.println("✓ Set username=" + newUsername + " for " + email);
+                    System.out.println("✓ Renamed username " + oldUsername + " → " + newUsername);
                 }
             } catch (Exception e) {
-                System.out.println("⚠ Could not update username for " + email + ": " + e.getMessage());
+                System.out.println("⚠ Could not rename username " + oldUsername + ": " + e.getMessage());
             }
         });
-        if (updated[0] > 0) {
-            System.out.println("✓ Updated usernames for " + updated[0] + " developer(s)");
-        }
     }
 
     private void migratePasswords(String newPassword) {
