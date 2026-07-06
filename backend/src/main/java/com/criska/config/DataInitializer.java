@@ -173,35 +173,36 @@ public class DataInitializer implements CommandLineRunner {
         });
     }
 
-    // old username → new username
-    private static final Map<String, String> USERNAME_MIGRATIONS = Map.ofEntries(
-        Map.entry("anil.y",      "anil.yerupala"),
-        Map.entry("navya.sree",  "navya.gunji"),
-        Map.entry("nagaraju",    "nagaraju.gunji"),
-        Map.entry("wahid",       "wahid.syed"),
-        Map.entry("adnan",       "adnan.yousof"),
-        Map.entry("shahid",      "shahid.syed"),
-        Map.entry("navya.g",     "navya.gujjeti"),
-        Map.entry("raghavendra", "raghavendra.aadesh"),
-        Map.entry("manideep",    "manideep.vennam"),
-        Map.entry("aadil",       "aadil.shaik"),
-        Map.entry("aakhil",      "aakhil.shaik"),
-        Map.entry("mohan",       "mohan.meesala"),
-        Map.entry("nithin",      "nithin.pillalamari"),
-        Map.entry("anil.m",      "anil.meesala")
+    // name → correct username (name field never changes, safest lookup key)
+    private static final Map<String, String> USERNAME_BY_NAME = Map.ofEntries(
+        Map.entry("Praneeth",           "praneeth"),
+        Map.entry("Anil Yerupala",      "anil.yerupala"),
+        Map.entry("Navya Sree Gunji",   "navya.gunji"),
+        Map.entry("Nagaraju Gunji",     "nagaraju.gunji"),
+        Map.entry("Abdul Wahid Syed",   "wahid.syed"),
+        Map.entry("Adnan Yousof",       "adnan.yousof"),
+        Map.entry("Abdul Shahid Syed",  "shahid.syed"),
+        Map.entry("Navya Gujjeti",      "navya.gujjeti"),
+        Map.entry("Raghavendra Aadesh", "raghavendra.aadesh"),
+        Map.entry("Manideep Vennam",    "manideep.vennam"),
+        Map.entry("Aadil Shaik",        "aadil.shaik"),
+        Map.entry("Aakhil Shaik",       "aakhil.shaik"),
+        Map.entry("Mohan Meesala",      "mohan.meesala"),
+        Map.entry("Nithin Pillalamari", "nithin.pillalamari"),
+        Map.entry("Anil Meesala",       "anil.meesala")
     );
 
     private void migrateUsernames() {
-        USERNAME_MIGRATIONS.forEach((oldUsername, newUsername) -> {
+        USERNAME_BY_NAME.forEach((name, newUsername) -> {
             try {
                 int rows = jdbc.update(
-                    "UPDATE developer SET username = ? WHERE username = ?",
-                    newUsername, oldUsername);
+                    "UPDATE developer SET username = ? WHERE name = ? AND username != ?",
+                    newUsername, name, newUsername);
                 if (rows > 0) {
-                    System.out.println("✓ Renamed username " + oldUsername + " → " + newUsername);
+                    System.out.println("✓ Set username=" + newUsername + " for " + name);
                 }
             } catch (Exception e) {
-                System.out.println("⚠ Could not rename username " + oldUsername + ": " + e.getMessage());
+                System.out.println("⚠ Could not update username for " + name + ": " + e.getMessage());
             }
         });
     }
