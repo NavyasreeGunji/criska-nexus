@@ -82,6 +82,7 @@ function DrawerContent({
   const [pwOpen, setPwOpen] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
   const [pwShow, setPwShow] = useState({ current: false, next: false, confirm: false });
+  const [pwNextFocused, setPwNextFocused] = useState(false);
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState(false);
   const [pwSaving, setPwSaving] = useState(false);
@@ -117,6 +118,7 @@ function DrawerContent({
     setPwSuccess(false);
     setPwForm({ current: '', next: '', confirm: '' });
     setPwShow({ current: false, next: false, confirm: false });
+    setPwNextFocused(false);
   };
 
   const eyeBtn = (field: 'current' | 'next' | 'confirm') => (
@@ -280,10 +282,12 @@ function DrawerContent({
                 type={pwShow.next ? 'text' : 'password'}
                 value={pwForm.next}
                 onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
+                onFocus={() => setPwNextFocused(true)}
+                onBlur={() => setPwNextFocused(false)}
                 size="small"
                 fullWidth
                 autoComplete="new-password"
-                helperText="Min 8 chars, at least one number and one special character (@, #, ! …)"
+                helperText={pwNextFocused ? 'Min 8 chars, at least one number and one special character (@, #, ! …)' : ''}
                 InputProps={{ endAdornment: eyeBtn('next') }}
               />
               <TextField
