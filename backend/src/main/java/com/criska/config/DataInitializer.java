@@ -51,21 +51,7 @@ public class DataInitializer implements CommandLineRunner {
         addColumnIfNotExists("story", "story_number", "VARCHAR(100)");
         addUniqueConstraintIfNotExists("story", "story_number", "uq_story_story_number");
         migrateEmailDomain("criskasecurity.com");
-        migrateUsernameByEmail("praneeth@criskasecurity.com",    "praneeth");
-        migrateUsernameByEmail("anil.y@criskasecurity.com",      "anil.yerupala");
-        migrateUsernameByEmail("navya.sree@criskasecurity.com",  "navya.gunji");
-        migrateUsernameByEmail("nagaraju@criskasecurity.com",    "nagaraju.gunji");
-        migrateUsernameByEmail("wahid@criskasecurity.com",       "wahid.syed");
-        migrateUsernameByEmail("adnan@criskasecurity.com",       "adnan.yousof");
-        migrateUsernameByEmail("shahid@criskasecurity.com",      "shahid.syed");
-        migrateUsernameByEmail("navya.g@criskasecurity.com",     "navya.gujjeti");
-        migrateUsernameByEmail("raghavendra@criskasecurity.com", "raghavendra.aadesh");
-        migrateUsernameByEmail("manideep@criskasecurity.com",    "manideep.vennam");
-        migrateUsernameByEmail("aadil@criskasecurity.com",       "aadil.shaik");
-        migrateUsernameByEmail("aakhil@criskasecurity.com",      "aakhil.shaik");
-        migrateUsernameByEmail("mohan@criskasecurity.com",       "mohan.meesala");
-        migrateUsernameByEmail("nithin@criskasecurity.com",      "nithin.pillalamari");
-        migrateUsernameByEmail("anil.m@criskasecurity.com",      "anil.meesala");
+        migrateUsernames();
         migrateProjectTypes();
         migrateRole("navya.gunji", "QA Engineer");
         migratePasswords("criska@123");
@@ -187,15 +173,38 @@ public class DataInitializer implements CommandLineRunner {
         });
     }
 
-    private void migrateUsernameByEmail(String email, String newUsername) {
-        developerRepository.findAll().stream()
-            .filter(d -> email.equals(d.getEmail()) && !newUsername.equals(d.getUsername()))
-            .findFirst()
-            .ifPresent(d -> {
+    private static final Map<String, String> USERNAME_BY_EMAIL = Map.ofEntries(
+        Map.entry("praneeth@criskasecurity.com",    "praneeth"),
+        Map.entry("anil.y@criskasecurity.com",      "anil.yerupala"),
+        Map.entry("navya.sree@criskasecurity.com",  "navya.gunji"),
+        Map.entry("nagaraju@criskasecurity.com",    "nagaraju.gunji"),
+        Map.entry("wahid@criskasecurity.com",       "wahid.syed"),
+        Map.entry("adnan@criskasecurity.com",       "adnan.yousof"),
+        Map.entry("shahid@criskasecurity.com",      "shahid.syed"),
+        Map.entry("navya.g@criskasecurity.com",     "navya.gujjeti"),
+        Map.entry("raghavendra@criskasecurity.com", "raghavendra.aadesh"),
+        Map.entry("manideep@criskasecurity.com",    "manideep.vennam"),
+        Map.entry("aadil@criskasecurity.com",       "aadil.shaik"),
+        Map.entry("aakhil@criskasecurity.com",      "aakhil.shaik"),
+        Map.entry("mohan@criskasecurity.com",       "mohan.meesala"),
+        Map.entry("nithin@criskasecurity.com",      "nithin.pillalamari"),
+        Map.entry("anil.m@criskasecurity.com",      "anil.meesala")
+    );
+
+    private void migrateUsernames() {
+        List<Developer> all = developerRepository.findAll();
+        List<Developer> toUpdate = new ArrayList<>();
+        for (Developer d : all) {
+            String newUsername = USERNAME_BY_EMAIL.get(d.getEmail());
+            if (newUsername != null && !newUsername.equals(d.getUsername())) {
                 d.setUsername(newUsername);
-                developerRepository.save(d);
-                System.out.println("✓ Updated username for " + email + " to " + newUsername);
-            });
+                toUpdate.add(d);
+            }
+        }
+        if (!toUpdate.isEmpty()) {
+            developerRepository.saveAll(toUpdate);
+            System.out.println("✓ Updated usernames for " + toUpdate.size() + " developer(s)");
+        }
     }
 
     private void migratePasswords(String newPassword) {
