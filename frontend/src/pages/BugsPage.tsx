@@ -153,8 +153,8 @@ export default function BugsPage() {
           <Select value={filterEnv} label="Environment" onChange={(e) => setFilterEnv(e.target.value)}>
             <MenuItem value="all">All</MenuItem>
             <MenuItem value="production">Production</MenuItem>
-            <MenuItem value="staging">Staging</MenuItem>
-            <MenuItem value="development">Development</MenuItem>
+            <MenuItem value="stage/UAT">Stage/UAT</MenuItem>
+            
           </Select>
         </FormControl>
         <Box sx={{ flexGrow: 1 }} />
@@ -304,8 +304,8 @@ export default function BugsPage() {
                 }
               >
                 <MenuItem value="production">Production</MenuItem>
-                <MenuItem value="staging">Staging</MenuItem>
-                <MenuItem value="development">Development</MenuItem>
+                <MenuItem value="stage/UAT">Stage/UAT</MenuItem>
+                
               </Select>
             </FormControl>
             <Stack direction="row" spacing={2}>

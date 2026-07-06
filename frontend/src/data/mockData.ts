@@ -45,7 +45,7 @@ export interface Bug {
   description: string;
   severity: BugSeverity;
   status: BugStatus;
-  environment: 'production' | 'staging' | 'development';
+  environment: 'production' | 'stage/UAT';
   reporter: string;
   assignee: string;
   createdDate: string;
@@ -63,7 +63,7 @@ export interface DailyLog {
 
 export interface Deployment {
   id: string;
-  environment: 'production' | 'staging';
+  environment: 'production' | 'stage/UAT';
   status: DeploymentStatus;
   deployedBy: string;
   date: string;
@@ -221,7 +221,7 @@ export const bugs: Bug[] = [
   {
     id: 'B-003', title: 'Export CSV missing columns',
     description: 'Date and assignee columns are missing from CSV export',
-    severity: 'medium', status: 'resolved', environment: 'staging',
+    severity: 'medium', status: 'resolved', environment: 'stage/UAT',
     reporter: 'Raghavendra Aadesh', assignee: 'Adnan Yousof',
     createdDate: '2026-05-28', resolvedDate: '2026-05-30',
   },
@@ -269,7 +269,7 @@ export const deployments: Deployment[] = [
     notes: 'Auth module + performance fixes',
   },
   {
-    id: 'D-002', environment: 'staging', status: 'in_progress',
+    id: 'D-002', environment: 'stage/UAT', status: 'in_progress',
     deployedBy: 'Anil Yerupala', date: '2026-06-14', time: '14:00',
     description: 'Deploying dashboard analytics feature to staging for QA sign-off. Monitoring error rates.',
     notes: 'Dashboard analytics preview',
@@ -287,7 +287,7 @@ export const deployments: Deployment[] = [
     notes: 'Hotfix: Safari login redirect',
   },
   {
-    id: 'D-005', environment: 'staging', status: 'success',
+    id: 'D-005', environment: 'stage/UAT', status: 'success',
     deployedBy: 'Nagaraju Gunji', date: '2026-06-08', time: '11:00',
     description: 'Sprint 2 feature branch merged and deployed to staging. Includes RBAC module, notification system, and UI improvements.',
     notes: 'Feature branch merge for Sprint 2',
@@ -299,7 +299,7 @@ export const deployments: Deployment[] = [
     notes: 'Sprint 3 production release',
   },
   {
-    id: 'D-007', environment: 'staging', status: 'planned',
+    id: 'D-007', environment: 'stage/UAT', status: 'planned',
     deployedBy: 'Nagaraju Gunji', date: '2026-06-20', time: '10:00',
     description: 'RBAC and export CSV features going into staging for integration testing.',
     notes: 'RBAC + CSV export staging deploy',

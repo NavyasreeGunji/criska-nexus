@@ -48,7 +48,7 @@ const UPCOMING_STATUSES: DeploymentStatus[] = ['planned', 'in_progress'];
 const COMPLETED_STATUSES: DeploymentStatus[] = ['success', 'failed', 'rolled_back'];
 
 const emptyForm = (): Omit<Deployment, 'id'> => ({
-  environment: 'staging',
+  environment: 'stage/UAT',
   status: 'planned',
   deployedBy: '',
   date: new Date().toISOString().slice(0, 10),
@@ -368,7 +368,7 @@ export default function DeploymentsPage() {
                 }
               >
                 <MenuItem value="production">Production</MenuItem>
-                <MenuItem value="staging">Staging</MenuItem>
+                <MenuItem value="stage/UAT">Stage/UAT</MenuItem>
               </Select>
             </FormControl>
             <Stack direction="row" spacing={2}>
