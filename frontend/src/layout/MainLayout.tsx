@@ -37,6 +37,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -54,6 +55,7 @@ const navItems = [
   { label: 'Bugs & Issues', icon: <BugReportIcon />, path: '/bugs' },
   { label: 'Deployments', icon: <RocketLaunchIcon />, path: '/deployments' },
   { label: 'Reports', icon: <BarChartIcon />, path: '/reports' },
+  { label: 'Help', icon: <HelpOutlineIcon />, path: '/help' },
 ];
 
 function avatarColor(name: string) {

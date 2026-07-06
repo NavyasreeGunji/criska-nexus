@@ -9,6 +9,7 @@ import DailyLogPage from './pages/DailyLogPage';
 import BugsPage from './pages/BugsPage';
 import DeploymentsPage from './pages/DeploymentsPage';
 import ReportsPage from './pages/ReportsPage';
+import HelpPage from './pages/HelpPage';
 import { useApp } from './context/AppContext';
 
 export default function AppRoutes() {
@@ -27,6 +28,7 @@ export default function AppRoutes() {
         <Route path="/bugs" element={<BugsPage />} />
         <Route path="/deployments" element={<DeploymentsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/help" element={<HelpPage />} />
       </Routes>
     </MainLayout>
   );
