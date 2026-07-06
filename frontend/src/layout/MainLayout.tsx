@@ -16,6 +16,13 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Alert,
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
@@ -26,9 +33,11 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import LogoutIcon from '@mui/icons-material/Logout';
+import LockResetIcon from '@mui/icons-material/LockReset';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { apiChangePassword } from '../api/api';
 
 const DRAWER_WIDTH = 240;
 const COLLAPSED_WIDTH = 64;
@@ -64,6 +73,36 @@ function DrawerContent({
   const userInitials = currentUser
     ? currentUser.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : '?';
+
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+  const [pwSaving, setPwSaving] = useState(false);
+
+  const handleChangePw = async () => {
+    setPwError('');
+    if (!pwForm.current || !pwForm.next || !pwForm.confirm) { setPwError('All fields are required'); return; }
+    if (pwForm.next.length < 6) { setPwError('New password must be at least 6 characters'); return; }
+    if (pwForm.next !== pwForm.confirm) { setPwError('Passwords do not match'); return; }
+    setPwSaving(true);
+    try {
+      await apiChangePassword(currentUser!.username, pwForm.current, pwForm.next);
+      setPwSuccess(true);
+      setPwForm({ current: '', next: '', confirm: '' });
+    } catch (e: any) {
+      setPwError(e.message ?? 'Failed to change password');
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
+  const closePwDialog = () => {
+    setPwOpen(false);
+    setPwError('');
+    setPwSuccess(false);
+    setPwForm({ current: '', next: '', confirm: '' });
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -174,6 +213,16 @@ function DrawerContent({
           </Box>
         )}
 
+        <Tooltip title="Change password" placement={isOpen ? 'top' : 'right'}>
+          <IconButton
+            size="small"
+            onClick={() => setPwOpen(true)}
+            sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white' }, flexShrink: 0 }}
+          >
+            <LockResetIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
         <Tooltip title="Sign out" placement={isOpen ? 'top' : 'right'}>
           <IconButton
             size="small"
@@ -184,6 +233,54 @@ function DrawerContent({
           </IconButton>
         </Tooltip>
       </Box>
+
+      <Dialog open={pwOpen} onClose={closePwDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Change Password</DialogTitle>
+        <DialogContent>
+          {pwSuccess ? (
+            <Alert severity="success" sx={{ mt: 1 }}>Password changed successfully!</Alert>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              {pwError && <Alert severity="error">{pwError}</Alert>}
+              <TextField
+                label="Current Password"
+                type="password"
+                value={pwForm.current}
+                onChange={(e) => setPwForm((f) => ({ ...f, current: e.target.value }))}
+                size="small"
+                fullWidth
+                autoComplete="current-password"
+              />
+              <TextField
+                label="New Password"
+                type="password"
+                value={pwForm.next}
+                onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
+                size="small"
+                fullWidth
+                autoComplete="new-password"
+              />
+              <TextField
+                label="Confirm New Password"
+                type="password"
+                value={pwForm.confirm}
+                onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
+                size="small"
+                fullWidth
+                autoComplete="new-password"
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closePwDialog}>{pwSuccess ? 'Close' : 'Cancel'}</Button>
+          {!pwSuccess && (
+            <Button onClick={handleChangePw} variant="contained" disabled={pwSaving}>
+              {pwSaving ? 'Saving…' : 'Change Password'}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -32,4 +32,27 @@ public class AuthController {
         }
         return ResponseEntity.ok(dev);
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> body) {
+        String username        = body.get("username");
+        String currentPassword = body.get("currentPassword");
+        String newPassword     = body.get("newPassword");
+
+        if (username == null || currentPassword == null || newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "All fields are required"));
+        }
+        if (newPassword.length() < 6) {
+            return ResponseEntity.badRequest().body(Map.of("error", "New password must be at least 6 characters"));
+        }
+
+        Developer dev = repository.findByUsername(username.trim().toLowerCase()).orElse(null);
+        if (dev == null || !currentPassword.equals(dev.getPassword())) {
+            return ResponseEntity.status(401).body(Map.of("error", "Current password is incorrect"));
+        }
+
+        dev.setPassword(newPassword);
+        repository.save(dev);
+        return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+    }
 }

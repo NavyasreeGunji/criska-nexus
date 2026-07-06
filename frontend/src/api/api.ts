@@ -201,6 +201,13 @@ export async function apiLogin(username: string, password: string): Promise<Deve
   return mapDeveloper(data);
 }
 
+export async function apiChangePassword(username: string, currentPassword: string, newPassword: string): Promise<void> {
+  await req<any>('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ username, currentPassword, newPassword }),
+  });
+}
+
 export async function apiSendOtp(username: string): Promise<{ maskedEmail: string }> {
   return req<{ maskedEmail: string }>('/auth/send-otp', {
     method: 'POST',

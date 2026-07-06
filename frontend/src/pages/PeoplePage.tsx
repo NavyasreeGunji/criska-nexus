@@ -35,6 +35,8 @@ const projectTypeColor: Record<ProjectType, { color: string; bg: string }> = {
 const roleConfig: Record<DeveloperRole, { color: string; bg: string }> = {
   Developer: { color: '#2563EB', bg: '#dbeafe' },
   'Senior Developer': { color: '#1d4ed8', bg: '#bfdbfe' },
+  'Full Stack Engineer': { color: '#0369a1', bg: '#e0f2fe' },
+  'Senior Full Stack Engineer': { color: '#075985', bg: '#bae6fd' },
   'QA Engineer': { color: '#7C3AED', bg: '#ede9fe' },
   DevOps: { color: '#16a34a', bg: '#dcfce7' },
   'Tech Lead': { color: '#d97706', bg: '#fef3c7' },
@@ -44,26 +46,36 @@ const roleConfig: Record<DeveloperRole, { color: string; bg: string }> = {
   'Associate Manager': { color: '#9333ea', bg: '#f3e8ff' },
   'Delivery Manager': { color: '#059669', bg: '#d1fae5' },
   'Technical Manager': { color: '#b45309', bg: '#fef3c7' },
+  'Security Consultant': { color: '#b91c1c', bg: '#fee2e2' },
+  'Senior Security Consultant': { color: '#991b1b', bg: '#fecaca' },
+  Admin: { color: '#1e293b', bg: '#e2e8f0' },
 };
 
 const roles: DeveloperRole[] = [
-  'Developer', 'Senior Developer', 'QA Engineer', 'DevOps', 'Tech Lead',
+  'Developer', 'Senior Developer', 'Full Stack Engineer', 'Senior Full Stack Engineer',
+  'QA Engineer', 'DevOps', 'Tech Lead',
   'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager',
-  'HR', 'Sprint Master',
+  'Security Consultant', 'Senior Security Consultant',
+  'Admin', 'HR', 'Sprint Master',
 ];
 
 const ROLE_PRIORITY: Record<DeveloperRole, number> = {
-  Manager: 1,
-  'Technical Manager': 2,
-  'Delivery Manager': 3,
-  'Associate Manager': 4,
-  'Tech Lead': 5,
-  'Sprint Master': 6,
-  HR: 7,
-  'Senior Developer': 8,
-  Developer: 9,
-  'QA Engineer': 10,
-  DevOps: 11,
+  Admin: 1,
+  Manager: 2,
+  'Technical Manager': 3,
+  'Delivery Manager': 4,
+  'Associate Manager': 5,
+  'Tech Lead': 6,
+  'Sprint Master': 7,
+  HR: 8,
+  'Senior Full Stack Engineer': 9,
+  'Senior Developer': 10,
+  'Senior Security Consultant': 11,
+  'Full Stack Engineer': 12,
+  Developer: 13,
+  'Security Consultant': 14,
+  'QA Engineer': 15,
+  DevOps: 16,
 };
 
 const avatarColors = ['#2563EB', '#7C3AED', '#16a34a', '#d97706', '#dc2626', '#0891b2', '#be185d'];
@@ -94,7 +106,7 @@ function isValidName(name: string): boolean {
 export default function PeoplePage() {
   const { teams, developerProfiles, currentUser, addDeveloper, updateDeveloper, updateTeam, deleteDeveloper } = useApp();
 
-  const PRIVILEGED_ROLES: DeveloperRole[] = ['Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'Tech Lead', 'HR', 'Sprint Master'];
+  const PRIVILEGED_ROLES: DeveloperRole[] = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'Tech Lead', 'HR', 'Sprint Master'];
   const canEditAll = currentUser ? PRIVILEGED_ROLES.includes(currentUser.role) : false;
   const canDelete = currentUser?.role === 'Manager';
   const canEdit = (dev: DeveloperProfile) => canEditAll || currentUser?.id === dev.id;
