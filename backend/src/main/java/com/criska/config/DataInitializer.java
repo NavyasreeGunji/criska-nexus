@@ -51,7 +51,6 @@ public class DataInitializer implements CommandLineRunner {
         addColumnIfNotExists("story", "story_number", "VARCHAR(100)");
         addUniqueConstraintIfNotExists("story", "story_number", "uq_story_story_number");
         migrateEmailDomain("criskasecurity.com");
-        migrateUsernames();
         migrateProjectTypes();
         migrateRole("navya.gunji", "QA Engineer");
         migratePasswords("criska@123");
