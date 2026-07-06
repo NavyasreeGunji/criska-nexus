@@ -190,6 +190,8 @@ public class DataInitializer implements CommandLineRunner {
         List<Developer> toUpdate = new ArrayList<>();
         for (Developer d : all) {
             if (d.getName() == null || d.getName().isBlank()) continue;
+            // skip if already in firstname.lastname format — set by migration or manually
+            if (d.getUsername() != null && d.getUsername().contains(".")) continue;
             String trimmed = d.getName().trim();
             String newUsername = USERNAME_OVERRIDES.getOrDefault(trimmed, deriveUsername(trimmed));
             if (!newUsername.equals(d.getUsername())) {
