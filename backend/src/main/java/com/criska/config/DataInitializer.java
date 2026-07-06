@@ -192,18 +192,22 @@ public class DataInitializer implements CommandLineRunner {
     );
 
     private void migrateUsernames() {
-        List<Developer> all = developerRepository.findAll();
-        List<Developer> toUpdate = new ArrayList<>();
-        for (Developer d : all) {
-            String newUsername = USERNAME_BY_EMAIL.get(d.getEmail());
-            if (newUsername != null && !newUsername.equals(d.getUsername())) {
-                d.setUsername(newUsername);
-                toUpdate.add(d);
+        int[] updated = {0};
+        USERNAME_BY_EMAIL.forEach((email, newUsername) -> {
+            try {
+                int rows = jdbc.update(
+                    "UPDATE developer SET username = ? WHERE email = ? AND username != ?",
+                    newUsername, email, newUsername);
+                if (rows > 0) {
+                    updated[0] += rows;
+                    System.out.println("✓ Set username=" + newUsername + " for " + email);
+                }
+            } catch (Exception e) {
+                System.out.println("⚠ Could not update username for " + email + ": " + e.getMessage());
             }
-        }
-        if (!toUpdate.isEmpty()) {
-            developerRepository.saveAll(toUpdate);
-            System.out.println("✓ Updated usernames for " + toUpdate.size() + " developer(s)");
+        });
+        if (updated[0] > 0) {
+            System.out.println("✓ Updated usernames for " + updated[0] + " developer(s)");
         }
     }
 
