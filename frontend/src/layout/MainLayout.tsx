@@ -23,6 +23,7 @@ import {
   Button,
   TextField,
   Alert,
+  InputAdornment,
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
@@ -34,6 +35,8 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockResetIcon from '@mui/icons-material/LockReset';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -76,14 +79,23 @@ function DrawerContent({
 
   const [pwOpen, setPwOpen] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
+  const [pwShow, setPwShow] = useState({ current: false, next: false, confirm: false });
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState(false);
   const [pwSaving, setPwSaving] = useState(false);
 
+  const validateNewPassword = (pw: string): string => {
+    if (pw.length < 8) return 'Password must be at least 8 characters';
+    if (!/[0-9]/.test(pw)) return 'Password must contain at least one number';
+    if (!/[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]/.test(pw)) return 'Password must contain at least one special character (e.g. @, #, !)';
+    return '';
+  };
+
   const handleChangePw = async () => {
     setPwError('');
     if (!pwForm.current || !pwForm.next || !pwForm.confirm) { setPwError('All fields are required'); return; }
-    if (pwForm.next.length < 6) { setPwError('New password must be at least 6 characters'); return; }
+    const validErr = validateNewPassword(pwForm.next);
+    if (validErr) { setPwError(validErr); return; }
     if (pwForm.next !== pwForm.confirm) { setPwError('Passwords do not match'); return; }
     setPwSaving(true);
     try {
@@ -102,7 +114,16 @@ function DrawerContent({
     setPwError('');
     setPwSuccess(false);
     setPwForm({ current: '', next: '', confirm: '' });
+    setPwShow({ current: false, next: false, confirm: false });
   };
+
+  const eyeBtn = (field: 'current' | 'next' | 'confirm') => (
+    <InputAdornment position="end">
+      <IconButton size="small" onClick={() => setPwShow((s) => ({ ...s, [field]: !s[field] }))} edge="end">
+        {pwShow[field] ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+      </IconButton>
+    </InputAdornment>
+  );
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -244,30 +265,34 @@ function DrawerContent({
               {pwError && <Alert severity="error">{pwError}</Alert>}
               <TextField
                 label="Current Password"
-                type="password"
+                type={pwShow.current ? 'text' : 'password'}
                 value={pwForm.current}
                 onChange={(e) => setPwForm((f) => ({ ...f, current: e.target.value }))}
                 size="small"
                 fullWidth
                 autoComplete="current-password"
+                InputProps={{ endAdornment: eyeBtn('current') }}
               />
               <TextField
                 label="New Password"
-                type="password"
+                type={pwShow.next ? 'text' : 'password'}
                 value={pwForm.next}
                 onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
                 size="small"
                 fullWidth
                 autoComplete="new-password"
+                helperText="Min 8 chars, at least one number and one special character (@, #, ! …)"
+                InputProps={{ endAdornment: eyeBtn('next') }}
               />
               <TextField
                 label="Confirm New Password"
-                type="password"
+                type={pwShow.confirm ? 'text' : 'password'}
                 value={pwForm.confirm}
                 onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
                 size="small"
                 fullWidth
                 autoComplete="new-password"
+                InputProps={{ endAdornment: eyeBtn('confirm') }}
               />
             </Box>
           )}

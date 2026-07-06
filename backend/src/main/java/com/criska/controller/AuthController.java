@@ -42,8 +42,8 @@ public class AuthController {
         if (username == null || currentPassword == null || newPassword == null || newPassword.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "All fields are required"));
         }
-        if (newPassword.length() < 6) {
-            return ResponseEntity.badRequest().body(Map.of("error", "New password must be at least 6 characters"));
+        if (newPassword.length() < 8) {
+            return ResponseEntity.badRequest().body(Map.of("error", "New password must be at least 8 characters"));
         }
 
         Developer dev = repository.findByUsername(username.trim().toLowerCase()).orElse(null);
