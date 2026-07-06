@@ -173,32 +173,28 @@ public class DataInitializer implements CommandLineRunner {
         });
     }
 
-    // name → correct username (name field never changes, safest lookup key)
-    private static final Map<String, String> USERNAME_BY_NAME = Map.ofEntries(
-        Map.entry("Praneeth",           "praneeth"),
-        Map.entry("Anil Yerupala",      "anil.yerupala"),
-        Map.entry("Navya Sree Gunji",   "navya.gunji"),
-        Map.entry("Nagaraju Gunji",     "nagaraju.gunji"),
-        Map.entry("Abdul Wahid Syed",   "wahid.syed"),
-        Map.entry("Adnan Yousof",       "adnan.yousof"),
-        Map.entry("Abdul Shahid Syed",  "shahid.syed"),
-        Map.entry("Navya Gujjeti",      "navya.gujjeti"),
-        Map.entry("Raghavendra Aadesh", "raghavendra.aadesh"),
-        Map.entry("Manideep Vennam",    "manideep.vennam"),
-        Map.entry("Aadil Shaik",        "aadil.shaik"),
-        Map.entry("Aakhil Shaik",       "aakhil.shaik"),
-        Map.entry("Mohan Meesala",      "mohan.meesala"),
-        Map.entry("Nithin Pillalamari", "nithin.pillalamari"),
-        Map.entry("Anil Meesala",       "anil.meesala")
+    // special overrides where first.last would produce a duplicate (both Abduls share Abdul + Syed)
+    private static final Map<String, String> USERNAME_OVERRIDES = Map.of(
+        "Abdul Wahid Syed",  "wahid.syed",
+        "Abdul Shahid Syed", "shahid.syed"
     );
+
+    private String deriveUsername(String name) {
+        String[] parts = name.trim().toLowerCase().split("\\s+");
+        if (parts.length == 1) return parts[0];
+        return parts[0] + "." + parts[parts.length - 1];
+    }
 
     private void migrateUsernames() {
         List<Developer> all = developerRepository.findAll();
+        System.out.println("Username migration: found " + all.size() + " developer(s)");
         List<Developer> toUpdate = new ArrayList<>();
         for (Developer d : all) {
-            if (d.getName() == null) continue;
-            String newUsername = USERNAME_BY_NAME.get(d.getName().trim());
-            if (newUsername != null && !newUsername.equals(d.getUsername())) {
+            if (d.getName() == null || d.getName().isBlank()) continue;
+            String trimmed = d.getName().trim();
+            String newUsername = USERNAME_OVERRIDES.getOrDefault(trimmed, deriveUsername(trimmed));
+            System.out.println("  " + trimmed + " | current=" + d.getUsername() + " | target=" + newUsername);
+            if (!newUsername.equals(d.getUsername())) {
                 d.setUsername(newUsername);
                 toUpdate.add(d);
             }
