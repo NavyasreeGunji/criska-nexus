@@ -220,7 +220,7 @@ export default function StoriesPage() {
   const openAdd = () => {
     const teamId = viewBy === 'sprint' && selectedTeamId !== 'all' ? selectedTeamId : '';
     const sprintId = viewBy === 'sprint' && selectedTeamId !== 'all' ? resolvedSprintId : '';
-    setForm(emptyForm(teamId, sprintId));
+    setForm({ ...emptyForm(teamId, sprintId), assignee: currentUser?.name ?? '' });
     setEditTarget(null);
     setSaveError('');
     setDialogOpen(true);
