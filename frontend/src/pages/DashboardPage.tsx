@@ -206,33 +206,35 @@ export default function DashboardPage() {
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>
               Open Bugs
             </Typography>
-            <List dense disablePadding>
-              {openBugList.map((bug, i) => (
-                <Box key={bug.id}>
-                  {i > 0 && <Divider sx={{ my: 0.5 }} />}
-                  <ListItem disableGutters alignItems="center" sx={{ py: 0.75, gap: 1 }}>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2" fontWeight={500}>
-                          {bug.title}
-                        </Typography>
-                      }
-                      secondary={`${bug.assignee} · ${bug.environment}`}
-                    />
-                    <Chip
-                      label={bug.severity}
-                      size="small"
-                      color={
-                        bug.severity === 'critical'
-                          ? 'error'
-                          : bug.severity === 'high'
-                          ? 'warning'
-                          : 'default'
-                      }
-                      sx={{ flexShrink: 0 }}
-                    />
-                  </ListItem>
-                </Box>
+            <List dense disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {openBugList.map((bug) => (
+                <ListItem
+                  key={bug.id}
+                  disableGutters
+                  alignItems="center"
+                  sx={{ py: 1, px: 1.5, gap: 1, borderRadius: 1, bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', '&:hover': { bgcolor: '#F1F5F9' } }}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography variant="body2" fontWeight={500}>
+                        {bug.title}
+                      </Typography>
+                    }
+                    secondary={`${bug.assignee} · ${bug.environment}`}
+                  />
+                  <Chip
+                    label={bug.severity}
+                    size="small"
+                    color={
+                      bug.severity === 'critical'
+                        ? 'error'
+                        : bug.severity === 'high'
+                        ? 'warning'
+                        : 'default'
+                    }
+                    sx={{ flexShrink: 0 }}
+                  />
+                </ListItem>
               ))}
               {openBugList.length === 0 && (
                 <Typography variant="body2" color="text.secondary">
