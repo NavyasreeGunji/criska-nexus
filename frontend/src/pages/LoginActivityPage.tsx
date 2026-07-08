@@ -7,15 +7,12 @@ import {
   Stack,
   TextField,
   Divider,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
   Chip,
 } from '@mui/material';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { useApp } from '../context/AppContext';
-import { apiGetActiveOn, ActiveUser } from '../api/api';
+import { apiGetLoginEvents, LoginEvent } from '../api/api';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -33,25 +30,44 @@ function fmtTime(iso: string) {
 
 function fmtDisplayDate(dateStr: string) {
   if (!dateStr) return '';
-  const dt = new Date(dateStr + 'T00:00:00');
-  return dt.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  });
+}
+
+interface UserSessions {
+  name: string;
+  role: string;
+  times: string[];
+}
+
+function groupByUser(events: LoginEvent[]): UserSessions[] {
+  const map = new Map<string, UserSessions>();
+  for (const e of events) {
+    if (!map.has(e.developerName)) {
+      map.set(e.developerName, { name: e.developerName, role: e.role, times: [] });
+    }
+    map.get(e.developerName)!.times.push(e.loginAt);
+  }
+  return Array.from(map.values());
 }
 
 export default function LoginActivityPage() {
   const { backendOnline, backendChecked } = useApp();
   const [selectedDate, setSelectedDate] = useState(today);
-  const [users, setUsers] = useState<ActiveUser[]>([]);
+  const [events, setEvents] = useState<LoginEvent[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!backendChecked || !backendOnline) return;
     setLoading(true);
-    apiGetActiveOn(selectedDate)
-      .then(setUsers)
-      .catch(() => setUsers([]))
+    apiGetLoginEvents(selectedDate)
+      .then(setEvents)
+      .catch(() => setEvents([]))
       .finally(() => setLoading(false));
   }, [selectedDate, backendChecked, backendOnline]);
 
+  const userSessions = groupByUser(events);
   const isToday = selectedDate === today;
 
   return (
@@ -61,7 +77,7 @@ export default function LoginActivityPage() {
         <Box>
           <Typography variant="h6" fontWeight={700} lineHeight={1.2}>Login Activity</Typography>
           <Typography variant="caption" color="text.secondary">
-            Users who logged into the application
+            All login sessions per user
           </Typography>
         </Box>
       </Stack>
@@ -73,7 +89,7 @@ export default function LoginActivityPage() {
           size="small"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-          inputProps={{ max: today }}
+          inputProps={{}}
           InputLabelProps={{ shrink: true }}
           sx={{ width: 200 }}
         />
@@ -85,62 +101,74 @@ export default function LoginActivityPage() {
         </Typography>
       </Stack>
 
-      <Paper sx={{ overflow: 'hidden' }}>
-        <Box sx={{ px: 2.5, py: 1.5, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="subtitle2" fontWeight={700} color="text.secondary">
-              {loading ? 'Loading…' : `${users.length} user${users.length !== 1 ? 's' : ''} logged in`}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">Login Time</Typography>
-          </Stack>
-        </Box>
+      {!backendOnline ? (
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
+            Backend offline — login tracking requires a live connection.
+          </Typography>
+        </Paper>
+      ) : (
+        <Stack spacing={2}>
+          {loading && (
+            <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>Loading…</Typography>
+          )}
 
-        {!backendOnline && (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              Backend offline — login tracking requires a live connection.
-            </Typography>
-          </Box>
-        )}
+          {!loading && userSessions.length === 0 && (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                No logins recorded for this date.
+              </Typography>
+            </Paper>
+          )}
 
-        {backendOnline && !loading && (
-          <List disablePadding>
-            {users.map((user, i) => (
-              <Box key={user.id}>
-                {i > 0 && <Divider />}
-                <ListItem sx={{ py: 1.5, px: 2.5 }}>
-                  <ListItemAvatar>
-                    <Avatar sx={{
-                      bgcolor: avatarColor(user.name) + '22',
-                      color: avatarColor(user.name),
-                      fontWeight: 700,
-                      fontSize: 13,
-                      width: 38,
-                      height: 38,
-                    }}>
-                      {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={<Typography variant="body2" fontWeight={600}>{user.name}</Typography>}
-                    secondary={user.role}
+          {!loading && userSessions.map((user) => {
+            const color = avatarColor(user.name);
+            const initials = user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2);
+            return (
+              <Paper key={user.name} sx={{ overflow: 'hidden' }}>
+                {/* User header */}
+                <Box sx={{ px: 2.5, py: 1.75, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: color + '22', color, fontWeight: 700, fontSize: 13, width: 38, height: 38 }}>
+                    {initials}
+                  </Avatar>
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="body2" fontWeight={700}>{user.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">{user.role}</Typography>
+                  </Box>
+                  <Chip
+                    label={`${user.times.length} session${user.times.length !== 1 ? 's' : ''}`}
+                    size="small"
+                    sx={{ bgcolor: '#dbeafe', color: '#2563EB', fontWeight: 600, fontSize: 11 }}
                   />
-                  <Typography variant="body2" fontWeight={600} color="text.secondary">
-                    {fmtTime(user.lastLoginAt)}
-                  </Typography>
-                </ListItem>
-              </Box>
-            ))}
-            {users.length === 0 && (
-              <Box sx={{ py: 5, textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  No logins recorded for this date.
-                </Typography>
-              </Box>
-            )}
-          </List>
-        )}
-      </Paper>
+                </Box>
+
+                <Divider />
+
+                {/* Login times */}
+                <Box sx={{ px: 2.5, py: 1.25 }}>
+                  <Stack direction="row" flexWrap="wrap" gap={1}>
+                    {user.times.map((t, i) => (
+                      <Stack key={i} direction="row" alignItems="center" spacing={0.5}
+                        sx={{ bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 1.5, px: 1.25, py: 0.5 }}>
+                        <AccessTimeIcon sx={{ fontSize: 13, color: '#64748b' }} />
+                        <Typography variant="caption" fontWeight={600} color="text.secondary">
+                          {fmtTime(t)}
+                        </Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Box>
+              </Paper>
+            );
+          })}
+
+          {!loading && userSessions.length > 0 && (
+            <Typography variant="caption" color="text.secondary" sx={{ pl: 0.5 }}>
+              {events.length} total session{events.length !== 1 ? 's' : ''} · {userSessions.length} unique user{userSessions.length !== 1 ? 's' : ''}
+            </Typography>
+          )}
+        </Stack>
+      )}
     </Box>
   );
 }

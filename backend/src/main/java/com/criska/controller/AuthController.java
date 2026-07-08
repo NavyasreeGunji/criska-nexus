@@ -1,7 +1,9 @@
 package com.criska.controller;
 
 import com.criska.entity.Developer;
+import com.criska.entity.LoginEvent;
 import com.criska.repository.DeveloperRepository;
+import com.criska.repository.LoginEventRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,9 +15,11 @@ import java.util.Map;
 public class AuthController {
 
     private final DeveloperRepository repository;
+    private final LoginEventRepository loginEventRepository;
 
-    public AuthController(DeveloperRepository repository) {
+    public AuthController(DeveloperRepository repository, LoginEventRepository loginEventRepository) {
         this.repository = repository;
+        this.loginEventRepository = loginEventRepository;
     }
 
     @PostMapping("/login")
@@ -31,8 +35,10 @@ public class AuthController {
         if (dev == null || !password.equals(dev.getPassword())) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid username or password"));
         }
-        dev.setLastLoginAt(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        dev.setLastLoginAt(now);
         repository.save(dev);
+        loginEventRepository.save(new LoginEvent(dev.getName(), dev.getRole(), now));
         return ResponseEntity.ok(dev);
     }
 

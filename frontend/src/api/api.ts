@@ -263,6 +263,23 @@ export const apiGetActiveOn = (date: string) =>
       lastLoginAt: toDateTimeStr(d.lastLoginAt),
     }))
   );
+
+export interface LoginEvent {
+  id: string;
+  developerName: string;
+  role: string;
+  loginAt: string;
+}
+
+export const apiGetLoginEvents = (date: string) =>
+  req<any[]>(`/login-events?date=${date}`).then(list =>
+    list.map((e): LoginEvent => ({
+      id: String(e.id),
+      developerName: e.developerName ?? '',
+      role: e.role ?? '',
+      loginAt: toDateTimeStr(e.loginAt),
+    }))
+  );
 export const apiCreateDeveloper = (d: Omit<DeveloperProfile, 'id'>) =>
   req<any>('/developers', { method: 'POST', body: JSON.stringify(unmapDeveloper(d)) }).then(mapDeveloper);
 export const apiUpdateDeveloper = (id: string, d: Omit<DeveloperProfile, 'id'>) =>
