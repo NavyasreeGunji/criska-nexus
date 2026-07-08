@@ -280,6 +280,7 @@ export default function DeploymentsPage() {
                   <Typography variant="subtitle2" fontWeight={700}>
                     {employee}
                   </Typography>
+                  <Chip label="Production" size="small" variant="outlined" color="error" />
                   <Chip
                     label={`${deps.length} deployment${deps.length > 1 ? 's' : ''}`}
                     size="small"
@@ -304,9 +305,12 @@ export default function DeploymentsPage() {
                         return (
                           <TableRow key={dep.id} hover>
                             <TableCell>
-                              <Typography variant="body2" fontWeight={600} color="#475569">
-                                {dep.crNumber || '—'}
-                              </Typography>
+                              <Stack spacing={0.5}>
+                                <Chip label="Production" size="small" variant="outlined" color="error" sx={{ width: 'fit-content', fontSize: 10 }} />
+                                <Typography variant="body2" fontWeight={600} color="#475569">
+                                  {dep.crNumber || '—'}
+                                </Typography>
+                              </Stack>
                             </TableCell>
                             <TableCell>
                               <Chip
