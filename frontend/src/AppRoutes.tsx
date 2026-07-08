@@ -13,7 +13,7 @@ import HelpPage from './pages/HelpPage';
 import LoginActivityPage from './pages/LoginActivityPage';
 import { useApp } from './context/AppContext';
 
-export const PRIVILEGED_ROLES = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
+export const PRIVILEGED_ROLES = ['Admin', 'Manager', 'HR'];
 
 export default function AppRoutes() {
   const { currentUser } = useApp();
