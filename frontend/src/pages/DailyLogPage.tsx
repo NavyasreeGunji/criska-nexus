@@ -33,6 +33,7 @@ import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
+import EditIcon from '@mui/icons-material/Edit';
 import Alert from '@mui/material/Alert';
 import {
   DailyLog,
@@ -41,7 +42,7 @@ import {
   initialStories,
 } from '../data/mockData';
 import { useApp } from '../context/AppContext';
-import { apiGetLogs, apiCreateLog, apiGetStories } from '../api/api';
+import { apiGetLogs, apiCreateLog, apiUpdateLog, apiGetStories } from '../api/api';
 
 type FilterPeriod = 'today' | 'week' | 'custom';
 
@@ -95,6 +96,7 @@ export default function DailyLogPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingLog, setEditingLog] = useState<DailyLog | null>(null);
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [viewLog, setViewLog] = useState<DailyLog | null>(null);
@@ -165,18 +167,35 @@ export default function DailyLogPage() {
     URL.revokeObjectURL(url);
   };
 
+  const openEdit = (log: DailyLog) => {
+    setEditingLog(log);
+    setSaveError('');
+    setForm({ developer: log.developer, date: log.date, title: log.title, description: log.description, hours: log.hours });
+    setDialogOpen(true);
+  };
+
   const handleSave = async () => {
     setSaveError('');
     setIsSaving(true);
     try {
-      if (backendOnline) {
-        const created = await apiCreateLog(form);
-        setLogs((prev) => [...prev, created]);
+      if (editingLog) {
+        if (backendOnline) {
+          const updated = await apiUpdateLog(editingLog.id, form);
+          setLogs((prev) => prev.map((l) => l.id === editingLog.id ? updated : l));
+        } else {
+          setLogs((prev) => prev.map((l) => l.id === editingLog.id ? { ...form, id: l.id } : l));
+        }
       } else {
-        const newId = `L-${String(logs.length + 1).padStart(3, '0')}`;
-        setLogs((prev) => [...prev, { ...form, id: newId }]);
+        if (backendOnline) {
+          const created = await apiCreateLog(form);
+          setLogs((prev) => [...prev, created]);
+        } else {
+          const newId = `L-${String(logs.length + 1).padStart(3, '0')}`;
+          setLogs((prev) => [...prev, { ...form, id: newId }]);
+        }
       }
       setDialogOpen(false);
+      setEditingLog(null);
       setForm({ ...emptyForm(), developer: currentUser?.name ?? '' });
     } catch (err: any) {
       setSaveError(err?.message ?? 'Save failed. Check the backend is running and try again.');
@@ -248,7 +267,7 @@ export default function DailyLogPage() {
         )}
 
         <Button variant="contained" startIcon={<AddIcon />}
-          onClick={() => { setSaveError(''); setForm({ ...emptyForm(), developer: currentUser?.name ?? '' }); setDialogOpen(true); }}>
+          onClick={() => { setSaveError(''); setEditingLog(null); setForm({ ...emptyForm(), developer: currentUser?.name ?? '' }); setDialogOpen(true); }}>
           Log Work
         </Button>
       </Stack>
@@ -313,6 +332,11 @@ export default function DailyLogPage() {
                         <VisibilityIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
+                    <Tooltip title="Edit entry">
+                      <IconButton size="small" onClick={() => openEdit(log)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="Copy description">
                       <IconButton size="small" onClick={() => copyToClipboard(log.description)}>
                         <ContentCopyIcon fontSize="small" />
@@ -365,8 +389,8 @@ export default function DailyLogPage() {
       )}
 
       {/* Add Log Dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Log Daily Work</DialogTitle>
+      <Dialog open={dialogOpen} onClose={() => { setDialogOpen(false); setEditingLog(null); }} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingLog ? 'Edit Log Entry' : 'Log Daily Work'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -411,7 +435,7 @@ export default function DailyLogPage() {
         </DialogContent>
         {saveError && <Alert severity="error" sx={{ mx: 3, mb: 1 }}>{saveError}</Alert>}
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => { setDialogOpen(false); setEditingLog(null); }}>Cancel</Button>
           <Button variant="contained" onClick={handleSave}
             disabled={isSaving || !form.developer || !form.title || !form.description || form.hours <= 0}>
             {isSaving ? 'Saving…' : 'Save'}

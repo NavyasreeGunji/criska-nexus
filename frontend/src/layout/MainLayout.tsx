@@ -51,7 +51,7 @@ const navItems = [
   { label: 'People', icon: <PeopleIcon />, path: '/people' },
   { label: 'Teams', icon: <GroupsIcon />, path: '/teams' },
   { label: 'Stories', icon: <AssignmentIcon />, path: '/stories' },
-  { label: 'Daily Log', icon: <EventNoteIcon />, path: '/daily-log' },
+  { label: 'Timesheet', icon: <EventNoteIcon />, path: '/daily-log' },
   { label: 'Bugs & Issues', icon: <BugReportIcon />, path: '/bugs' },
   { label: 'Deployments', icon: <RocketLaunchIcon />, path: '/deployments' },
   { label: 'Reports', icon: <BarChartIcon />, path: '/reports' },
@@ -211,11 +211,13 @@ function DrawerContent({
 
       {/* User footer */}
       <Box sx={{
-        p: isOpen ? 2 : 1,
+        px: isOpen ? 2 : 1,
+        py: 1.5,
         display: 'flex',
         alignItems: 'center',
-        gap: isOpen ? 1.5 : 0,
+        gap: 1,
         justifyContent: isOpen ? 'flex-start' : 'center',
+        overflow: 'hidden',
       }}>
         <Tooltip title={!isOpen ? (currentUser?.name ?? '') : ''} placement="right">
           <Avatar sx={{
@@ -228,35 +230,32 @@ function DrawerContent({
         </Tooltip>
 
         {isOpen && (
-          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+          <Box sx={{ flexGrow: 1, minWidth: 0, overflow: 'hidden' }}>
             <Typography variant="body2" fontWeight={600} color="white" fontSize={13} noWrap>
               {currentUser?.name ?? ''}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)' }} noWrap>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', display: 'block' }} noWrap>
               {currentUser?.role ?? ''}
             </Typography>
           </Box>
         )}
 
-        <Tooltip title="Change password" placement={isOpen ? 'top' : 'right'}>
-          <IconButton
-            size="small"
-            onClick={() => setPwOpen(true)}
-            sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white' }, flexShrink: 0 }}
-          >
-            <LockResetIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="Sign out" placement={isOpen ? 'top' : 'right'}>
-          <IconButton
-            size="small"
-            onClick={logout}
-            sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white' }, flexShrink: 0 }}
-          >
-            <LogoutIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        {isOpen && (
+          <Box sx={{ display: 'flex', flexShrink: 0 }}>
+            <Tooltip title="Change password" placement="top">
+              <IconButton size="small" onClick={() => setPwOpen(true)}
+                sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white' } }}>
+                <LockResetIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Sign out" placement="top">
+              <IconButton size="small" onClick={logout}
+                sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white' } }}>
+                <LogoutIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
       </Box>
 
       <Dialog open={pwOpen} onClose={closePwDialog} maxWidth="xs" fullWidth>
