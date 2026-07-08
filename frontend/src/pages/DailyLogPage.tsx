@@ -174,6 +174,11 @@ export default function DailyLogPage() {
     setDialogOpen(true);
   };
 
+  const alreadyLoggedHours = logs
+    .filter((l) => l.developer === form.developer && l.date === form.date && l.id !== editingLog?.id)
+    .reduce((sum, l) => sum + l.hours, 0);
+  const remainingHours = Math.max(0, 8 - alreadyLoggedHours);
+
   const handleSave = async () => {
     setSaveError('');
     setIsSaving(true);
@@ -425,14 +430,16 @@ export default function DailyLogPage() {
               placeholder="What did you work on today?" />
             <TextField label="Hours" type="number" value={form.hours}
               onChange={(e) => setForm((f) => ({ ...f, hours: Number(e.target.value) }))}
-              size="small" sx={{ width: 120 }} inputProps={{ min: 0.5, max: 12, step: 0.5 }} required />
+              size="small" sx={{ width: 160 }} inputProps={{ min: 0.5, max: remainingHours, step: 0.5 }} required
+              helperText={alreadyLoggedHours > 0 ? `${alreadyLoggedHours}h logged · ${remainingHours}h remaining` : 'Max 8h per day'}
+              error={form.hours > remainingHours} />
           </Stack>
         </DialogContent>
         {saveError && <Alert severity="error" sx={{ mx: 3, mb: 1 }}>{saveError}</Alert>}
         <DialogActions>
           <Button onClick={() => { setDialogOpen(false); setEditingLog(null); }}>Cancel</Button>
           <Button variant="contained" onClick={handleSave}
-            disabled={isSaving || !form.developer || !form.title || !form.description || form.hours <= 0}>
+            disabled={isSaving || !form.developer || !form.title || !form.description || form.hours <= 0 || form.hours > remainingHours}>
             {isSaving ? 'Saving…' : 'Save'}
           </Button>
         </DialogActions>

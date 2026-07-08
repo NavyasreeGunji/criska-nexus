@@ -193,13 +193,17 @@ export default function TimesheetPage() {
                             size="small"
                             sx={{
                               bgcolor:
-                                h >= 7
+                                h > 8
+                                  ? '#fee2e2'
+                                  : h === 8
                                   ? '#dcfce7'
                                   : h >= 4
                                   ? '#dbeafe'
                                   : '#fef3c7',
                               color:
-                                h >= 7
+                                h > 8
+                                  ? '#dc2626'
+                                  : h === 8
                                   ? '#16a34a'
                                   : h >= 4
                                   ? '#2563EB'
@@ -224,7 +228,7 @@ export default function TimesheetPage() {
                     <Typography
                       variant="body2"
                       fontWeight={800}
-                      color={weekTotal >= 35 ? 'success.main' : weekTotal > 0 ? 'text.primary' : 'text.disabled'}
+                      color={weekTotal > 40 ? 'error.main' : weekTotal === 40 ? 'success.main' : weekTotal > 0 ? 'text.primary' : 'text.disabled'}
                     >
                       {weekTotal > 0 ? `${weekTotal}h` : '—'}
                     </Typography>
