@@ -57,8 +57,13 @@ const emptyForm = (): Omit<Bug, 'id'> => ({
   resolvedDate: '',
 });
 
+const PRIVILEGED_ROLES = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
+
 export default function BugsPage() {
-  const { developerProfiles, backendOnline, backendChecked } = useApp();
+  const { developerProfiles, backendOnline, backendChecked, currentUser } = useApp();
+
+  const canEditBug = (bug: Bug) =>
+    !!currentUser && (PRIVILEGED_ROLES.includes(currentUser.role) || currentUser.name === bug.reporter);
   const [bugs, setBugs] = useState<Bug[]>([]);
 
   useEffect(() => {
@@ -224,11 +229,13 @@ export default function BugsPage() {
                   <Typography variant="caption">{bug.resolvedDate || '—'}</Typography>
                 </TableCell>
                 <TableCell>
-                  <Tooltip title="Edit">
-                    <IconButton size="small" onClick={() => openEdit(bug)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                  {canEditBug(bug) && (
+                    <Tooltip title="Edit">
+                      <IconButton size="small" onClick={() => openEdit(bug)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

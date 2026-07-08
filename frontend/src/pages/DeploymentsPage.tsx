@@ -58,8 +58,13 @@ const emptyForm = (): Omit<Deployment, 'id'> => ({
   hours: undefined,
 });
 
+const PRIVILEGED_ROLES = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
+
 export default function DeploymentsPage() {
-  const { developerProfiles, backendOnline, backendChecked } = useApp();
+  const { developerProfiles, backendOnline, backendChecked, currentUser } = useApp();
+
+  const canEditDeployment = (dep: Deployment) =>
+    !!currentUser && (PRIVILEGED_ROLES.includes(currentUser.role) || currentUser.name === dep.deployedBy);
   const [deployments, setDeployments] = useState<Deployment[]>([]);
 
   useEffect(() => {
@@ -224,11 +229,13 @@ export default function DeploymentsPage() {
                         </Typography>
                       )}
                     </Box>
-                    <Tooltip title="Edit">
-                      <IconButton size="small" onClick={() => openEdit(dep)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    {canEditDeployment(dep) && (
+                      <Tooltip title="Edit">
+                        <IconButton size="small" onClick={() => openEdit(dep)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Stack>
                 </Paper>
               );
@@ -331,11 +338,13 @@ export default function DeploymentsPage() {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Tooltip title="Edit">
-                                <IconButton size="small" onClick={() => openEdit(dep)}>
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
+                              {canEditDeployment(dep) && (
+                                <Tooltip title="Edit">
+                                  <IconButton size="small" onClick={() => openEdit(dep)}>
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                             </TableCell>
                           </TableRow>
                         );

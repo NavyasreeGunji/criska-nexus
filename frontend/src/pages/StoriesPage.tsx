@@ -142,17 +142,20 @@ export default function StoriesPage() {
     () => selectedTeamId === 'all'
       ? []
       : sprints
-          .filter((s) => s.teamId === selectedTeamId && s.status !== 'completed')
+          .filter((s) => s.teamId === selectedTeamId)
           .sort((a, b) => a.startDate.localeCompare(b.startDate)),
     [sprints, selectedTeamId]
   );
 
-  // Auto-select active sprint when team changes
+  // Auto-select active sprint when team changes (prefer active → planned → most recent)
   const resolvedSprintId = useMemo(() => {
     if (selectedTeamId === 'all') return '';
     if (selectedSprintId && teamSprints.find((s) => s.id === selectedSprintId)) return selectedSprintId;
     const active = teamSprints.find((s) => s.status === 'active');
-    return active?.id ?? teamSprints[0]?.id ?? '';
+    if (active) return active.id;
+    const planned = teamSprints.find((s) => s.status === 'planned');
+    if (planned) return planned.id;
+    return teamSprints[teamSprints.length - 1]?.id ?? '';
   }, [selectedSprintId, teamSprints, selectedTeamId]);
 
   // Always generate 12 months (last 12 from today)
@@ -269,7 +272,7 @@ export default function StoriesPage() {
         </ToggleButtonGroup>
         <Box sx={{ flexGrow: 1 }} />
         <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}
-          disabled={teams.length === 0 || viewBy === 'month'}>
+          disabled={teams.length === 0 || viewBy === 'month' || selectedSprint?.status === 'completed'}>
           Add Story
         </Button>
       </Stack>
@@ -362,14 +365,15 @@ export default function StoriesPage() {
                 : <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                     {teamSprints.map((sp) => {
                       const isActive = sp.id === resolvedSprintId;
+                      const isCompleted = sp.status === 'completed';
                       return (
                         <Chip
                           key={sp.id}
-                          label={`${sp.name}${sp.status === 'active' ? ' 🟢' : ''}`}
+                          label={`${sp.name}${sp.status === 'active' ? ' 🟢' : isCompleted ? ' ✓' : ''}`}
                           onClick={() => setSelectedSprintId(sp.id)}
                           color={isActive ? 'primary' : 'default'}
                           variant={isActive ? 'filled' : 'outlined'}
-                          sx={{ fontWeight: isActive ? 700 : 400, cursor: 'pointer' }}
+                          sx={{ fontWeight: isActive ? 700 : 400, cursor: 'pointer', opacity: isCompleted ? 0.65 : 1 }}
                         />
                       );
                     })}
@@ -547,7 +551,7 @@ export default function StoriesPage() {
               <FormControl size="small" fullWidth required>
                 <InputLabel required>Sprint</InputLabel>
                 <Select value={form.sprintId} label="Sprint" onChange={(e) => setForm((f) => ({ ...f, sprintId: e.target.value }))}>
-                  {sprints.filter((s) => s.teamId === form.teamId).map((s) => (
+                  {sprints.filter((s) => s.teamId === form.teamId && s.status !== 'completed').map((s) => (
                     <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
                   ))}
                 </Select>
