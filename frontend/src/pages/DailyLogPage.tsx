@@ -337,11 +337,6 @@ export default function DailyLogPage() {
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Copy description">
-                      <IconButton size="small" onClick={() => copyToClipboard(log.description)}>
-                        <ContentCopyIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
                   </Stack>
                 </TableCell>
               </TableRow>
