@@ -44,6 +44,7 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         alterColumnToText("sprint", "goal");
         alterColumnToText("team", "description");
+        alterColumnToText("team", "member_ids");
         alterColumnToText("bug", "title");
         alterColumnToText("story", "title");
         alterColumnToText("daily_status", "task_name");
