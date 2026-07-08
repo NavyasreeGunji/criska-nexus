@@ -22,15 +22,33 @@ import {
   AccordionDetails,
   Divider,
   Tooltip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import GroupsIcon from '@mui/icons-material/Groups';
 import EditIcon from '@mui/icons-material/Edit';
 import SpeedIcon from '@mui/icons-material/Speed';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import { useApp } from '../context/AppContext';
-import { Team, Sprint, SprintStatus, initialStories, initialDeveloperProfiles, DeveloperProfile } from '../data/mockData';
-import { apiGetDevelopers } from '../api/api';
+import { Team, Sprint, SprintStatus, Story, StoryStatus, initialStories, initialDeveloperProfiles, DeveloperProfile } from '../data/mockData';
+import { apiGetDevelopers, apiGetStories } from '../api/api';
+
+const statusColors: Record<StoryStatus, 'default' | 'primary' | 'warning' | 'success' | 'secondary'> = {
+  backlog: 'default', to_do: 'default', in_progress: 'primary',
+  in_review: 'warning', for_qe_testing: 'secondary', done: 'success', on_hold: 'default',
+};
+const statusLabels: Record<StoryStatus, string> = {
+  backlog: 'Backlog', to_do: 'To Do', in_progress: 'In Progress',
+  in_review: 'In Review', for_qe_testing: 'Review/Testing', done: 'Done', on_hold: 'On Hold',
+};
 
 const sprintStatusConfig: Record<SprintStatus, { color: 'default' | 'primary' | 'success'; label: string; bg: string; text: string }> = {
   planned: { color: 'default', label: 'Planned', bg: '#F1F5F9', text: '#64748b' },
@@ -86,8 +104,19 @@ const emptyTeamForm = { name: '', description: '', members: [] as string[] };
 const emptySprintForm = { name: '', startDate: '', endDate: '', status: 'planned' as SprintStatus, goal: '' };
 
 export default function TeamsPage() {
-  const { teams, sprints, developerProfiles, backendOnline, addTeam, updateTeam, addSprint, updateSprint } = useApp();
+  const { teams, sprints, developerProfiles, backendOnline, backendChecked, addTeam, updateTeam, addSprint, updateSprint } = useApp();
   const [allDevelopers, setAllDevelopers] = useState<DeveloperProfile[]>(developerProfiles);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [reportSprintId, setReportSprintId] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!backendChecked) return;
+    if (backendOnline) {
+      apiGetStories().then(setStories).catch(() => setStories(initialStories));
+    } else {
+      setStories(initialStories);
+    }
+  }, [backendChecked, backendOnline]);
 
   const [teamDialog, setTeamDialog] = useState(false);
   const [editTeam, setEditTeam] = useState<Team | null>(null);
@@ -190,10 +219,10 @@ export default function TeamsPage() {
     sprints.filter((s) => s.teamId === teamId).sort((a, b) => a.startDate.localeCompare(b.startDate));
 
   const getStoryCount = (sprintId: string) =>
-    initialStories.filter((s) => s.sprintId === sprintId).length;
+    stories.filter((s) => s.sprintId === sprintId).length;
 
   const getPoints = (sprintId: string) =>
-    initialStories.filter((s) => s.sprintId === sprintId).reduce((sum, s) => sum + s.points, 0);
+    stories.filter((s) => s.sprintId === sprintId).reduce((sum, s) => sum + s.points, 0);
 
   const initials = (name: string) => {
     const parts = name.trim().split(' ');
@@ -318,11 +347,141 @@ export default function TeamsPage() {
                 ))}
               </Stack>
 
-              {completedSprints.length > 0 && (
-                <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: 'block' }}>
-                  {completedSprints.length} completed sprint{completedSprints.length !== 1 ? 's' : ''} — view via Sprint Report in Stories
-                </Typography>
-              )}
+              {/* Sprint Report for completed sprints */}
+              {completedSprints.length > 0 && (() => {
+                const selectedId = reportSprintId[team.id] ?? '';
+                const selectedSprint = completedSprints.find((s) => s.id === selectedId);
+                const completedIssues = selectedSprint
+                  ? stories.filter((s) => s.sprintId === selectedId && (s.status === 'done' || s.status === 'for_qe_testing'))
+                  : [];
+                const notCompletedIssues = selectedSprint
+                  ? stories.filter((s) => s.spilledFromSprintId === selectedId)
+                  : [];
+                const completedPts = completedIssues.reduce((sum, s) => sum + s.points, 0);
+                const notCompletedPts = notCompletedIssues.reduce((sum, s) => sum + s.points, 0);
+
+                return (
+                  <Box sx={{ mt: 2 }}>
+                    <Divider sx={{ mb: 2 }} />
+                    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: selectedSprint ? 2 : 0 }}>
+                      <AssessmentIcon sx={{ color: '#2563EB', fontSize: 20 }} />
+                      <Typography variant="subtitle2" fontWeight={700} color="text.secondary">
+                        SPRINT REPORT
+                      </Typography>
+                      <FormControl size="small" sx={{ minWidth: 220 }}>
+                        <InputLabel>Select Completed Sprint</InputLabel>
+                        <Select
+                          value={selectedId}
+                          label="Select Completed Sprint"
+                          onChange={(e) => setReportSprintId((prev) => ({ ...prev, [team.id]: e.target.value }))}
+                        >
+                          <MenuItem value=""><em>— Select a sprint —</em></MenuItem>
+                          {completedSprints.map((s) => (
+                            <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Stack>
+
+                    {selectedSprint && (
+                      <Stack spacing={2}>
+                        {/* Completed Issues */}
+                        <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+                          <Box sx={{ px: 2, py: 1.25, bgcolor: '#f0fdf4', borderBottom: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 18 }} />
+                            <Typography variant="body2" fontWeight={700} color="#16a34a" sx={{ flexGrow: 1 }}>
+                              Completed Issues
+                            </Typography>
+                            <Typography variant="caption" fontWeight={700} color="#16a34a">
+                              {completedPts} pts · {completedIssues.length} stories
+                            </Typography>
+                          </Box>
+                          <TableContainer>
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+                                  {['Story No.', 'Title', 'Assignee', 'Status', 'Points'].map((h) => (
+                                    <TableCell key={h} sx={{ fontWeight: 600, fontSize: 11, color: '#64748b' }}>{h}</TableCell>
+                                  ))}
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {completedIssues.length === 0 ? (
+                                  <TableRow>
+                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 2 }}>
+                                      <Typography variant="caption" color="text.secondary">No completed issues</Typography>
+                                    </TableCell>
+                                  </TableRow>
+                                ) : completedIssues.map((story) => (
+                                  <TableRow key={story.id} hover>
+                                    <TableCell><Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber || '—'}</Typography></TableCell>
+                                    <TableCell sx={{ maxWidth: 260 }}><Typography variant="body2">{story.title}</Typography></TableCell>
+                                    <TableCell><Typography variant="body2">{story.assignee || '—'}</Typography></TableCell>
+                                    <TableCell><Chip label={statusLabels[story.status]} size="small" color={statusColors[story.status]} /></TableCell>
+                                    <TableCell align="right"><Typography variant="body2" fontWeight={700}>{story.points}</Typography></TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Paper>
+
+                        {/* Issues Not Completed */}
+                        <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+                          <Box sx={{ px: 2, py: 1.25, bgcolor: '#fff7ed', borderBottom: '1px solid #fed7aa', display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <ArrowForwardIcon sx={{ color: '#ea580c', fontSize: 18 }} />
+                            <Typography variant="body2" fontWeight={700} color="#ea580c" sx={{ flexGrow: 1 }}>
+                              Issues Not Completed
+                            </Typography>
+                            <Typography variant="caption" fontWeight={700} color="#ea580c">
+                              {notCompletedPts} pts · {notCompletedIssues.length} stories moved to next sprint
+                            </Typography>
+                          </Box>
+                          <TableContainer>
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+                                  {['Story No.', 'Title', 'Assignee', 'Status', 'Points', 'Moved To'].map((h) => (
+                                    <TableCell key={h} sx={{ fontWeight: 600, fontSize: 11, color: '#64748b' }}>{h}</TableCell>
+                                  ))}
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {notCompletedIssues.length === 0 ? (
+                                  <TableRow>
+                                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 2 }}>
+                                      <Typography variant="caption" color="text.secondary">All issues were completed in this sprint</Typography>
+                                    </TableCell>
+                                  </TableRow>
+                                ) : notCompletedIssues.map((story) => {
+                                  const movedTo = sprints.find((sp) => sp.id === story.sprintId);
+                                  return (
+                                    <TableRow key={story.id} hover>
+                                      <TableCell><Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber || '—'}</Typography></TableCell>
+                                      <TableCell sx={{ maxWidth: 260 }}><Typography variant="body2">{story.title}</Typography></TableCell>
+                                      <TableCell><Typography variant="body2">{story.assignee || '—'}</Typography></TableCell>
+                                      <TableCell><Chip label={statusLabels[story.status]} size="small" color={statusColors[story.status]} /></TableCell>
+                                      <TableCell align="right"><Typography variant="body2" fontWeight={700}>{story.points}</Typography></TableCell>
+                                      <TableCell>
+                                        {movedTo && (
+                                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                                            <ArrowForwardIcon sx={{ fontSize: 12, color: 'text.disabled' }} />
+                                            <Typography variant="caption" color="text.secondary">{movedTo.name}</Typography>
+                                          </Stack>
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Paper>
+                      </Stack>
+                    )}
+                  </Box>
+                );
+              })()}
             </AccordionDetails>
           </Accordion>
         );

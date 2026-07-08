@@ -35,8 +35,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SpeedIcon from '@mui/icons-material/Speed';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Story, initialStories, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories, apiCreateStory, apiUpdateStory } from '../api/api';
@@ -160,12 +158,6 @@ export default function StoriesPage() {
 
   const activeTeamSprints = useMemo(
     () => teamSprints.filter((s) => s.status !== 'completed'),
-    [teamSprints]
-  );
-
-  const completedTeamSprints = useMemo(
-    () => teamSprints.filter((s) => s.status === 'completed')
-      .sort((a, b) => b.startDate.localeCompare(a.startDate)),
     [teamSprints]
   );
 
@@ -430,154 +422,11 @@ export default function StoriesPage() {
           </>
         )}
 
-        <Box sx={{ flexGrow: 1 }} />
-
-        {/* Sprint Report dropdown — only shown when team is selected and has completed sprints */}
-        {viewBy === 'sprint' && selectedTeamId !== 'all' && completedTeamSprints.length > 0 && (
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Sprint Report</InputLabel>
-            <Select
-              value={selectedSprint?.status === 'completed' ? resolvedSprintId : ''}
-              label="Sprint Report"
-              onChange={(e) => {
-                if (e.target.value) {
-                  setSelectedSprintId(e.target.value);
-                } else {
-                  const back = activeTeamSprints.find((s) => s.status === 'active')
-                    ?? activeTeamSprints[0];
-                  setSelectedSprintId(back?.id ?? '');
-                }
-              }}
-            >
-              <MenuItem value=""><em>— Active View —</em></MenuItem>
-              {completedTeamSprints.map((s) => (
-                <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
       </Stack>
 
-      {/* ── Sprint Report view ────────────────────────────────────────────────── */}
-      {viewBy === 'sprint' && selectedSprint?.status === 'completed' ? (() => {
-        const completedIssues = stories.filter(
-          (s) => s.sprintId === resolvedSprintId &&
-            (s.status === 'done' || s.status === 'for_qe_testing')
-        );
-        const notCompletedIssues = stories.filter(
-          (s) => s.spilledFromSprintId === resolvedSprintId
-        );
-        const completedPts = completedIssues.reduce((sum, s) => sum + s.points, 0);
-        const notCompletedPts = notCompletedIssues.reduce((sum, s) => sum + s.points, 0);
-
-        const reportRow = (story: Story) => {
-          const movedTo = sprints.find((sp) => sp.id === story.sprintId);
-          return (
-            <TableRow key={story.id} hover>
-              <TableCell>
-                <Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber || '—'}</Typography>
-              </TableCell>
-              <TableCell sx={{ maxWidth: 260 }}>
-                <Typography
-                  variant="body2" fontWeight={500}
-                  sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
-                  onClick={() => setViewStory(story)}
-                >
-                  {story.title}
-                </Typography>
-              </TableCell>
-              <TableCell><Typography variant="body2">{story.assignee || '—'}</Typography></TableCell>
-              <TableCell>
-                <Chip label={statusLabel(story.status)} size="small" color={statusColor(story.status)} />
-              </TableCell>
-              <TableCell align="right">
-                <Typography variant="body2" fontWeight={700}>{story.points}</Typography>
-              </TableCell>
-              {movedTo && (
-                <TableCell>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                    <ArrowForwardIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
-                    <Typography variant="caption" color="text.secondary">{movedTo.name}</Typography>
-                  </Stack>
-                </TableCell>
-              )}
-            </TableRow>
-          );
-        };
-
-        return (
-          <Box>
-            {/* Completed Issues */}
-            <Paper sx={{ mb: 3, overflow: 'hidden' }}>
-              <Box sx={{ px: 2.5, py: 1.5, bgcolor: '#f0fdf4', borderBottom: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 20 }} />
-                <Typography variant="subtitle1" fontWeight={700} color="#16a34a" sx={{ flexGrow: 1 }}>
-                  Completed Issues
-                </Typography>
-                <Typography variant="body2" fontWeight={700} color="#16a34a">
-                  Story Points ({completedPts}) · {completedIssues.length} stories
-                </Typography>
-              </Box>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                      {['Story No.', 'Title', 'Assignee', 'Status', 'Points'].map((h) => (
-                        <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>{h}</TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {completedIssues.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} sx={{ textAlign: 'center', py: 3 }}>
-                          <Typography variant="body2" color="text.secondary">No completed issues in this sprint</Typography>
-                        </TableCell>
-                      </TableRow>
-                    ) : completedIssues.map((s) => reportRow(s))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-
-            {/* Issues Not Completed */}
-            <Paper sx={{ overflow: 'hidden' }}>
-              <Box sx={{ px: 2.5, py: 1.5, bgcolor: '#fff7ed', borderBottom: '1px solid #fed7aa', display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ArrowForwardIcon sx={{ color: '#ea580c', fontSize: 20 }} />
-                <Typography variant="subtitle1" fontWeight={700} color="#ea580c" sx={{ flexGrow: 1 }}>
-                  Issues Not Completed
-                </Typography>
-                <Typography variant="body2" fontWeight={700} color="#ea580c">
-                  Story Points ({notCompletedPts}) · {notCompletedIssues.length} stories — moved to next sprint
-                </Typography>
-              </Box>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                      {['Story No.', 'Title', 'Assignee', 'Status', 'Points', 'Moved To'].map((h) => (
-                        <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>{h}</TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {notCompletedIssues.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} sx={{ textAlign: 'center', py: 3 }}>
-                          <Typography variant="body2" color="text.secondary">All issues were completed in this sprint</Typography>
-                        </TableCell>
-                      </TableRow>
-                    ) : notCompletedIssues.map((s) => reportRow(s))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </Box>
-        );
-      })() : (
-        /* ── Normal table (active / planned sprints and month view) ── */
-        <>
-          <TableContainer component={Paper}>
+      {/* ── Normal table ── */}
+      <>
+        <TableContainer component={Paper}>
             <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: '#F8FAFC' }}>
@@ -650,7 +499,6 @@ export default function StoriesPage() {
             </Table>
           </TableContainer>
         </>
-      )}
 
       {/* Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
