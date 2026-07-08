@@ -101,10 +101,10 @@ const sections: Section[] = [
     ],
   },
   {
-    title: 'Daily Log',
+    title: 'Timesheet',
     icon: <EventNoteIcon />,
     color: '#0891b2',
-    purpose: 'Log daily work entries — what each team member worked on, for how long, and which story/task it relates to.',
+    purpose: 'Log daily work entries — what each team member worked on, for how long, and which story/task it relates to. Max 8 hours per developer per day.',
     fields: [
       { name: 'Developer', required: true, description: 'Team member who did the work.' },
       { name: 'Date', required: true, description: 'The date the work was done.' },
@@ -167,7 +167,7 @@ const sections: Section[] = [
     purpose: 'View aggregated data across teams, sprints, and time periods — story point velocity, bug trends, deployment frequency, and daily log summaries.',
     fields: [],
     tips: [
-      'No data entry — reports are generated from existing Stories, Bugs, Deployments, and Daily Logs.',
+      'No data entry — reports are generated from existing Stories, Bugs, Deployments, and Timesheets.',
       'Use the team and sprint filters to narrow down the report.',
       'Export to CSV where available to share data outside the app.',
     ],
