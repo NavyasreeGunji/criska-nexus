@@ -52,8 +52,7 @@ public class DataInitializer implements CommandLineRunner {
         addUniqueConstraintIfNotExists("story", "story_number", "uq_story_story_number");
         migrateEmailDomain("criskasecurity.com");
         migrateProjectTypes();
-        migrateRole("navya.gunji", "QA Engineer");
-        migratePasswords("criska@123");
+        migratePasswordsIfBlank("criska@123");
 
         if (developerRepository.count() > 0) return;
 
@@ -204,18 +203,18 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void migratePasswords(String newPassword) {
+    private void migratePasswordsIfBlank(String defaultPassword) {
         List<Developer> all = developerRepository.findAll();
         List<Developer> toUpdate = new ArrayList<>();
         for (Developer d : all) {
-            if (!newPassword.equals(d.getPassword())) {
-                d.setPassword(newPassword);
+            if (d.getPassword() == null || d.getPassword().isBlank()) {
+                d.setPassword(defaultPassword);
                 toUpdate.add(d);
             }
         }
         if (!toUpdate.isEmpty()) {
             developerRepository.saveAll(toUpdate);
-            System.out.println("✓ Updated password for " + toUpdate.size() + " developer(s)");
+            System.out.println("✓ Set default password for " + toUpdate.size() + " developer(s) with no password");
         }
     }
 
