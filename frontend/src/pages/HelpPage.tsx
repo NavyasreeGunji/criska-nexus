@@ -12,6 +12,7 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 
 interface Field {
   name: string;
@@ -33,11 +34,14 @@ const sections: Section[] = [
     title: 'Dashboard',
     icon: <DashboardIcon />,
     color: '#2563EB',
-    purpose: 'High-level overview of the project health. Shows active sprints, story point progress, recent bugs, and deployment activity at a glance.',
+    purpose: 'High-level overview of project health. Shows key metrics, active stories, open bugs, today\'s timesheet activity, recent deployments, and (for Admin/Manager/HR) who is active today.',
     fields: [],
     tips: [
       'No data entry needed — the dashboard auto-updates from other pages.',
-      'Metrics reflect the currently selected team and sprint.',
+      'Active Stories shows stories currently In Progress.',
+      'Today\'s Activity shows all timesheet entries logged today — click any entry to jump to that developer\'s timesheet.',
+      'Recent Deployments shows the 4 most recent production deployments.',
+      'Active Today (visible to Admin, Manager, HR only) appears at the bottom and shows who has logged in today with their login time.',
     ],
   },
   {
@@ -49,13 +53,14 @@ const sections: Section[] = [
       { name: 'Name', required: true, description: 'Full name of the team member (e.g. Anil Yerupala).' },
       { name: 'Email', required: true, description: 'Work email address. Must be a valid format.' },
       { name: 'Role', required: true, description: 'Job role — Developer, Senior Developer, Full Stack Engineer, QA Engineer, Tech Lead, Manager, etc.' },
-      { name: 'Team(s)', description: 'Assign to one or more teams. A member can belong to both Frontend and Backend teams.' },
+      { name: 'Team(s)', description: 'Assign to one or more teams. A member can belong to multiple teams.' },
       { name: 'Project Type', description: 'Client (billable client work) or Internal (internal product/tooling).' },
     ],
     tips: [
-      'Only Managers and privileged roles can add or edit other members.',
+      'Only Admin, Manager, HR and other privileged roles can add or edit other members.',
       'Any member can edit their own profile.',
       'Username is auto-generated as firstname.lastname when the account is created.',
+      'New developers are given the default password criska@123 — they should change it immediately via the Change Password option in the sidebar.',
     ],
   },
   {
@@ -75,6 +80,7 @@ const sections: Section[] = [
     tips: [
       'Create the team first, then add sprints to it.',
       'Mark a sprint Completed once all stories are done before starting a new one.',
+      'There is no limit on how many members can be added to a team.',
     ],
   },
   {
@@ -108,14 +114,16 @@ const sections: Section[] = [
     fields: [
       { name: 'Developer', required: true, description: 'Team member who did the work.' },
       { name: 'Date', required: true, description: 'The date the work was done.' },
-      { name: 'Story / Task', required: true, description: 'The story or task title this work relates to. Type to search existing stories.' },
+      { name: 'Story / Task', required: true, description: 'The story or task this work relates to. Type to search existing stories.' },
       { name: 'Description', required: true, description: 'Brief summary of what was actually done (e.g. "Implemented JWT token refresh flow").' },
-      { name: 'Hours', required: true, description: 'Number of hours spent. Use decimals for partial hours (e.g. 1.5).' },
+      { name: 'Hours', required: true, description: 'Number of hours spent (0.5 increments). The remaining available hours for that day are shown automatically.' },
     ],
     tips: [
       'Log entries daily — don\'t batch multiple days into one entry.',
-      'Use the Story/Task field to link entries to stories for better reporting.',
-      'You can only edit your own log entries unless you have a Manager/Lead role.',
+      'Maximum 8 hours per developer per day across all entries.',
+      'Developers can only edit their own entries. Admin, Manager, and HR can edit any entry.',
+      'The weekly calendar view (Timesheet tab) highlights JH Client US holidays so the team is aware of upcoming off days.',
+      'The holiday schedule table at the bottom of the Timesheet page lists all upcoming and past JH Client holidays.',
     ],
   },
   {
@@ -143,21 +151,38 @@ const sections: Section[] = [
     title: 'Deployments',
     icon: <RocketLaunchIcon />,
     color: '#be185d',
-    purpose: 'Record every deployment to production or Stage/UAT — planned, in-progress, or completed.',
+    purpose: 'Record every production deployment — planned, in-progress, or completed. All deployments are to Production only.',
     fields: [
-      { name: 'Environment', required: true, description: 'Production (live user-facing system) or Stage/UAT (pre-release testing).' },
+      { name: 'CR Number', required: true, description: 'Change Request number for this deployment (e.g. CR-2026-045). Mandatory for all deployments.' },
       { name: 'Date', required: true, description: 'Date of the deployment.' },
       { name: 'Time', description: 'Time of the deployment (24-hour format).' },
       { name: 'Deployed By', required: true, description: 'Team member who performed or triggered the deployment.' },
       { name: 'Status', required: true, description: 'Planned → In Progress → Success / Failed / Rolled Back.' },
-      { name: 'Description', description: 'What was deployed — feature names, sprint number, release notes.' },
+      { name: 'Description', required: true, description: 'What was deployed — feature names, sprint number, release notes.' },
       { name: 'Notes', description: 'Short internal notes — e.g. "Requires DB migration before deploy" or "Hotfix for issue #42".' },
       { name: 'Effort (hours)', description: 'Time spent on the deployment activity.' },
     ],
     tips: [
+      'All deployments are Production only — Stage/UAT deployments are not tracked here.',
+      'CR Number is mandatory — obtain it before creating the deployment record.',
       'Create a Planned entry before deploying so the team is aware.',
       'Update status to Success or Failed immediately after the deployment completes.',
       'Use Rolled Back if a deployment had to be reverted.',
+    ],
+  },
+  {
+    title: 'Login Activity',
+    icon: <PersonSearchIcon />,
+    color: '#0f766e',
+    purpose: 'View who has logged into the portal on any given date, with all session times recorded. Visible to Admin, Manager, and HR only.',
+    fields: [
+      { name: 'Date', required: true, description: 'Select any past or present date to see login activity for that day.' },
+    ],
+    tips: [
+      'Only Admin, Manager, and HR can access this page.',
+      'Each login is recorded separately — if someone logs in multiple times in a day, all sessions appear.',
+      'Login times are shown in IST (Asia/Kolkata).',
+      'Use the Login Activity page for attendance verification or security audits.',
     ],
   },
   {
