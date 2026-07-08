@@ -43,6 +43,7 @@ import {
 } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetLogs, apiCreateLog, apiUpdateLog, apiGetStories } from '../api/api';
+import { PRIVILEGED_ROLES } from '../constants/roles';
 
 type FilterPeriod = 'today' | 'week' | 'custom';
 
@@ -75,6 +76,8 @@ const emptyForm = (): Omit<DailyLog, 'id'> => ({
 export default function DailyLogPage() {
   const location = useLocation();
   const { currentUser, developerProfiles, backendOnline, backendChecked } = useApp();
+  const isPrivileged = currentUser ? PRIVILEGED_ROLES.includes(currentUser.role) : false;
+  const canEditLog = (log: DailyLog) => isPrivileged || log.developer === currentUser?.name;
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [allStories, setAllStories] = useState<Story[]>([]);
 
@@ -295,11 +298,13 @@ export default function DailyLogPage() {
                         <VisibilityIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Edit entry">
-                      <IconButton size="small" onClick={() => openEdit(log)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    {canEditLog(log) && (
+                      <Tooltip title="Edit entry">
+                        <IconButton size="small" onClick={() => openEdit(log)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Stack>
                 </TableCell>
               </TableRow>
