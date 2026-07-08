@@ -83,6 +83,7 @@ function mapStory(s: any): Story {
     dueDate: toDateStr(s.dueDate),
     startedDate: toDateStr(s.startedDate),
     completedDate: toDateStr(s.completedDate),
+    spilledFromSprintId: s.spilledFromSprintId ? String(s.spilledFromSprintId) : null,
   };
 }
 
@@ -159,6 +160,7 @@ function unmapStory(s: Omit<Story, 'id'>) {
     dueDate: s.dueDate || null,
     startedDate: s.startedDate || null,
     completedDate: s.completedDate || null,
+    spilledFromSprintId: s.spilledFromSprintId ? Number(s.spilledFromSprintId) : null,
   };
 }
 

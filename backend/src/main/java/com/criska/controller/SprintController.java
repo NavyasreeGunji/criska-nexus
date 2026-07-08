@@ -69,6 +69,7 @@ public class SprintController {
 
                 if (nextSprint != null) {
                     for (Story story : incomplete) {
+                        story.setSpilledFromSprintId(id);
                         story.setSprintId(nextSprint.getId());
                         storyRepository.save(story);
                     }

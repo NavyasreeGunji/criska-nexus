@@ -35,6 +35,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SpeedIcon from '@mui/icons-material/Speed';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Story, initialStories, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories, apiCreateStory, apiUpdateStory } from '../api/api';
@@ -352,9 +354,8 @@ export default function StoriesPage() {
         </Grid>
       </Paper>
 
-      {/* Filters */}
+      {/* Sprint selector row (always visible in sprint mode) */}
       <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
-        {/* Sprint view: team + sprint chips */}
         {viewBy === 'sprint' && (
           <>
             <FormControl size="small" sx={{ minWidth: 170 }}>
@@ -390,8 +391,6 @@ export default function StoriesPage() {
             )}
           </>
         )}
-
-        {/* Month view: full 12-month selector */}
         {viewBy === 'month' && (
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <InputLabel>Select Month</InputLabel>
@@ -400,100 +399,221 @@ export default function StoriesPage() {
             </Select>
           </FormControl>
         )}
-
-        <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel>Status</InputLabel>
-          <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
-            <MenuItem value="all">All Statuses</MenuItem>
-            {statusOptions.map((o) => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel>Assignee</InputLabel>
-          <Select value={filterAssignee} label="Assignee" onChange={(e) => setFilterAssignee(e.target.value)}>
-            <MenuItem value="all">All Assignees</MenuItem>
-            {developerProfiles.map((d) => <MenuItem key={d.id} value={d.name}>{d.name}</MenuItem>)}
-          </Select>
-        </FormControl>
-
-        <Typography variant="body2" color="text.secondary">
-          Showing {filtered.length} of {baseFiltered.length} stories
-        </Typography>
       </Stack>
 
-      {/* Table */}
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              {['Story No.', 'Title', 'Points', 'Status', 'Reporter', 'Assignee', 'Due Date', 'Started', 'Completed', 'Actions'].map((h) => (
-                <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>{h}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography color="text.secondary">No stories found</Typography>
-                </TableCell>
-              </TableRow>
-            )}
-            {filtered.map((story) => (
-              <TableRow key={story.id} hover>
+      {/* ── Sprint Report (completed sprints) ─────────────────────────────────── */}
+      {viewBy === 'sprint' && selectedSprint?.status === 'completed' ? (() => {
+        const completedIssues = stories.filter(
+          (s) => s.sprintId === resolvedSprintId &&
+            (s.status === 'done' || s.status === 'for_qe_testing')
+        );
+        const notCompletedIssues = stories.filter(
+          (s) => s.spilledFromSprintId === resolvedSprintId
+        );
+        const completedPts = completedIssues.reduce((sum, s) => sum + s.points, 0);
+        const notCompletedPts = notCompletedIssues.reduce((sum, s) => sum + s.points, 0);
+
+        const reportRow = (story: Story) => {
+          const movedTo = sprints.find((sp) => sp.id === story.sprintId);
+          return (
+            <TableRow key={story.id} hover>
+              <TableCell>
+                <Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber || '—'}</Typography>
+              </TableCell>
+              <TableCell sx={{ maxWidth: 260 }}>
+                <Typography
+                  variant="body2" fontWeight={500}
+                  sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+                  onClick={() => setViewStory(story)}
+                >
+                  {story.title}
+                </Typography>
+              </TableCell>
+              <TableCell><Typography variant="body2">{story.assignee || '—'}</Typography></TableCell>
+              <TableCell>
+                <Chip label={statusLabel(story.status)} size="small" color={statusColor(story.status)} />
+              </TableCell>
+              <TableCell align="right">
+                <Typography variant="body2" fontWeight={700}>{story.points}</Typography>
+              </TableCell>
+              {movedTo && (
                 <TableCell>
-                  <Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber || '—'}</Typography>
-                </TableCell>
-                <TableCell sx={{ maxWidth: 220, overflow: 'hidden' }}>
-                  <Typography
-                    variant="body2" fontWeight={500}
-                    sx={{
-                      cursor: 'pointer',
-                      '&:hover': { color: 'primary.main', textDecoration: 'underline' },
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                    onClick={() => setViewStory(story)}
-                  >
-                    {story.title}
-                  </Typography>
-                </TableCell>
-                <TableCell><Chip label={story.points} size="small" color="primary" variant="outlined" /></TableCell>
-                <TableCell><Chip label={statusLabel(story.status)} size="small" color={statusColor(story.status)} /></TableCell>
-                <TableCell><Typography variant="body2">{story.reporter}</Typography></TableCell>
-                <TableCell><Typography variant="body2">{story.assignee}</Typography></TableCell>
-                <TableCell>
-                  {story.dueDate ? (() => {
-                    const today = new Date().toISOString().slice(0, 10);
-                    const overdue = story.dueDate < today && !story.completedDate;
-                    return (
-                      <Typography variant="caption" sx={{ fontWeight: overdue ? 700 : 400, color: overdue ? '#dc2626' : 'text.secondary' }}>
-                        {fmtDate(story.dueDate)}
-                      </Typography>
-                    );
-                  })() : <Typography variant="caption" color="text.disabled">—</Typography>}
-                </TableCell>
-                <TableCell><Typography variant="caption">{fmtDate(story.startedDate)}</Typography></TableCell>
-                <TableCell><Typography variant="caption">{fmtDate(story.completedDate)}</Typography></TableCell>
-                <TableCell>
-                  <Stack direction="row" spacing={0.5}>
-                    <Tooltip title="View">
-                      <IconButton size="small" onClick={() => setViewStory(story)}><VisibilityIcon fontSize="small" /></IconButton>
-                    </Tooltip>
-                    {canEditStory(story) && (
-                      <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => openEdit(story)}><EditIcon fontSize="small" /></IconButton>
-                      </Tooltip>
-                    )}
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <ArrowForwardIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
+                    <Typography variant="caption" color="text.secondary">{movedTo.name}</Typography>
                   </Stack>
                 </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              )}
+            </TableRow>
+          );
+        };
+
+        return (
+          <Box>
+            {/* Completed Issues */}
+            <Paper sx={{ mb: 3, overflow: 'hidden' }}>
+              <Box sx={{ px: 2.5, py: 1.5, bgcolor: '#f0fdf4', borderBottom: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+                <Typography variant="subtitle1" fontWeight={700} color="#16a34a" sx={{ flexGrow: 1 }}>
+                  Completed Issues
+                </Typography>
+                <Typography variant="body2" fontWeight={700} color="#16a34a">
+                  Story Points ({completedPts}) · {completedIssues.length} stories
+                </Typography>
+              </Box>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+                      {['Story No.', 'Title', 'Assignee', 'Status', 'Points'].map((h) => (
+                        <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>{h}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {completedIssues.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} sx={{ textAlign: 'center', py: 3 }}>
+                          <Typography variant="body2" color="text.secondary">No completed issues in this sprint</Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : completedIssues.map((s) => reportRow(s))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+
+            {/* Issues Not Completed */}
+            <Paper sx={{ overflow: 'hidden' }}>
+              <Box sx={{ px: 2.5, py: 1.5, bgcolor: '#fff7ed', borderBottom: '1px solid #fed7aa', display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ArrowForwardIcon sx={{ color: '#ea580c', fontSize: 20 }} />
+                <Typography variant="subtitle1" fontWeight={700} color="#ea580c" sx={{ flexGrow: 1 }}>
+                  Issues Not Completed
+                </Typography>
+                <Typography variant="body2" fontWeight={700} color="#ea580c">
+                  Story Points ({notCompletedPts}) · {notCompletedIssues.length} stories — moved to next sprint
+                </Typography>
+              </Box>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+                      {['Story No.', 'Title', 'Assignee', 'Status', 'Points', 'Moved To'].map((h) => (
+                        <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>{h}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {notCompletedIssues.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} sx={{ textAlign: 'center', py: 3 }}>
+                          <Typography variant="body2" color="text.secondary">All issues were completed in this sprint</Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : notCompletedIssues.map((s) => reportRow(s))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Box>
+        );
+      })() : (
+        /* ── Normal filters + table (active / planned sprints and month view) ── */
+        <>
+          <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel>Status</InputLabel>
+              <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
+                <MenuItem value="all">All Statuses</MenuItem>
+                {statusOptions.map((o) => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>Assignee</InputLabel>
+              <Select value={filterAssignee} label="Assignee" onChange={(e) => setFilterAssignee(e.target.value)}>
+                <MenuItem value="all">All Assignees</MenuItem>
+                {developerProfiles.map((d) => <MenuItem key={d.id} value={d.name}>{d.name}</MenuItem>)}
+              </Select>
+            </FormControl>
+            <Typography variant="body2" color="text.secondary">
+              Showing {filtered.length} of {baseFiltered.length} stories
+            </Typography>
+          </Stack>
+
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+                  {['Story No.', 'Title', 'Points', 'Status', 'Reporter', 'Assignee', 'Due Date', 'Started', 'Completed', 'Actions'].map((h) => (
+                    <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>{h}</TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filtered.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4 }}>
+                      <Typography color="text.secondary">No stories found</Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {filtered.map((story) => (
+                  <TableRow key={story.id} hover>
+                    <TableCell>
+                      <Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber || '—'}</Typography>
+                    </TableCell>
+                    <TableCell sx={{ maxWidth: 220, overflow: 'hidden' }}>
+                      <Typography
+                        variant="body2" fontWeight={500}
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': { color: 'primary.main', textDecoration: 'underline' },
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                        onClick={() => setViewStory(story)}
+                      >
+                        {story.title}
+                      </Typography>
+                    </TableCell>
+                    <TableCell><Chip label={story.points} size="small" color="primary" variant="outlined" /></TableCell>
+                    <TableCell><Chip label={statusLabel(story.status)} size="small" color={statusColor(story.status)} /></TableCell>
+                    <TableCell><Typography variant="body2">{story.reporter}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{story.assignee}</Typography></TableCell>
+                    <TableCell>
+                      {story.dueDate ? (() => {
+                        const today = new Date().toISOString().slice(0, 10);
+                        const overdue = story.dueDate < today && !story.completedDate;
+                        return (
+                          <Typography variant="caption" sx={{ fontWeight: overdue ? 700 : 400, color: overdue ? '#dc2626' : 'text.secondary' }}>
+                            {fmtDate(story.dueDate)}
+                          </Typography>
+                        );
+                      })() : <Typography variant="caption" color="text.disabled">—</Typography>}
+                    </TableCell>
+                    <TableCell><Typography variant="caption">{fmtDate(story.startedDate)}</Typography></TableCell>
+                    <TableCell><Typography variant="caption">{fmtDate(story.completedDate)}</Typography></TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5}>
+                        <Tooltip title="View">
+                          <IconButton size="small" onClick={() => setViewStory(story)}><VisibilityIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                        {canEditStory(story) && (
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => openEdit(story)}><EditIcon fontSize="small" /></IconButton>
+                          </Tooltip>
+                        )}
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
+      )}
 
       {/* Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>

@@ -37,6 +37,7 @@ export interface Story {
   completedDate: string;
   teamId: string;
   sprintId: string;
+  spilledFromSprintId?: string | null;
 }
 
 export interface Bug {

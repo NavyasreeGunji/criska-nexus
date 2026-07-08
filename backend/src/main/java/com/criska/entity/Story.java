@@ -27,6 +27,9 @@ public class Story {
     private Long teamId;
     private Long sprintId;
 
+    @Column(name = "spilled_from_sprint_id")
+    private Long spilledFromSprintId;
+
     @Column(name = "issue_created_date")
     private LocalDate createdDate;
 
@@ -54,6 +57,8 @@ public class Story {
     public void setTeamId(Long teamId) { this.teamId = teamId; }
     public Long getSprintId() { return sprintId; }
     public void setSprintId(Long sprintId) { this.sprintId = sprintId; }
+    public Long getSpilledFromSprintId() { return spilledFromSprintId; }
+    public void setSpilledFromSprintId(Long spilledFromSprintId) { this.spilledFromSprintId = spilledFromSprintId; }
     public LocalDate getCreatedDate() { return createdDate; }
     public void setCreatedDate(LocalDate createdDate) { this.createdDate = createdDate; }
     public LocalDate getDueDate() { return dueDate; }
