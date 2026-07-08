@@ -143,21 +143,17 @@ public class DataInitializer implements CommandLineRunner {
         List<Developer> toUpdate = new ArrayList<>();
         for (Developer d : all) {
             String email = d.getEmail();
+            // Only fill in missing emails — never overwrite an email the user has set
             if (email == null || email.isBlank()) {
                 if (d.getUsername() != null && !d.getUsername().isBlank()) {
                     d.setEmail(d.getUsername() + "@" + newDomain);
                     toUpdate.add(d);
                 }
-            } else if (!email.endsWith("@" + newDomain)) {
-                int atIdx = email.indexOf('@');
-                String local = atIdx > 0 ? email.substring(0, atIdx) : email;
-                d.setEmail(local + "@" + newDomain);
-                toUpdate.add(d);
             }
         }
         if (!toUpdate.isEmpty()) {
             developerRepository.saveAll(toUpdate);
-            System.out.println("✓ Updated " + toUpdate.size() + " email(s) to @" + newDomain);
+            System.out.println("✓ Set missing email(s) for " + toUpdate.size() + " developer(s)");
         }
     }
 
