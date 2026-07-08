@@ -28,7 +28,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import GroupsIcon from '@mui/icons-material/Groups';
 import EditIcon from '@mui/icons-material/Edit';
 import SpeedIcon from '@mui/icons-material/Speed';
-import HistoryIcon from '@mui/icons-material/History';
 import { useApp } from '../context/AppContext';
 import { Team, Sprint, SprintStatus, initialStories, initialDeveloperProfiles, DeveloperProfile } from '../data/mockData';
 import { apiGetDevelopers } from '../api/api';
@@ -101,15 +100,6 @@ export default function TeamsPage() {
   const [sprintForm, setSprintForm] = useState(emptySprintForm);
   const [isSavingSprint, setIsSavingSprint] = useState(false);
   const [sprintDateError, setSprintDateError] = useState('');
-  const [showCompletedFor, setShowCompletedFor] = useState<Set<string>>(new Set());
-
-  const toggleCompleted = (teamId: string) =>
-    setShowCompletedFor((prev) => {
-      const next = new Set(prev);
-      next.has(teamId) ? next.delete(teamId) : next.add(teamId);
-      return next;
-    });
-
   // Always fetch fresh developer list when dialog opens so new/teamless devs appear
   useEffect(() => {
     if (!teamDialog) return;
@@ -230,7 +220,6 @@ export default function TeamsPage() {
         const activeSprint = teamSprints.find((s) => s.status === 'active');
         const activePlannedSprints = teamSprints.filter((s) => s.status !== 'completed');
         const completedSprints = teamSprints.filter((s) => s.status === 'completed');
-        const showingCompleted = showCompletedFor.has(team.id);
         return (
           <Accordion key={team.id} defaultExpanded sx={{ mb: 1.5, '&:before': { display: 'none' } }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 2.5 }}>
@@ -330,27 +319,9 @@ export default function TeamsPage() {
               </Stack>
 
               {completedSprints.length > 0 && (
-                <Box sx={{ mt: 1.5 }}>
-                  <Button
-                    size="small"
-                    startIcon={<HistoryIcon fontSize="small" />}
-                    onClick={() => toggleCompleted(team.id)}
-                    sx={{ color: 'text.secondary', fontWeight: 500 }}
-                  >
-                    {showingCompleted
-                      ? 'Hide completed sprints'
-                      : `Show ${completedSprints.length} completed sprint${completedSprints.length !== 1 ? 's' : ''}`}
-                  </Button>
-
-                  {showingCompleted && (
-                    <Stack spacing={1.5} sx={{ mt: 1.5 }}>
-                      {completedSprints.map((sprint) => (
-                        <SprintCard key={sprint.id} sprint={sprint} onEdit={openEditSprint}
-                          storyCount={getStoryCount(sprint.id)} points={getPoints(sprint.id)} />
-                      ))}
-                    </Stack>
-                  )}
-                </Box>
+                <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: 'block' }}>
+                  {completedSprints.length} completed sprint{completedSprints.length !== 1 ? 's' : ''} — view via Sprint Report in Stories
+                </Typography>
               )}
             </AccordionDetails>
           </Accordion>
