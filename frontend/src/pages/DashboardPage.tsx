@@ -243,8 +243,8 @@ export default function DashboardPage() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2.5 }}>
+        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Paper sx={{ p: 2.5, flex: 1 }}>
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>
               Today's Activity
             </Typography>
@@ -287,8 +287,8 @@ export default function DashboardPage() {
         </Grid>
 
         {canSeeActiveUsers && (
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2.5 }}>
+          <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Paper sx={{ p: 2.5, flex: 1 }}>
               <Typography variant="subtitle1" fontWeight={700} gutterBottom>
                 Active Today
               </Typography>
@@ -320,7 +320,7 @@ export default function DashboardPage() {
           </Grid>
         )}
 
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12}>
           <Paper sx={{ p: 2.5 }}>
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>
               Recent Deployments
