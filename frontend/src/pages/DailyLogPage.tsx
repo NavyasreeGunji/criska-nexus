@@ -109,7 +109,7 @@ export default function DailyLogPage() {
     if (currentUser) setFilterDev(currentUser.name);
   }, [currentUser]);
 
-  const devStories = allStories.filter((s) => s.assignee === form.developer);
+  const devStories = allStories.filter((s) => s.assignee === form.developer && s.status !== 'done');
 
   const filtered = logs
     .filter((l) => filterDev === 'all' || l.developer === filterDev)
