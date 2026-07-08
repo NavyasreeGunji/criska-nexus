@@ -30,6 +30,13 @@ public class DeveloperController {
         return repository.findByLastLoginAtBetween(start, end);
     }
 
+    @GetMapping("/active-on")
+    public List<Developer> activeOn(@org.springframework.web.bind.annotation.RequestParam("date") String date) {
+        LocalDateTime start = LocalDate.parse(date).atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+        return repository.findByLastLoginAtBetween(start, end);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Developer> get(@PathVariable("id") Long id) {
         return repository.findById(id)

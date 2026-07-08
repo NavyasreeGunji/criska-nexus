@@ -33,6 +33,7 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -41,6 +42,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { PRIVILEGED_ROLES } from '../AppRoutes';
 import { apiChangePassword } from '../api/api';
 
 const DRAWER_WIDTH = 240;
@@ -55,6 +57,7 @@ const navItems = [
   { label: 'Bugs & Issues', icon: <BugReportIcon />, path: '/bugs' },
   { label: 'Deployments', icon: <RocketLaunchIcon />, path: '/deployments' },
   { label: 'Reports', icon: <BarChartIcon />, path: '/reports' },
+  { label: 'Login Activity', icon: <PersonSearchIcon />, path: '/login-activity', roles: PRIVILEGED_ROLES },
   { label: 'Help', icon: <HelpOutlineIcon />, path: '/help' },
 ];
 
@@ -75,6 +78,9 @@ function DrawerContent({
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, logout } = useApp();
+  const visibleNavItems = navItems.filter((item) =>
+    !item.roles || (currentUser && item.roles.includes(currentUser.role))
+  );
   const userInitials = currentUser
     ? currentUser.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : '?';
@@ -170,7 +176,7 @@ function DrawerContent({
 
       {/* Nav items */}
       <List sx={{ px: isOpen ? 1.5 : 0.75, py: 1.5, flexGrow: 1 }}>
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>

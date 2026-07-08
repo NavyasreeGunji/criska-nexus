@@ -253,6 +253,16 @@ export const apiGetActiveToday = () =>
       lastLoginAt: toDateTimeStr(d.lastLoginAt),
     }))
   );
+
+export const apiGetActiveOn = (date: string) =>
+  req<any[]>(`/developers/active-on?date=${date}`).then(list =>
+    list.map((d): ActiveUser => ({
+      id: String(d.id),
+      name: d.name ?? '',
+      role: d.role ?? '',
+      lastLoginAt: toDateTimeStr(d.lastLoginAt),
+    }))
+  );
 export const apiCreateDeveloper = (d: Omit<DeveloperProfile, 'id'>) =>
   req<any>('/developers', { method: 'POST', body: JSON.stringify(unmapDeveloper(d)) }).then(mapDeveloper);
 export const apiUpdateDeveloper = (id: string, d: Omit<DeveloperProfile, 'id'>) =>
