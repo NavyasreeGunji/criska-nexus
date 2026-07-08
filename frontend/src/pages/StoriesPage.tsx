@@ -98,8 +98,17 @@ const emptyForm = (teamId = '', sprintId = ''): Omit<Story, 'id'> => ({
   sprintId,
 });
 
+const PRIVILEGED_ROLES = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
+
 export default function StoriesPage() {
-  const { teams, sprints, developerProfiles, backendOnline, backendChecked } = useApp();
+  const { teams, sprints, developerProfiles, backendOnline, backendChecked, currentUser } = useApp();
+
+  const canEditStory = (story: Story) =>
+    !!currentUser && (
+      PRIVILEGED_ROLES.includes(currentUser.role) ||
+      currentUser.name === story.reporter ||
+      currentUser.name === story.assignee
+    );
   const [stories, setStories] = useState<Story[]>([]);
 
   useEffect(() => {
@@ -473,9 +482,11 @@ export default function StoriesPage() {
                     <Tooltip title="View">
                       <IconButton size="small" onClick={() => setViewStory(story)}><VisibilityIcon fontSize="small" /></IconButton>
                     </Tooltip>
-                    <Tooltip title="Edit">
-                      <IconButton size="small" onClick={() => openEdit(story)}><EditIcon fontSize="small" /></IconButton>
-                    </Tooltip>
+                    {canEditStory(story) && (
+                      <Tooltip title="Edit">
+                        <IconButton size="small" onClick={() => openEdit(story)}><EditIcon fontSize="small" /></IconButton>
+                      </Tooltip>
+                    )}
                   </Stack>
                 </TableCell>
               </TableRow>
@@ -685,7 +696,9 @@ export default function StoriesPage() {
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setViewStory(null)}>Close</Button>
-              <Button variant="contained" onClick={() => { setViewStory(null); openEdit(vs); }}>Edit</Button>
+              {canEditStory(vs) && (
+                <Button variant="contained" onClick={() => { setViewStory(null); openEdit(vs); }}>Edit</Button>
+              )}
             </DialogActions>
           </Dialog>
         );
