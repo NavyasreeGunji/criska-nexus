@@ -134,24 +134,6 @@ export default function DailyLogPage() {
     navigator.clipboard.writeText(text).then(() => setCopied(true));
   };
 
-  const copyAllForDev = (devName: string) => {
-    const devLogs = filtered.filter((l) => l.developer === devName);
-    const text = `${devName}\n` + devLogs.map((l) =>
-      `${fmtDate(l.date)} | ${l.title} | ${l.description} (${l.hours}h)`
-    ).join('\n');
-    copyToClipboard(text);
-  };
-
-  const copyAll = () => {
-    const text = devNames.map((dev) => {
-      const devLogs = filtered.filter((l) => l.developer === dev);
-      return `${dev}\n` + devLogs.map((l) =>
-        `${fmtDate(l.date)} | ${l.title} | ${l.description} (${l.hours}h)`
-      ).join('\n');
-    }).join('\n\n');
-    copyToClipboard(text);
-  };
-
   const handleExportCSV = () => {
     const headers = ['Developer', 'Date', 'Task / Story', 'Description', 'Hours'];
     const rows = filtered.map((l) => [
@@ -211,9 +193,6 @@ export default function DailyLogPage() {
 
   const showDevColumn = filterDev === 'all';
 
-  // Group by developer for "Copy All" button
-  const devNames = [...new Set(filtered.map((l) => l.developer))];
-
   return (
     <Box>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -261,32 +240,11 @@ export default function DailyLogPage() {
           </Button>
         </Tooltip>
 
-        {/* Copy All per developer (shown when single dev selected) */}
-        {filterDev !== 'all' && filtered.length > 0 && (
-          <Tooltip title={`Copy all logs for ${filterDev}`}>
-            <Button variant="outlined" size="small" startIcon={<ContentCopyIcon />}
-              onClick={() => copyAllForDev(filterDev)}>
-              Copy All
-            </Button>
-          </Tooltip>
-        )}
-
         <Button variant="contained" startIcon={<AddIcon />}
           onClick={() => { setSaveError(''); setEditingLog(null); setForm({ ...emptyForm(), developer: currentUser?.name ?? '' }); setDialogOpen(true); }}>
           Log Work
         </Button>
       </Stack>
-
-      {/* Copy All button when "All Developers" selected */}
-      {showDevColumn && devNames.length > 0 && (
-        <Box sx={{ mb: 1.5 }}>
-          <Tooltip title="Copy all developers' logs">
-            <Button size="small" variant="outlined" startIcon={<ContentCopyIcon />} onClick={copyAll}>
-              Copy All
-            </Button>
-          </Tooltip>
-        </Box>
-      )}
 
       <TableContainer component={Paper}>
         <Table size="small">
