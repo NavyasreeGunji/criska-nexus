@@ -42,7 +42,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { PRIVILEGED_ROLES } from '../AppRoutes';
+import { PRIVILEGED_ROLES } from '../constants/roles';
 import { apiChangePassword } from '../api/api';
 
 const DRAWER_WIDTH = 240;

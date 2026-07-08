@@ -60,7 +60,7 @@ const deployStatusLabel: Record<DeploymentStatus, string> = {
   rolled_back: 'Rolled Back',
 };
 
-const PRIVILEGED_ROLES = ['Admin', 'Manager', 'HR'];
+import { PRIVILEGED_ROLES } from '../constants/roles';
 
 export default function DashboardPage() {
   const navigate = useNavigate();

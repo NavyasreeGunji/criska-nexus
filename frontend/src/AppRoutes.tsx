@@ -12,8 +12,9 @@ import ReportsPage from './pages/ReportsPage';
 import HelpPage from './pages/HelpPage';
 import LoginActivityPage from './pages/LoginActivityPage';
 import { useApp } from './context/AppContext';
+import { PRIVILEGED_ROLES } from './constants/roles';
 
-export const PRIVILEGED_ROLES = ['Admin', 'Manager', 'HR'];
+export { PRIVILEGED_ROLES };
 
 export default function AppRoutes() {
   const { currentUser } = useApp();
