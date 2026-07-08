@@ -288,8 +288,45 @@ export default function DashboardPage() {
           </Paper>
         </Grid>
 
+        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Paper sx={{ p: 2.5, flex: 1 }}>
+            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+              Recent Deployments
+            </Typography>
+            <List dense disablePadding>
+              {recentDeployments.map((dep, i) => (
+                <Box key={dep.id}>
+                  {i > 0 && <Divider sx={{ my: 0.5 }} />}
+                  <ListItem disableGutters alignItems="center" sx={{ py: 0.75, gap: 1 }}>
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2" fontWeight={600}>
+                          {dep.deployedBy}{' '}
+                          <Typography component="span" variant="caption" color="text.secondary">
+                            → {dep.environment}
+                          </Typography>
+                        </Typography>
+                      }
+                      secondary={`${dep.date} at ${dep.time}`}
+                    />
+                    <Chip
+                      label={deployStatusLabel[dep.status]}
+                      size="small"
+                      color={deployStatusColor[dep.status]}
+                      sx={{ flexShrink: 0 }}
+                    />
+                  </ListItem>
+                </Box>
+              ))}
+              {recentDeployments.length === 0 && (
+                <Typography variant="body2" color="text.secondary">No deployments yet</Typography>
+              )}
+            </List>
+          </Paper>
+        </Grid>
+
         {canSeeActiveUsers && (
-          <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Paper sx={{ p: 2.5, flex: 1 }}>
               <Typography variant="subtitle1" fontWeight={700} gutterBottom>
                 Active Today
@@ -321,40 +358,6 @@ export default function DashboardPage() {
             </Paper>
           </Grid>
         )}
-
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2.5 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              Recent Deployments
-            </Typography>
-            <List dense disablePadding>
-              {recentDeployments.map((dep, i) => (
-                <Box key={dep.id}>
-                  {i > 0 && <Divider sx={{ my: 0.5 }} />}
-                  <ListItem disableGutters alignItems="center" sx={{ py: 0.75, gap: 1 }}>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2" fontWeight={600}>
-                          {dep.deployedBy}{' '}
-                          <Typography component="span" variant="caption" color="text.secondary">
-                            → {dep.environment}
-                          </Typography>
-                        </Typography>
-                      }
-                      secondary={`${dep.date} at ${dep.time}`}
-                    />
-                    <Chip
-                      label={deployStatusLabel[dep.status]}
-                      size="small"
-                      color={deployStatusColor[dep.status]}
-                      sx={{ flexShrink: 0 }}
-                    />
-                  </ListItem>
-                </Box>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
       </Grid>
     </Box>
   );
