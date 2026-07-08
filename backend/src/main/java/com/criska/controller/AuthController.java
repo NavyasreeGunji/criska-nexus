@@ -8,11 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
 
     private final DeveloperRepository repository;
     private final LoginEventRepository loginEventRepository;
@@ -35,7 +38,7 @@ public class AuthController {
         if (dev == null || !password.equals(dev.getPassword())) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid username or password"));
         }
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(IST);
         dev.setLastLoginAt(now);
         repository.save(dev);
         loginEventRepository.save(new LoginEvent(dev.getName(), dev.getRole(), now));

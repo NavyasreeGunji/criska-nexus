@@ -6,11 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/developers")
 public class DeveloperController {
+
+    private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
 
     private final DeveloperRepository repository;
 
@@ -25,7 +28,7 @@ public class DeveloperController {
 
     @GetMapping("/active-today")
     public List<Developer> activeToday() {
-        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime start = LocalDate.now(IST).atStartOfDay();
         LocalDateTime end = start.plusDays(1);
         return repository.findByLastLoginAtBetween(start, end);
     }
