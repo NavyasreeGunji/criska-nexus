@@ -1,6 +1,7 @@
 package com.criska.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "developer")
@@ -18,6 +19,9 @@ public class Developer {
     private String username;
     private String password;
 
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -34,4 +38,6 @@ public class Developer {
     public void setUsername(String username) { this.username = username; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    public LocalDateTime getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
 }

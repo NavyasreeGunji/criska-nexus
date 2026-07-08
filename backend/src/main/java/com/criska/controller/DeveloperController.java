@@ -4,6 +4,8 @@ import com.criska.entity.Developer;
 import com.criska.repository.DeveloperRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -19,6 +21,13 @@ public class DeveloperController {
     @GetMapping
     public List<Developer> list() {
         return repository.findAll();
+    }
+
+    @GetMapping("/active-today")
+    public List<Developer> activeToday() {
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+        return repository.findByLastLoginAtBetween(start, end);
     }
 
     @GetMapping("/{id}")

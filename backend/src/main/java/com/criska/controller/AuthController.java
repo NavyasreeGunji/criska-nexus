@@ -5,6 +5,7 @@ import com.criska.repository.DeveloperRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
@@ -30,6 +31,8 @@ public class AuthController {
         if (dev == null || !password.equals(dev.getPassword())) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid username or password"));
         }
+        dev.setLastLoginAt(LocalDateTime.now());
+        repository.save(dev);
         return ResponseEntity.ok(dev);
     }
 

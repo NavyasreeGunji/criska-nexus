@@ -30,6 +30,23 @@ function toDateStr(d: any): string {
   return String(d);
 }
 
+// Backend may return LocalDateTime as [2026,7,8,14,30,0] array or ISO string.
+function toDateTimeStr(d: any): string {
+  if (!d) return '';
+  if (Array.isArray(d)) {
+    const [y, mo, day, h = 0, min = 0] = d;
+    return `${y}-${String(mo).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+  }
+  return String(d);
+}
+
+export interface ActiveUser {
+  id: string;
+  name: string;
+  role: string;
+  lastLoginAt: string;
+}
+
 // ─── Mappers: backend → frontend ────────────────────────────────────────────
 
 function mapDeveloper(d: any): DeveloperProfile {
@@ -227,6 +244,15 @@ export async function apiResetPassword(username: string, otp: string, newPasswor
 // ─── Developers ──────────────────────────────────────────────────────────────
 
 export const apiGetDevelopers = () => req<any[]>('/developers').then(list => list.map(mapDeveloper));
+export const apiGetActiveToday = () =>
+  req<any[]>('/developers/active-today').then(list =>
+    list.map((d): ActiveUser => ({
+      id: String(d.id),
+      name: d.name ?? '',
+      role: d.role ?? '',
+      lastLoginAt: toDateTimeStr(d.lastLoginAt),
+    }))
+  );
 export const apiCreateDeveloper = (d: Omit<DeveloperProfile, 'id'>) =>
   req<any>('/developers', { method: 'POST', body: JSON.stringify(unmapDeveloper(d)) }).then(mapDeveloper);
 export const apiUpdateDeveloper = (id: string, d: Omit<DeveloperProfile, 'id'>) =>

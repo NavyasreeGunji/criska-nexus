@@ -22,7 +22,7 @@ import {
   initialStories, bugs as initialBugs, deployments as initialDeployments, dailyLogs as initialLogs,
 } from '../data/mockData';
 import { useApp } from '../context/AppContext';
-import { apiGetStories, apiGetBugs, apiGetLogs, apiGetDeployments } from '../api/api';
+import { apiGetStories, apiGetBugs, apiGetLogs, apiGetDeployments, apiGetActiveToday, ActiveUser } from '../api/api';
 
 const storyStatusColor: Record<StoryStatus, 'default' | 'primary' | 'warning' | 'success' | 'info'> = {
   backlog: 'default',
@@ -60,13 +60,18 @@ const deployStatusLabel: Record<DeploymentStatus, string> = {
   rolled_back: 'Rolled Back',
 };
 
+const PRIVILEGED_ROLES = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
+
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { backendOnline, backendChecked, sprints } = useApp();
+  const { backendOnline, backendChecked, sprints, currentUser } = useApp();
   const [stories, setStories] = useState<Story[]>([]);
   const [bugs, setBugs] = useState<Bug[]>([]);
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
   const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
+
+  const canSeeActiveUsers = currentUser ? PRIVILEGED_ROLES.includes(currentUser.role) : false;
 
   useEffect(() => {
     if (!backendChecked) return;
@@ -75,13 +80,16 @@ export default function DashboardPage() {
       apiGetBugs().then(setBugs).catch(() => setBugs(initialBugs));
       apiGetLogs().then(setDailyLogs).catch(() => setDailyLogs(initialLogs));
       apiGetDeployments().then(setDeployments).catch(() => setDeployments(initialDeployments));
+      if (canSeeActiveUsers) {
+        apiGetActiveToday().then(setActiveUsers).catch(() => setActiveUsers([]));
+      }
     } else {
       setStories(initialStories);
       setBugs(initialBugs);
       setDailyLogs(initialLogs);
       setDeployments(initialDeployments);
     }
-  }, [backendChecked, backendOnline]);
+  }, [backendChecked, backendOnline, canSeeActiveUsers]);
 
   const today = new Date().toISOString().slice(0, 10);
   const totalPoints = stories.reduce((sum, s) => sum + s.points, 0);
@@ -277,6 +285,40 @@ export default function DashboardPage() {
             </List>
           </Paper>
         </Grid>
+
+        {canSeeActiveUsers && (
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 2.5 }}>
+              <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                Active Today
+              </Typography>
+              <List dense disablePadding>
+                {activeUsers.map((user, i) => (
+                  <Box key={user.id}>
+                    {i > 0 && <Divider sx={{ my: 0.5 }} />}
+                    <ListItem disableGutters sx={{ py: 0.75 }}>
+                      <ListItemAvatar sx={{ minWidth: 42 }}>
+                        <Avatar sx={{ width: 30, height: 30, fontSize: 11, fontWeight: 700, bgcolor: '#16a34a18', color: '#16a34a' }}>
+                          {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={<Typography variant="body2" fontWeight={500}>{user.name}</Typography>}
+                        secondary={user.role}
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </Typography>
+                    </ListItem>
+                  </Box>
+                ))}
+                {activeUsers.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">No logins recorded today</Typography>
+                )}
+              </List>
+            </Paper>
+          </Grid>
+        )}
 
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2.5 }}>
