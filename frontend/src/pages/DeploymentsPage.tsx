@@ -364,7 +364,12 @@ export default function DeploymentsPage() {
       )}
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editTarget ? 'Edit Deployment' : tab === 0 ? 'Schedule Deployment' : 'Log Deployment'}</DialogTitle>
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <span>{editTarget ? 'Edit Deployment' : tab === 0 ? 'Schedule Deployment' : 'Log Deployment'}</span>
+            <Chip label="Production" size="small" color="error" variant="outlined" sx={{ fontWeight: 700 }} />
+          </Stack>
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
