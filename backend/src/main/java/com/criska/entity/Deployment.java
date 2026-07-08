@@ -20,6 +20,8 @@ public class Deployment {
     @JsonProperty("time")
     private String deployTime;
 
+    private String crNumber;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -43,6 +45,8 @@ public class Deployment {
     public String getDeployTime() { return deployTime; }
     @JsonProperty("time")
     public void setDeployTime(String deployTime) { this.deployTime = deployTime; }
+    public String getCrNumber() { return crNumber; }
+    public void setCrNumber(String crNumber) { this.crNumber = crNumber; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
     public String getNotes() { return notes; }

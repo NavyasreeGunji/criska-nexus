@@ -48,11 +48,12 @@ const UPCOMING_STATUSES: DeploymentStatus[] = ['planned', 'in_progress'];
 const COMPLETED_STATUSES: DeploymentStatus[] = ['success', 'failed', 'rolled_back'];
 
 const emptyForm = (): Omit<Deployment, 'id'> => ({
-  environment: 'stage/UAT',
+  environment: 'production',
   status: 'planned',
   deployedBy: '',
   date: new Date().toISOString().slice(0, 10),
   time: '18:00',
+  crNumber: '',
   description: '',
   notes: '',
   hours: undefined,
@@ -195,12 +196,10 @@ export default function DeploymentsPage() {
                         <Typography variant="subtitle1" fontWeight={700}>
                           {dep.deployedBy}
                         </Typography>
-                        <Chip
-                          label={dep.environment}
-                          size="small"
-                          variant="outlined"
-                          color={dep.environment === 'production' ? 'error' : 'default'}
-                        />
+                        <Chip label="Production" size="small" variant="outlined" color="error" />
+                        {dep.crNumber && (
+                          <Chip label={dep.crNumber} size="small" sx={{ bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700, fontSize: 11 }} />
+                        )}
                         <Chip
                           label={cfg.label}
                           size="small"
@@ -291,7 +290,7 @@ export default function DeploymentsPage() {
                   <Table size="small">
                     <TableHead>
                       <TableRow>
-                        {['Environment', 'Status', 'Date', 'Time', 'Effort', 'Description'].map((h) => (
+                        {['CR Number', 'Status', 'Date', 'Time', 'Effort', 'Description'].map((h) => (
                           <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>
                             {h}
                           </TableCell>
@@ -305,12 +304,9 @@ export default function DeploymentsPage() {
                         return (
                           <TableRow key={dep.id} hover>
                             <TableCell>
-                              <Chip
-                                label={dep.environment}
-                                size="small"
-                                variant="outlined"
-                                color={dep.environment === 'production' ? 'error' : 'default'}
-                              />
+                              <Typography variant="body2" fontWeight={600} color="#475569">
+                                {dep.crNumber || '—'}
+                              </Typography>
                             </TableCell>
                             <TableCell>
                               <Chip
@@ -367,19 +363,15 @@ export default function DeploymentsPage() {
         <DialogTitle>{editTarget ? 'Edit Deployment' : tab === 0 ? 'Schedule Deployment' : 'Log Deployment'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <FormControl size="small" fullWidth>
-              <InputLabel>Environment</InputLabel>
-              <Select
-                value={form.environment}
-                label="Environment"
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, environment: e.target.value as Deployment['environment'] }))
-                }
-              >
-                <MenuItem value="production">Production</MenuItem>
-                <MenuItem value="stage/UAT">Stage/UAT</MenuItem>
-              </Select>
-            </FormControl>
+            <TextField
+              label="CR Number"
+              value={form.crNumber}
+              onChange={(e) => setForm((f) => ({ ...f, crNumber: e.target.value }))}
+              size="small"
+              fullWidth
+              required
+              placeholder="e.g. CR-1042"
+            />
             <Stack direction="row" spacing={2}>
               <TextField
                 label="Date"
@@ -466,7 +458,7 @@ export default function DeploymentsPage() {
           <Button
             variant="contained"
             onClick={handleSave}
-            disabled={isSaving || !form.deployedBy || !form.description.trim()}
+            disabled={isSaving || !form.crNumber.trim() || !form.deployedBy || !form.description.trim()}
           >
             {isSaving ? 'Saving…' : 'Save'}
           </Button>

@@ -64,11 +64,12 @@ export interface DailyLog {
 
 export interface Deployment {
   id: string;
-  environment: 'production' | 'stage/UAT';
+  environment: 'production';
   status: DeploymentStatus;
   deployedBy: string;
   date: string;
   time: string;
+  crNumber: string;
   description: string;
   notes: string;
   hours?: number;
@@ -265,44 +266,26 @@ export const dailyLogs: DailyLog[] = [
 export const deployments: Deployment[] = [
   {
     id: 'D-001', environment: 'production', status: 'success',
-    deployedBy: 'Anil Yerupala', date: '2026-06-10', time: '22:30',
+    deployedBy: 'Anil Yerupala', date: '2026-06-10', time: '22:30', crNumber: 'CR-1001',
     description: 'Deployed auth module with OAuth2 SSO support and DB performance fixes. Ran smoke tests post-deploy, all checks passed.',
     notes: 'Auth module + performance fixes',
   },
   {
-    id: 'D-002', environment: 'stage/UAT', status: 'in_progress',
-    deployedBy: 'Anil Yerupala', date: '2026-06-14', time: '14:00',
-    description: 'Deploying dashboard analytics feature to staging for QA sign-off. Monitoring error rates.',
-    notes: 'Dashboard analytics preview',
-  },
-  {
     id: 'D-003', environment: 'production', status: 'rolled_back',
-    deployedBy: 'Nagaraju Gunji', date: '2026-06-05', time: '23:15',
+    deployedBy: 'Nagaraju Gunji', date: '2026-06-05', time: '23:15', crNumber: 'CR-1002',
     description: 'Deploy caused Safari users to get blank screen after OAuth redirect. Rolled back within 20 minutes of detection.',
     notes: 'Rolled back due to Safari auth issue',
   },
   {
     id: 'D-004', environment: 'production', status: 'success',
-    deployedBy: 'Anil Yerupala', date: '2026-06-07', time: '18:45',
+    deployedBy: 'Anil Yerupala', date: '2026-06-07', time: '18:45', crNumber: 'CR-1003',
     description: 'Emergency hotfix for Safari login redirect bug. Patched OAuth callback handler. Deployed off-hours with minimal user impact.',
     notes: 'Hotfix: Safari login redirect',
   },
   {
-    id: 'D-005', environment: 'stage/UAT', status: 'success',
-    deployedBy: 'Nagaraju Gunji', date: '2026-06-08', time: '11:00',
-    description: 'Sprint 2 feature branch merged and deployed to staging. Includes RBAC module, notification system, and UI improvements.',
-    notes: 'Feature branch merge for Sprint 2',
-  },
-  {
     id: 'D-006', environment: 'production', status: 'planned',
-    deployedBy: 'Anil Yerupala', date: '2026-06-18', time: '21:00',
-    description: 'Planned production release for dashboard analytics and notification system after QA sign-off on staging.',
+    deployedBy: 'Anil Yerupala', date: '2026-06-18', time: '21:00', crNumber: 'CR-1004',
+    description: 'Planned production release for dashboard analytics and notification system after QA sign-off.',
     notes: 'Sprint 3 production release',
-  },
-  {
-    id: 'D-007', environment: 'stage/UAT', status: 'planned',
-    deployedBy: 'Nagaraju Gunji', date: '2026-06-20', time: '10:00',
-    description: 'RBAC and export CSV features going into staging for integration testing.',
-    notes: 'RBAC + CSV export staging deploy',
   },
 ];

@@ -133,11 +133,12 @@ function mapLog(l: any): DailyLog {
 function mapDeployment(d: any): Deployment {
   return {
     id: String(d.id),
-    environment: d.environment ?? 'staging',
+    environment: 'production',
     status: (d.status ?? 'planned') as DeploymentStatus,
     deployedBy: d.deployedBy ?? '',
     date: toDateStr(d.date ?? d.deployDate),
     time: d.time ?? d.deployTime ?? '',
+    crNumber: d.crNumber ?? '',
     description: d.description ?? '',
     notes: d.notes ?? '',
     hours: d.hours != null ? Number(d.hours) : undefined,
@@ -205,6 +206,7 @@ function unmapDeployment(d: Omit<Deployment, 'id'>) {
     environment: d.environment, status: d.status,
     deployedBy: d.deployedBy,
     date: d.date, time: d.time,
+    crNumber: d.crNumber,
     description: d.description, notes: d.notes,
     hours: d.hours ?? null,
   };
