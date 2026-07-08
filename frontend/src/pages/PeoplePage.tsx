@@ -90,7 +90,7 @@ function initials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase();
 }
 
-const emptyForm = { name: '', email: '', role: 'Developer' as DeveloperRole, teamIds: [] as string[], projectTypes: [] as ProjectType[] };
+const emptyForm = { name: '', email: '', role: 'Developer' as DeveloperRole, teamIds: [] as string[], projectTypes: [] as ProjectType[], password: 'criska@123' };
 
 function isValidEmail(email: string): boolean {
   if (!/^[a-zA-Z0-9_%+\-]+(\.[a-zA-Z0-9_%+\-]+)*@[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(email)) return false;
@@ -217,8 +217,9 @@ export default function PeoplePage() {
         await updateDeveloper({ ...editTarget, name: form.name, email: form.email, role: form.role, teamIds: form.teamIds, projectTypes: form.projectTypes });
       } else {
         const newId = `DEV-${String(developerProfiles.length + 1).padStart(3, '0')}`;
-        const username = form.name.split(' ')[0].toLowerCase();
-        await addDeveloper({ id: newId, name: form.name, email: form.email, role: form.role, teamIds: form.teamIds, projectTypes: form.projectTypes, username, password: 'Converge@2026' });
+        const parts = form.name.trim().toLowerCase().split(/\s+/);
+        const username = parts.length === 1 ? parts[0] : `${parts[0]}.${parts[parts.length - 1]}`;
+        await addDeveloper({ id: newId, name: form.name, email: form.email, role: form.role, teamIds: form.teamIds, projectTypes: form.projectTypes, username, password: form.password || 'criska@123' });
       }
       await syncTeamMembers(form.name, oldName, oldTeamIds, form.teamIds);
       setDialogOpen(false);
@@ -447,6 +448,17 @@ export default function PeoplePage() {
               error={!!emailError}
               helperText={emailError}
             />
+            {!editTarget && (
+              <TextField
+                label="Initial Password"
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                fullWidth size="small"
+                placeholder="criska@123"
+                helperText="Developer will use this to log in for the first time"
+              />
+            )}
             <FormControl size="small" fullWidth disabled={!canEditAll}>
               <InputLabel>Role</InputLabel>
               <Select
