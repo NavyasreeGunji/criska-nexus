@@ -67,11 +67,11 @@ export default function LoginActivityPage() {
     if (!backendChecked || !backendOnline) return;
     setLoading(true);
     Promise.all([
-      apiGetLoginEvents(selectedDate),
-      apiGetStatusSubmittedOn(selectedDate),
-      apiGetStories(),
-      apiGetBugs(),
-      apiGetDeployments(),
+      apiGetLoginEvents(selectedDate).catch(() => [] as any[]),
+      apiGetStatusSubmittedOn(selectedDate).catch(() => [] as any[]),
+      apiGetStories().catch(() => [] as any[]),
+      apiGetBugs().catch(() => [] as any[]),
+      apiGetDeployments().catch(() => [] as any[]),
     ])
       .then(([evts, logs, stories, bugs, deployments]) => {
         setTotalLoginEvents(evts.length);
@@ -130,7 +130,6 @@ export default function LoginActivityPage() {
 
         setActivities(Array.from(map.values()));
       })
-      .catch(() => { setActivities([]); setTotalLoginEvents(0); })
       .finally(() => setLoading(false));
   }, [selectedDate, backendChecked, backendOnline]); // eslint-disable-line react-hooks/exhaustive-deps
 
