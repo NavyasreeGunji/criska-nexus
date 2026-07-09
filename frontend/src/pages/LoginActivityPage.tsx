@@ -11,8 +11,9 @@ import {
 } from '@mui/material';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import { useApp } from '../context/AppContext';
-import { apiGetLoginEvents, LoginEvent } from '../api/api';
+import { apiGetLoginEvents, LoginEvent, apiGetStatusByDate } from '../api/api';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -39,35 +40,60 @@ interface UserSessions {
   name: string;
   role: string;
   times: string[];
+  timesheetOnly: boolean;
 }
 
-function groupByUser(events: LoginEvent[]): UserSessions[] {
+function buildUserList(
+  events: LoginEvent[],
+  logDevNames: Set<string>,
+  getRoleByName: (name: string) => string,
+): UserSessions[] {
   const map = new Map<string, UserSessions>();
+
   for (const e of events) {
     if (!map.has(e.developerName)) {
-      map.set(e.developerName, { name: e.developerName, role: e.role, times: [] });
+      map.set(e.developerName, { name: e.developerName, role: e.role, times: [], timesheetOnly: false });
     }
     map.get(e.developerName)!.times.push(e.loginAt);
   }
+
+  for (const devName of logDevNames) {
+    if (!map.has(devName)) {
+      map.set(devName, { name: devName, role: getRoleByName(devName), times: [], timesheetOnly: true });
+    }
+  }
+
   return Array.from(map.values());
 }
 
 export default function LoginActivityPage() {
-  const { backendOnline, backendChecked } = useApp();
+  const { backendOnline, backendChecked, developerProfiles } = useApp();
   const [selectedDate, setSelectedDate] = useState(today);
   const [events, setEvents] = useState<LoginEvent[]>([]);
+  const [logDevNames, setLogDevNames] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!backendChecked || !backendOnline) return;
     setLoading(true);
-    apiGetLoginEvents(selectedDate)
-      .then(setEvents)
-      .catch(() => setEvents([]))
+    Promise.all([
+      apiGetLoginEvents(selectedDate),
+      apiGetStatusByDate(selectedDate),
+    ])
+      .then(([evts, logs]) => {
+        setEvents(evts);
+        setLogDevNames(new Set(logs.map((l) => l.developer).filter(Boolean)));
+      })
+      .catch(() => { setEvents([]); setLogDevNames(new Set()); })
       .finally(() => setLoading(false));
   }, [selectedDate, backendChecked, backendOnline]);
 
-  const userSessions = groupByUser(events);
+  const getRoleByName = (name: string) =>
+    developerProfiles.find((p) => p.name === name)?.role ?? 'Developer';
+
+  const userSessions = buildUserList(events, logDevNames, getRoleByName);
+  const loginCount = userSessions.filter((u) => !u.timesheetOnly).length;
+  const timesheetOnlyCount = userSessions.filter((u) => u.timesheetOnly).length;
   const isToday = selectedDate === today;
 
   return (
@@ -77,7 +103,7 @@ export default function LoginActivityPage() {
         <Box>
           <Typography variant="h6" fontWeight={700} lineHeight={1.2}>Login Activity</Typography>
           <Typography variant="caption" color="text.secondary">
-            All login sessions per user
+            All login sessions and timesheet activity per user
           </Typography>
         </Box>
       </Stack>
@@ -116,7 +142,7 @@ export default function LoginActivityPage() {
           {!loading && userSessions.length === 0 && (
             <Paper sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                No logins recorded for this date.
+                No activity recorded for this date.
               </Typography>
             </Paper>
           )}
@@ -126,7 +152,6 @@ export default function LoginActivityPage() {
             const initials = user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2);
             return (
               <Paper key={user.name} sx={{ overflow: 'hidden' }}>
-                {/* User header */}
                 <Box sx={{ px: 2.5, py: 1.75, display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Avatar sx={{ bgcolor: color + '22', color, fontWeight: 700, fontSize: 13, width: 38, height: 38 }}>
                     {initials}
@@ -135,28 +160,45 @@ export default function LoginActivityPage() {
                     <Typography variant="body2" fontWeight={700}>{user.name}</Typography>
                     <Typography variant="caption" color="text.secondary">{user.role}</Typography>
                   </Box>
-                  <Chip
-                    label={`${user.times.length} session${user.times.length !== 1 ? 's' : ''}`}
-                    size="small"
-                    sx={{ bgcolor: '#dbeafe', color: '#2563EB', fontWeight: 600, fontSize: 11 }}
-                  />
+                  {user.timesheetOnly ? (
+                    <Chip
+                      label="Work logged"
+                      size="small"
+                      sx={{ bgcolor: '#f0fdf4', color: '#16a34a', fontWeight: 600, fontSize: 11 }}
+                    />
+                  ) : (
+                    <Chip
+                      label={`${user.times.length} session${user.times.length !== 1 ? 's' : ''}`}
+                      size="small"
+                      sx={{ bgcolor: '#dbeafe', color: '#2563EB', fontWeight: 600, fontSize: 11 }}
+                    />
+                  )}
                 </Box>
 
                 <Divider />
 
-                {/* Login times */}
                 <Box sx={{ px: 2.5, py: 1.25 }}>
-                  <Stack direction="row" flexWrap="wrap" gap={1}>
-                    {user.times.map((t, i) => (
-                      <Stack key={i} direction="row" alignItems="center" spacing={0.5}
-                        sx={{ bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 1.5, px: 1.25, py: 0.5 }}>
-                        <AccessTimeIcon sx={{ fontSize: 13, color: '#64748b' }} />
-                        <Typography variant="caption" fontWeight={600} color="text.secondary">
-                          {fmtTime(t)}
-                        </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
+                  {user.timesheetOnly ? (
+                    <Stack direction="row" alignItems="center" spacing={0.75}
+                      sx={{ bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 1.5, px: 1.25, py: 0.5, width: 'fit-content' }}>
+                      <AssignmentTurnedInIcon sx={{ fontSize: 13, color: '#16a34a' }} />
+                      <Typography variant="caption" fontWeight={600} color="#16a34a">
+                        Submitted timesheet (no app login)
+                      </Typography>
+                    </Stack>
+                  ) : (
+                    <Stack direction="row" flexWrap="wrap" gap={1}>
+                      {user.times.map((t, i) => (
+                        <Stack key={i} direction="row" alignItems="center" spacing={0.5}
+                          sx={{ bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 1.5, px: 1.25, py: 0.5 }}>
+                          <AccessTimeIcon sx={{ fontSize: 13, color: '#64748b' }} />
+                          <Typography variant="caption" fontWeight={600} color="text.secondary">
+                            {fmtTime(t)}
+                          </Typography>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  )}
                 </Box>
               </Paper>
             );
@@ -164,7 +206,7 @@ export default function LoginActivityPage() {
 
           {!loading && userSessions.length > 0 && (
             <Typography variant="caption" color="text.secondary" sx={{ pl: 0.5 }}>
-              {events.length} total session{events.length !== 1 ? 's' : ''} · {userSessions.length} unique user{userSessions.length !== 1 ? 's' : ''}
+              {events.length} total session{events.length !== 1 ? 's' : ''} · {loginCount} logged in · {timesheetOnlyCount} timesheet only
             </Typography>
           )}
         </Stack>
