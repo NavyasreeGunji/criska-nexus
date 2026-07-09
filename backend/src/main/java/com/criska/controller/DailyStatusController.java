@@ -54,6 +54,9 @@ public class DailyStatusController {
 
     @PostMapping
     public DailyStatus create(@RequestBody DailyStatus dailyStatus) {
+        if (dailyStatus.getCreatedDate() == null) {
+            dailyStatus.setCreatedDate(Instant.now());
+        }
         return repository.save(dailyStatus);
     }
 
