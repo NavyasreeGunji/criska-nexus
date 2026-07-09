@@ -113,7 +113,7 @@ export default function BugsPage() {
           const updated = await apiUpdateBug(editTarget.id, trimmedForm);
           setBugs((prev) => prev.map((b) => (b.id === editTarget.id ? updated : b)));
         } else {
-          const created = await apiCreateBug(trimmedForm);
+          const created = await apiCreateBug({ ...trimmedForm, createdBy: currentUser?.name ?? '' });
           setBugs((prev) => [...prev, created]);
         }
       } else {

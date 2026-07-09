@@ -244,7 +244,7 @@ export default function StoriesPage() {
           const updated = await apiUpdateStory(editTarget.id, trimmedForm);
           setStories((prev) => prev.map((s) => (s.id === editTarget.id ? updated : s)));
         } else {
-          const created = await apiCreateStory(trimmedForm);
+          const created = await apiCreateStory({ ...trimmedForm, createdBy: currentUser?.name ?? '' });
           setStories((prev) => [...prev, created]);
         }
       } else {

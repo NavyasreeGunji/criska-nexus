@@ -24,6 +24,9 @@ public class Story {
     private String status;
     private String reporter;
     private String assignee;
+
+    @Column(name = "created_by")
+    private String createdBy;
     private Long teamId;
     private Long sprintId;
 
@@ -53,6 +56,8 @@ public class Story {
     public void setReporter(String reporter) { this.reporter = reporter; }
     public String getAssignee() { return assignee; }
     public void setAssignee(String assignee) { this.assignee = assignee; }
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     public Long getTeamId() { return teamId; }
     public void setTeamId(Long teamId) { this.teamId = teamId; }
     public Long getSprintId() { return sprintId; }

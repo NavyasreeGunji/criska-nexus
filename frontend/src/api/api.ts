@@ -101,6 +101,7 @@ function mapStory(s: any): Story {
     startedDate: toDateStr(s.startedDate),
     completedDate: toDateStr(s.completedDate),
     spilledFromSprintId: s.spilledFromSprintId ? String(s.spilledFromSprintId) : null,
+    createdBy: s.createdBy ?? '',
   };
 }
 
@@ -116,6 +117,7 @@ function mapBug(b: any): Bug {
     assignee: b.assignee ?? '',
     createdDate: toDateStr(b.createdDate),
     resolvedDate: toDateStr(b.resolvedDate),
+    createdBy: b.createdBy ?? '',
   };
 }
 
@@ -179,6 +181,7 @@ function unmapStory(s: Omit<Story, 'id'>) {
     startedDate: s.startedDate || null,
     completedDate: s.completedDate || null,
     spilledFromSprintId: s.spilledFromSprintId ? Number(s.spilledFromSprintId) : null,
+    createdBy: s.createdBy ?? '',
   };
 }
 
@@ -189,6 +192,7 @@ function unmapBug(b: Omit<Bug, 'id'>) {
     environment: b.environment, reporter: b.reporter, assignee: b.assignee,
     createdDate: b.createdDate || null,
     resolvedDate: b.resolvedDate || null,
+    createdBy: b.createdBy ?? '',
   };
 }
 

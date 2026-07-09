@@ -89,13 +89,13 @@ export default function LoginActivityPage() {
 
         const storyMap = new Map<string, number>();
         for (const s of stories) {
-          const resolved = resolveKnown(s.reporter);
+          const resolved = resolveKnown(s.createdBy ?? '');
           if (s.createdDate === selectedDate && resolved) inc(storyMap, resolved);
         }
 
         const bugMap = new Map<string, number>();
         for (const b of bugs) {
-          const resolved = resolveKnown(b.reporter);
+          const resolved = resolveKnown(b.createdBy ?? '');
           if (b.createdDate === selectedDate && resolved) inc(bugMap, resolved);
         }
 

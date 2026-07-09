@@ -38,6 +38,7 @@ export interface Story {
   teamId: string;
   sprintId: string;
   spilledFromSprintId?: string | null;
+  createdBy?: string;
 }
 
 export interface Bug {
@@ -51,6 +52,7 @@ export interface Bug {
   assignee: string;
   createdDate: string;
   resolvedDate: string;
+  createdBy?: string;
 }
 
 export interface DailyLog {
