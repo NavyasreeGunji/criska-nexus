@@ -17,7 +17,7 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import { useApp } from '../context/AppContext';
 import {
-  apiGetLoginEvents, LoginEvent, apiGetStatusByDate,
+  apiGetLoginEvents, LoginEvent, apiGetStatusSubmittedOn,
   apiGetStories, apiGetBugs, apiGetDeployments,
 } from '../api/api';
 
@@ -68,7 +68,7 @@ export default function LoginActivityPage() {
     setLoading(true);
     Promise.all([
       apiGetLoginEvents(selectedDate),
-      apiGetStatusByDate(selectedDate),
+      apiGetStatusSubmittedOn(selectedDate),
       apiGetStories(),
       apiGetBugs(),
       apiGetDeployments(),
@@ -81,12 +81,14 @@ export default function LoginActivityPage() {
         const resolveKnown = (name: string): string | null =>
           profileNames.has(name) ? name : null;
 
+        // Timesheets: count entries SUBMITTED on selectedDate (not work date)
         const logMap = new Map<string, number>();
         for (const l of logs) {
           const resolved = resolveKnown(l.developer);
           if (resolved) inc(logMap, resolved);
         }
 
+        // Stories/bugs: filter by createdDate = selectedDate AND createdBy = known developer
         const storyMap = new Map<string, number>();
         for (const s of stories) {
           const resolved = resolveKnown(s.createdBy ?? '');

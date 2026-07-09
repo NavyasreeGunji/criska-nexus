@@ -289,6 +289,9 @@ export const apiGetLoginEvents = (date: string) =>
 
 export const apiGetStatusByDate = (date: string) =>
   req<any[]>(`/status/date/${date}`).then(list => list.map(mapLog));
+
+export const apiGetStatusSubmittedOn = (date: string) =>
+  req<any[]>(`/status/submitted/${date}`).then(list => list.map(mapLog));
 export const apiCreateDeveloper = (d: Omit<DeveloperProfile, 'id'>) =>
   req<any>('/developers', { method: 'POST', body: JSON.stringify(unmapDeveloper(d)) }).then(mapDeveloper);
 export const apiUpdateDeveloper = (id: string, d: Omit<DeveloperProfile, 'id'>) =>

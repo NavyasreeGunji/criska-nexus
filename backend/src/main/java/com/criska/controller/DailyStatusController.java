@@ -5,12 +5,16 @@ import com.criska.repository.DailyStatusRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/status")
 public class DailyStatusController {
+
+    private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
 
     private final DailyStatusRepository repository;
 
@@ -31,6 +35,14 @@ public class DailyStatusController {
     @GetMapping("/date/{date}")
     public List<DailyStatus> byDate(@PathVariable("date") String date) {
         return repository.findByDate(LocalDate.parse(date));
+    }
+
+    // Returns entries submitted (created) on the given date, regardless of work date.
+    @GetMapping("/submitted/{date}")
+    public List<DailyStatus> submittedOn(@PathVariable("date") String date) {
+        Instant start = LocalDate.parse(date).atStartOfDay(IST).toInstant();
+        Instant end   = LocalDate.parse(date).plusDays(1).atStartOfDay(IST).toInstant();
+        return repository.findByCreatedDateBetween(start, end);
     }
 
     @GetMapping("/{id}")
