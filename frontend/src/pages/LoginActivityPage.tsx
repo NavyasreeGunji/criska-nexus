@@ -12,8 +12,14 @@ import {
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import { useApp } from '../context/AppContext';
-import { apiGetLoginEvents, LoginEvent, apiGetStatusByDate } from '../api/api';
+import {
+  apiGetLoginEvents, LoginEvent, apiGetStatusByDate,
+  apiGetStories, apiGetBugs, apiGetDeployments,
+} from '../api/api';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -36,41 +42,25 @@ function fmtDisplayDate(dateStr: string) {
   });
 }
 
-interface UserSessions {
+interface UserActivity {
   name: string;
   role: string;
-  times: string[];
-  timesheetOnly: boolean;
+  loginTimes: string[];
+  timesheetCount: number;
+  storiesCreated: number;
+  bugsReported: number;
+  deploymentCount: number;
 }
 
-function buildUserList(
-  events: LoginEvent[],
-  logDevNames: Set<string>,
-  getRoleByName: (name: string) => string,
-): UserSessions[] {
-  const map = new Map<string, UserSessions>();
-
-  for (const e of events) {
-    if (!map.has(e.developerName)) {
-      map.set(e.developerName, { name: e.developerName, role: e.role, times: [], timesheetOnly: false });
-    }
-    map.get(e.developerName)!.times.push(e.loginAt);
-  }
-
-  for (const devName of logDevNames) {
-    if (!map.has(devName)) {
-      map.set(devName, { name: devName, role: getRoleByName(devName), times: [], timesheetOnly: true });
-    }
-  }
-
-  return Array.from(map.values());
+function inc(m: Map<string, number>, key: string) {
+  m.set(key, (m.get(key) ?? 0) + 1);
 }
 
 export default function LoginActivityPage() {
   const { backendOnline, backendChecked, developerProfiles } = useApp();
   const [selectedDate, setSelectedDate] = useState(today);
-  const [events, setEvents] = useState<LoginEvent[]>([]);
-  const [logDevNames, setLogDevNames] = useState<Set<string>>(new Set());
+  const [totalLoginEvents, setTotalLoginEvents] = useState(0);
+  const [activities, setActivities] = useState<UserActivity[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -79,21 +69,58 @@ export default function LoginActivityPage() {
     Promise.all([
       apiGetLoginEvents(selectedDate),
       apiGetStatusByDate(selectedDate),
+      apiGetStories(),
+      apiGetBugs(),
+      apiGetDeployments(),
     ])
-      .then(([evts, logs]) => {
-        setEvents(evts);
-        setLogDevNames(new Set(logs.map((l) => l.developer).filter(Boolean)));
+      .then(([evts, logs, stories, bugs, deployments]) => {
+        setTotalLoginEvents(evts.length);
+
+        const logMap = new Map<string, number>();
+        for (const l of logs) { if (l.developer) inc(logMap, l.developer); }
+
+        const storyMap = new Map<string, number>();
+        for (const s of stories) {
+          if (s.createdDate === selectedDate && s.reporter) inc(storyMap, s.reporter);
+        }
+
+        const bugMap = new Map<string, number>();
+        for (const b of bugs) {
+          if (b.createdDate === selectedDate && b.reporter) inc(bugMap, b.reporter);
+        }
+
+        const deployMap = new Map<string, number>();
+        for (const d of deployments) {
+          if (d.date === selectedDate && d.deployedBy) inc(deployMap, d.deployedBy);
+        }
+
+        const roleOf = (name: string) =>
+          developerProfiles.find((p) => p.name === name)?.role ?? 'Developer';
+
+        const map = new Map<string, UserActivity>();
+        const ensure = (name: string, role?: string): UserActivity => {
+          if (!map.has(name)) {
+            map.set(name, {
+              name, role: role ?? roleOf(name),
+              loginTimes: [], timesheetCount: 0,
+              storiesCreated: 0, bugsReported: 0, deploymentCount: 0,
+            });
+          }
+          return map.get(name)!;
+        };
+
+        for (const e of evts) { ensure(e.developerName, e.role).loginTimes.push(e.loginAt); }
+        for (const [n, c] of logMap)    { ensure(n).timesheetCount  = c; }
+        for (const [n, c] of storyMap)  { ensure(n).storiesCreated  = c; }
+        for (const [n, c] of bugMap)    { ensure(n).bugsReported    = c; }
+        for (const [n, c] of deployMap) { ensure(n).deploymentCount = c; }
+
+        setActivities(Array.from(map.values()));
       })
-      .catch(() => { setEvents([]); setLogDevNames(new Set()); })
+      .catch(() => { setActivities([]); setTotalLoginEvents(0); })
       .finally(() => setLoading(false));
-  }, [selectedDate, backendChecked, backendOnline]);
+  }, [selectedDate, backendChecked, backendOnline]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const getRoleByName = (name: string) =>
-    developerProfiles.find((p) => p.name === name)?.role ?? 'Developer';
-
-  const userSessions = buildUserList(events, logDevNames, getRoleByName);
-  const loginCount = userSessions.filter((u) => !u.timesheetOnly).length;
-  const timesheetOnlyCount = userSessions.filter((u) => u.timesheetOnly).length;
   const isToday = selectedDate === today;
 
   return (
@@ -103,7 +130,7 @@ export default function LoginActivityPage() {
         <Box>
           <Typography variant="h6" fontWeight={700} lineHeight={1.2}>Login Activity</Typography>
           <Typography variant="caption" color="text.secondary">
-            All login sessions and timesheet activity per user
+            Logins · timesheets · stories · bugs · deployments per user
           </Typography>
         </Box>
       </Stack>
@@ -130,7 +157,7 @@ export default function LoginActivityPage() {
       {!backendOnline ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            Backend offline — login tracking requires a live connection.
+            Backend offline — activity tracking requires a live connection.
           </Typography>
         </Paper>
       ) : (
@@ -139,7 +166,7 @@ export default function LoginActivityPage() {
             <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>Loading…</Typography>
           )}
 
-          {!loading && userSessions.length === 0 && (
+          {!loading && activities.length === 0 && (
             <Paper sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
                 No activity recorded for this date.
@@ -147,9 +174,13 @@ export default function LoginActivityPage() {
             </Paper>
           )}
 
-          {!loading && userSessions.map((user) => {
+          {!loading && activities.map((user) => {
             const color = avatarColor(user.name);
             const initials = user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2);
+            const total =
+              user.loginTimes.length + user.timesheetCount +
+              user.storiesCreated + user.bugsReported + user.deploymentCount;
+
             return (
               <Paper key={user.name} sx={{ overflow: 'hidden' }}>
                 <Box sx={{ px: 2.5, py: 1.75, display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -160,53 +191,75 @@ export default function LoginActivityPage() {
                     <Typography variant="body2" fontWeight={700}>{user.name}</Typography>
                     <Typography variant="caption" color="text.secondary">{user.role}</Typography>
                   </Box>
-                  {user.timesheetOnly ? (
-                    <Chip
-                      label="Work logged"
-                      size="small"
-                      sx={{ bgcolor: '#f0fdf4', color: '#16a34a', fontWeight: 600, fontSize: 11 }}
-                    />
-                  ) : (
-                    <Chip
-                      label={`${user.times.length} session${user.times.length !== 1 ? 's' : ''}`}
-                      size="small"
-                      sx={{ bgcolor: '#dbeafe', color: '#2563EB', fontWeight: 600, fontSize: 11 }}
-                    />
-                  )}
+                  <Chip
+                    label={`${total} activit${total !== 1 ? 'ies' : 'y'}`}
+                    size="small"
+                    sx={{ bgcolor: '#F1F5F9', color: '#475569', fontWeight: 600, fontSize: 11 }}
+                  />
                 </Box>
 
                 <Divider />
 
-                <Box sx={{ px: 2.5, py: 1.25 }}>
-                  {user.timesheetOnly ? (
-                    <Stack direction="row" alignItems="center" spacing={0.75}
-                      sx={{ bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 1.5, px: 1.25, py: 0.5, width: 'fit-content' }}>
-                      <AssignmentTurnedInIcon sx={{ fontSize: 13, color: '#16a34a' }} />
-                      <Typography variant="caption" fontWeight={600} color="#16a34a">
-                        Submitted timesheet (no app login)
-                      </Typography>
-                    </Stack>
-                  ) : (
-                    <Stack direction="row" flexWrap="wrap" gap={1}>
-                      {user.times.map((t, i) => (
-                        <Stack key={i} direction="row" alignItems="center" spacing={0.5}
-                          sx={{ bgcolor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 1.5, px: 1.25, py: 0.5 }}>
-                          <AccessTimeIcon sx={{ fontSize: 13, color: '#64748b' }} />
-                          <Typography variant="caption" fontWeight={600} color="text.secondary">
-                            {fmtTime(t)}
-                          </Typography>
-                        </Stack>
-                      ))}
-                    </Stack>
-                  )}
+                <Box sx={{ px: 2.5, py: 1.5 }}>
+                  <Stack direction="row" flexWrap="wrap" gap={1}>
+                    {user.loginTimes.map((t, i) => (
+                      <Stack key={i} direction="row" alignItems="center" spacing={0.5}
+                        sx={{ bgcolor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 1.5, px: 1.25, py: 0.5 }}>
+                        <AccessTimeIcon sx={{ fontSize: 13, color: '#2563EB' }} />
+                        <Typography variant="caption" fontWeight={600} color="#2563EB">
+                          {fmtTime(t)}
+                        </Typography>
+                      </Stack>
+                    ))}
+
+                    {user.timesheetCount > 0 && (
+                      <Stack direction="row" alignItems="center" spacing={0.5}
+                        sx={{ bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 1.5, px: 1.25, py: 0.5 }}>
+                        <AssignmentTurnedInIcon sx={{ fontSize: 13, color: '#16a34a' }} />
+                        <Typography variant="caption" fontWeight={600} color="#16a34a">
+                          {user.timesheetCount} timesheet {user.timesheetCount !== 1 ? 'entries' : 'entry'}
+                        </Typography>
+                      </Stack>
+                    )}
+
+                    {user.storiesCreated > 0 && (
+                      <Stack direction="row" alignItems="center" spacing={0.5}
+                        sx={{ bgcolor: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: 1.5, px: 1.25, py: 0.5 }}>
+                        <AutoStoriesIcon sx={{ fontSize: 13, color: '#7C3AED' }} />
+                        <Typography variant="caption" fontWeight={600} color="#7C3AED">
+                          {user.storiesCreated} {user.storiesCreated !== 1 ? 'stories' : 'story'} created
+                        </Typography>
+                      </Stack>
+                    )}
+
+                    {user.bugsReported > 0 && (
+                      <Stack direction="row" alignItems="center" spacing={0.5}
+                        sx={{ bgcolor: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 1.5, px: 1.25, py: 0.5 }}>
+                        <BugReportIcon sx={{ fontSize: 13, color: '#ea580c' }} />
+                        <Typography variant="caption" fontWeight={600} color="#ea580c">
+                          {user.bugsReported} {user.bugsReported !== 1 ? 'bugs' : 'bug'} reported
+                        </Typography>
+                      </Stack>
+                    )}
+
+                    {user.deploymentCount > 0 && (
+                      <Stack direction="row" alignItems="center" spacing={0.5}
+                        sx={{ bgcolor: '#ecfeff', border: '1px solid #a5f3fc', borderRadius: 1.5, px: 1.25, py: 0.5 }}>
+                        <RocketLaunchIcon sx={{ fontSize: 13, color: '#0891b2' }} />
+                        <Typography variant="caption" fontWeight={600} color="#0891b2">
+                          {user.deploymentCount} {user.deploymentCount !== 1 ? 'deployments' : 'deployment'}
+                        </Typography>
+                      </Stack>
+                    )}
+                  </Stack>
                 </Box>
               </Paper>
             );
           })}
 
-          {!loading && userSessions.length > 0 && (
+          {!loading && activities.length > 0 && (
             <Typography variant="caption" color="text.secondary" sx={{ pl: 0.5 }}>
-              {events.length} total session{events.length !== 1 ? 's' : ''} · {loginCount} logged in · {timesheetOnlyCount} timesheet only
+              {activities.length} active member{activities.length !== 1 ? 's' : ''} · {totalLoginEvents} login session{totalLoginEvents !== 1 ? 's' : ''}
             </Typography>
           )}
         </Stack>
