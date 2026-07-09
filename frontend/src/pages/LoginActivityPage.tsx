@@ -76,22 +76,33 @@ export default function LoginActivityPage() {
       .then(([evts, logs, stories, bugs, deployments]) => {
         setTotalLoginEvents(evts.length);
 
+        // Only attribute activity to known developers (exact full-name match in people portal)
+        const profileNames = new Set(developerProfiles.map((p) => p.name));
+        const resolveKnown = (name: string): string | null =>
+          profileNames.has(name) ? name : null;
+
         const logMap = new Map<string, number>();
-        for (const l of logs) { if (l.developer) inc(logMap, l.developer); }
+        for (const l of logs) {
+          const resolved = resolveKnown(l.developer);
+          if (resolved) inc(logMap, resolved);
+        }
 
         const storyMap = new Map<string, number>();
         for (const s of stories) {
-          if (s.createdDate === selectedDate && s.reporter) inc(storyMap, s.reporter);
+          const resolved = resolveKnown(s.reporter);
+          if (s.createdDate === selectedDate && resolved) inc(storyMap, resolved);
         }
 
         const bugMap = new Map<string, number>();
         for (const b of bugs) {
-          if (b.createdDate === selectedDate && b.reporter) inc(bugMap, b.reporter);
+          const resolved = resolveKnown(b.reporter);
+          if (b.createdDate === selectedDate && resolved) inc(bugMap, resolved);
         }
 
         const deployMap = new Map<string, number>();
         for (const d of deployments) {
-          if (d.date === selectedDate && d.deployedBy) inc(deployMap, d.deployedBy);
+          const resolved = resolveKnown(d.deployedBy);
+          if (d.date === selectedDate && resolved) inc(deployMap, resolved);
         }
 
         const roleOf = (name: string) =>
