@@ -128,26 +128,25 @@ export default function LoginPage() {
     >
       <Paper sx={{ p: 4, width: '100%', maxWidth: 400 }}>
         <Box sx={{ textAlign: 'center', mb: 3.5 }}>
-          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1.25, mb: 0.75 }}>
-            <Box sx={{
-              width: 36, height: 36, borderRadius: '10px',
-              background: 'linear-gradient(135deg, #1e3a8a 0%, #2563EB 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(37,99,235,0.35)',
-            }}>
-              <Typography sx={{ fontSize: 13, fontWeight: 900, color: 'white', letterSpacing: 0.5 }}>CN</Typography>
-            </Box>
-            <Typography variant="h5" sx={{
-              fontWeight: 900,
-              letterSpacing: 2.5,
-              background: 'linear-gradient(135deg, #1e3a8a 0%, #2563EB 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
-              CRISKA NEXUS & SOLUTIONS
-            </Typography>
+          <Box sx={{
+            width: 52, height: 52, borderRadius: '14px',
+            background: 'linear-gradient(135deg, #1e3a8a 0%, #2563EB 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 14px rgba(37,99,235,0.4)',
+            mx: 'auto', mb: 1.5,
+          }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 900, color: 'white', letterSpacing: 0.5 }}>CN</Typography>
           </Box>
+          <Typography sx={{
+            fontWeight: 900, fontSize: 18, letterSpacing: 2,
+            background: 'linear-gradient(135deg, #1e3a8a 0%, #2563EB 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            mb: 0.5,
+          }}>
+            CRISKA NEXUS & SOLUTIONS
+          </Typography>
           <Typography variant="caption" color="text.secondary" display="block">
             Project Management Portal
           </Typography>
