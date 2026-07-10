@@ -40,7 +40,7 @@ import SpeedIcon from '@mui/icons-material/Speed';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import SendIcon from '@mui/icons-material/Send';
-import { Story, Comment, initialStories, StoryStatus, StoryPriority } from '../data/mockData';
+import { Story, Comment, initialStories, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories, apiCreateStory, apiUpdateStory, apiGetComments, apiCreateComment } from '../api/api';
 import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
@@ -55,14 +55,6 @@ const statusOptions: { value: StoryStatus; label: string; color: 'default' | 'pr
   { value: 'on_hold',        label: 'On Hold',          color: 'secondary' },
 ];
 
-const priorityConfig: Record<StoryPriority, { label: string; color: 'error' | 'warning' | 'info' | 'default' }> = {
-  critical: { label: 'Critical', color: 'error' },
-  high:     { label: 'High',     color: 'warning' },
-  medium:   { label: 'Medium',   color: 'info' },
-  low:      { label: 'Low',      color: 'default' },
-};
-
-const priorityOrder: StoryPriority[] = ['critical', 'high', 'medium', 'low'];
 
 const statusColor = (s: StoryStatus) => statusOptions.find((o) => o.value === s)?.color ?? 'default';
 const statusLabel = (s: StoryStatus) => statusOptions.find((o) => o.value === s)?.label ?? s;
@@ -92,7 +84,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 const emptyForm = (teamId = '', sprintId = ''): Omit<Story, 'id'> => ({
   storyNumber: '', title: '', description: '', points: 3,
-  status: 'backlog', priority: 'medium',
+  status: 'backlog',
   reporter: '', assignee: '',
   createdDate: today(), dueDate: '', startedDate: '', completedDate: '',
   teamId, sprintId,
@@ -174,9 +166,6 @@ function KanbanBoard({
                     opacity: draggingId === story.id ? 0.45 : 1,
                     '&:hover': { boxShadow: 3 },
                     transition: 'box-shadow 0.15s, opacity 0.15s',
-                    borderLeft: story.priority
-                      ? `3px solid ${story.priority === 'critical' ? '#dc2626' : story.priority === 'high' ? '#d97706' : story.priority === 'medium' ? '#2563EB' : '#94a3b8'}`
-                      : undefined,
                   }}
                 >
                   <Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber}</Typography>
@@ -340,7 +329,6 @@ export default function StoriesPage() {
 
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterAssignee, setFilterAssignee] = useState('all');
-  const [filterPriority, setFilterPriority] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Story | null>(null);
   const [form, setForm] = useState<Omit<Story, 'id'>>(emptyForm());
@@ -395,9 +383,8 @@ export default function StoriesPage() {
     () => baseFiltered
       .filter((s) => filterStatus === 'all' || s.status === filterStatus)
       .filter((s) => filterAssignee === 'all' || s.assignee === filterAssignee)
-      .filter((s) => filterPriority === 'all' || (s.priority ?? 'medium') === filterPriority)
       .sort((a, b) => (b.createdDate ?? '').localeCompare(a.createdDate ?? '')),
-    [baseFiltered, filterStatus, filterAssignee, filterPriority]
+    [baseFiltered, filterStatus, filterAssignee]
   );
 
   const paginated = useMemo(
@@ -406,7 +393,7 @@ export default function StoriesPage() {
   );
 
   // Reset to page 0 when filters change
-  useEffect(() => { setPage(0); }, [filterStatus, filterAssignee, filterPriority, selectedTeamId, selectedSprintId, viewBy, selectedMonth]);
+  useEffect(() => { setPage(0); }, [filterStatus, filterAssignee, selectedTeamId, selectedSprintId, viewBy, selectedMonth]);
 
   const summary = useMemo(() => {
     const pts = (status: StoryStatus) => baseFiltered.filter((s) => s.status === status).reduce((sum, s) => sum + s.points, 0);
@@ -609,13 +596,7 @@ export default function StoriesPage() {
                 {statusOptions.map((o) => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
               </Select>
             </FormControl>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>Priority</InputLabel>
-              <Select value={filterPriority} label="Priority" onChange={(e) => setFilterPriority(e.target.value)}>
-                <MenuItem value="all">All Priorities</MenuItem>
-                {priorityOrder.map((p) => <MenuItem key={p} value={p}>{priorityConfig[p].label}</MenuItem>)}
-              </Select>
-            </FormControl>
+
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Assignee</InputLabel>
               <Select value={filterAssignee} label="Assignee" onChange={(e) => setFilterAssignee(e.target.value)}>
@@ -651,7 +632,7 @@ export default function StoriesPage() {
             <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: 'action.hover' }}>
-                  {['Story No.', 'Title', 'Priority', 'Points', 'Status', 'Reporter', 'Assignee', 'Due Date', 'Started', 'Completed', 'Actions'].map((h) => (
+                  {['Story No.', 'Title', 'Points', 'Status', 'Reporter', 'Assignee', 'Due Date', 'Started', 'Completed', 'Actions'].map((h) => (
                     <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>{h}</TableCell>
                   ))}
                 </TableRow>
@@ -659,13 +640,12 @@ export default function StoriesPage() {
               <TableBody>
                 {paginated.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={11} sx={{ textAlign: 'center', py: 4 }}>
+                    <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4 }}>
                       <Typography color="text.secondary">No stories found</Typography>
                     </TableCell>
                   </TableRow>
                 )}
                 {paginated.map((story) => {
-                  const pri = story.priority ?? 'medium';
                   return (
                     <TableRow key={story.id} hover>
                       <TableCell>
@@ -678,10 +658,6 @@ export default function StoriesPage() {
                           onClick={() => setViewStory(story)}>
                           {story.title}
                         </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={priorityConfig[pri].label} size="small" color={priorityConfig[pri].color}
-                          variant="outlined" sx={{ fontSize: 11 }} />
                       </TableCell>
                       <TableCell><Chip label={story.points} size="small" color="primary" variant="outlined" /></TableCell>
                       <TableCell><Chip label={statusLabel(story.status)} size="small" color={statusColor(story.status)} /></TableCell>
@@ -775,13 +751,7 @@ export default function StoriesPage() {
                   {statusOptions.map((o) => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
                 </Select>
               </FormControl>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Priority</InputLabel>
-                <Select value={form.priority ?? 'medium'} label="Priority"
-                  onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as StoryPriority }))}>
-                  {priorityOrder.map((p) => <MenuItem key={p} value={p}>{priorityConfig[p].label}</MenuItem>)}
-                </Select>
-              </FormControl>
+
             </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <FormControl size="small" fullWidth required>
@@ -850,7 +820,6 @@ export default function StoriesPage() {
         const team = teams.find((t) => t.id === vs.teamId);
         const td = new Date().toISOString().slice(0, 10);
         const overdue = vs.dueDate && vs.dueDate < td && !vs.completedDate;
-        const pri = vs.priority ?? 'medium';
         return (
           <Dialog open={!!viewStory} onClose={() => setViewStory(null)} maxWidth="sm" fullWidth>
             <DialogTitle>
@@ -859,10 +828,7 @@ export default function StoriesPage() {
                   {vs.storyNumber && <Typography variant="caption" color="primary" fontWeight={700} display="block">{vs.storyNumber}</Typography>}
                   <Typography variant="h6" fontWeight={700}>{vs.title}</Typography>
                 </Box>
-                <Stack direction="row" spacing={0.75}>
-                  <Chip label={priorityConfig[pri].label} size="small" color={priorityConfig[pri].color} variant="outlined" />
-                  <Chip label={statusLabel(vs.status)} size="small" color={statusColor(vs.status)} />
-                </Stack>
+                <Chip label={statusLabel(vs.status)} size="small" color={statusColor(vs.status)} />
               </Stack>
             </DialogTitle>
             <DialogContent>
