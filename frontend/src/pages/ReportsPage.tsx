@@ -89,23 +89,22 @@ export default function ReportsPage() {
   const onHoldPoints = filtered.filter((s) => s.status === 'on_hold').reduce((sum, s) => sum + s.points, 0);
   const inProgressPoints = filtered.filter((s) => s.status === 'in_progress').reduce((sum, s) => sum + s.points, 0);
 
-  const byAssignee = useMemo(
-    () =>
-      developers
-        .map((dev) => {
-          const devStories = filtered.filter((s) => s.assignee === dev);
-          return {
-            dev,
-            count: devStories.length,
-            total: devStories.reduce((sum, s) => sum + s.points, 0),
-            done: devStories.filter((s) => s.status === 'done').reduce((sum, s) => sum + s.points, 0),
-            onHold: devStories.filter((s) => s.status === 'on_hold').reduce((sum, s) => sum + s.points, 0),
-            inProgress: devStories.filter((s) => s.status === 'in_progress').reduce((sum, s) => sum + s.points, 0),
-          };
-        })
-        .filter((r) => r.count > 0),
-    [filtered]
-  );
+  const byAssignee = useMemo(() => {
+    const uniqueAssignees = Array.from(
+      new Set(filtered.map((s) => s.assignee).filter(Boolean))
+    ).sort();
+    return uniqueAssignees.map((dev) => {
+      const devStories = filtered.filter((s) => s.assignee === dev);
+      return {
+        dev,
+        count: devStories.length,
+        total: devStories.reduce((sum, s) => sum + s.points, 0),
+        done: devStories.filter((s) => s.status === 'done').reduce((sum, s) => sum + s.points, 0),
+        onHold: devStories.filter((s) => s.status === 'on_hold').reduce((sum, s) => sum + s.points, 0),
+        inProgress: devStories.filter((s) => s.status === 'in_progress').reduce((sum, s) => sum + s.points, 0),
+      };
+    });
+  }, [filtered]);
 
   const handleExportXLS = () => {
     const columns = [
