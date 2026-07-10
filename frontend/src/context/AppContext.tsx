@@ -65,7 +65,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (cancelled) return;
           setTeams(t);
           setSprints(s);
-          setDeveloperProfiles(d);
+          setDeveloperProfiles([...d].sort((a, b) => a.name.localeCompare(b.name)));
           setBackendOnline(true);
           setBackendChecked(true);
           setBackendWaking(false);
@@ -162,9 +162,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addDeveloper = async (dev: DeveloperProfile) => {
     if (backendOnline) {
       const created = await apiCreateDeveloper(dev);
-      setDeveloperProfiles((prev) => [...prev, created]);
+      setDeveloperProfiles((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
     } else {
-      setDeveloperProfiles((prev) => [...prev, dev]);
+      setDeveloperProfiles((prev) => [...prev, dev].sort((a, b) => a.name.localeCompare(b.name)));
     }
   };
 
