@@ -372,6 +372,7 @@ export default function LeavePage() {
                 <MenuItem value="casual">Casual Leave (CL)</MenuItem>
                 <MenuItem value="sick">Sick Leave (SL)</MenuItem>
                 <MenuItem value="annual">Annual / Privilege Leave (PL)</MenuItem>
+                <MenuItem value="lop">Loss of Pay (LOP)</MenuItem>
               </Select>
             </FormControl>
             <Stack direction="row" spacing={2}>
