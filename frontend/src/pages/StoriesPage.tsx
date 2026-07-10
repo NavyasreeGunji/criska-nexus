@@ -43,6 +43,7 @@ import SendIcon from '@mui/icons-material/Send';
 import { Story, Comment, initialStories, StoryStatus, StoryPriority } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories, apiCreateStory, apiUpdateStory, apiGetComments, apiCreateComment } from '../api/api';
+import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
 
 const statusOptions: { value: StoryStatus; label: string; color: 'default' | 'primary' | 'warning' | 'success' | 'secondary' }[] = [
   { value: 'backlog',         label: 'Backlog',          color: 'default' },
@@ -718,22 +719,15 @@ export default function StoriesPage() {
             </Table>
           </TableContainer>
           <TablePagination
-            rowsPerPageOptions={[10, 20, 50]}
+            rowsPerPageOptions={[5, 10, 20, 50]}
             component="div"
             count={filtered.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={(_, newPage) => setPage(newPage)}
             onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
-            sx={{
-              '.MuiTablePagination-toolbar': { justifyContent: 'center', minHeight: 52 },
-              '.MuiTablePagination-spacer': { display: 'none' },
-              '.MuiTablePagination-actions': {
-                ml: 2,
-                '& button': { p: '10px' },
-                '& .MuiSvgIcon-root': { fontSize: '1.6rem' },
-              },
-            }}
+            ActionsComponent={TablePaginationActions}
+            sx={paginationSx}
           />
           </Paper>
         </>

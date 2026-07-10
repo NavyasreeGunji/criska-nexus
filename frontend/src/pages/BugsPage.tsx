@@ -36,6 +36,7 @@ import Alert from '@mui/material/Alert';
 import { Bug, Comment, bugs as initialBugs, BugSeverity, BugStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetBugs, apiCreateBug, apiUpdateBug, apiGetComments, apiCreateComment } from '../api/api';
+import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
 
 const severityConfig: Record<BugSeverity, { color: 'error' | 'warning' | 'default'; label: string }> = {
   critical: { color: 'error',   label: 'Critical' },
@@ -310,22 +311,15 @@ export default function BugsPage() {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[10, 20, 50]}
+        rowsPerPageOptions={[5, 10, 20, 50]}
         component="div"
         count={filtered.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={(_, newPage) => setPage(newPage)}
         onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
-        sx={{
-          '.MuiTablePagination-toolbar': { justifyContent: 'center', minHeight: 52 },
-          '.MuiTablePagination-spacer': { display: 'none' },
-          '.MuiTablePagination-actions': {
-            ml: 2,
-            '& button': { p: '10px' },
-            '& .MuiSvgIcon-root': { fontSize: '1.6rem' },
-          },
-        }}
+        ActionsComponent={TablePaginationActions}
+        sx={paginationSx}
       />
       </Paper>
 

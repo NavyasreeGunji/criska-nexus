@@ -21,6 +21,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CelebrationIcon from '@mui/icons-material/Celebration';
 import { dailyLogs, developers } from '../data/mockData';
+import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -267,22 +268,15 @@ export default function TimesheetPage() {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[10, 20, 50]}
+        rowsPerPageOptions={[5, 10, 20, 50]}
         component="div"
         count={developers.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={(_, newPage) => setPage(newPage)}
         onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
-        sx={{
-          '.MuiTablePagination-toolbar': { justifyContent: 'center', minHeight: 52 },
-          '.MuiTablePagination-spacer': { display: 'none' },
-          '.MuiTablePagination-actions': {
-            ml: 2,
-            '& button': { p: '10px' },
-            '& .MuiSvgIcon-root': { fontSize: '1.6rem' },
-          },
-        }}
+        ActionsComponent={TablePaginationActions}
+        sx={paginationSx}
       />
       </Paper>
 

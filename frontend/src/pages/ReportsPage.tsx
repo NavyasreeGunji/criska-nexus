@@ -25,6 +25,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { Story, initialStories, developers, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories } from '../api/api';
+import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
 
 const fmtDate = (d?: string | null) => {
   if (!d) return '—';
@@ -338,22 +339,15 @@ export default function ReportsPage() {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[10, 20, 50]}
+        rowsPerPageOptions={[5, 10, 20, 50]}
         component="div"
         count={filtered.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={(_, newPage) => setPage(newPage)}
         onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
-        sx={{
-          '.MuiTablePagination-toolbar': { justifyContent: 'center', minHeight: 52 },
-          '.MuiTablePagination-spacer': { display: 'none' },
-          '.MuiTablePagination-actions': {
-            ml: 2,
-            '& button': { p: '10px' },
-            '& .MuiSvgIcon-root': { fontSize: '1.6rem' },
-          },
-        }}
+        ActionsComponent={TablePaginationActions}
+        sx={paginationSx}
       />
       </Paper>
 
