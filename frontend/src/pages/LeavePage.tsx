@@ -453,11 +453,6 @@ export default function LeavePage() {
                 <Box><Typography variant="caption" color="text.secondary">Comments</Typography>
                   <Typography variant="body2">{actionLeave.approverComments}</Typography></Box>
               )}
-              {actionType === 'approve' && (
-                <Alert severity="warning" sx={{ fontSize: 12 }}>
-                  If the employee's leave balance is insufficient, the excess days will be marked as <strong>Loss of Pay</strong>.
-                </Alert>
-              )}
             </Stack>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>
