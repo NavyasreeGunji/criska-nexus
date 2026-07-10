@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import * as XLSX from 'xlsx';
+import { exportExcel } from '../utils/exportExcel';
 import { useLocation } from 'react-router-dom';
 import {
   Box,
@@ -143,17 +143,21 @@ export default function DailyLogPage() {
   };
 
   const handleExportXLS = () => {
+    const columns = [
+      { key: 'developer',   label: 'Developer',    width: 24 },
+      { key: 'date',        label: 'Date',          width: 14, align: 'center' as const },
+      { key: 'task',        label: 'Task / Story',  width: 38 },
+      { key: 'description', label: 'Description',   width: 50 },
+      { key: 'hours',       label: 'Hours',         width: 8,  align: 'center' as const, numFmt: '0.0' },
+    ];
     const rows = filtered.map((l) => ({
-      'Developer': l.developer,
-      'Date': fmtDate(l.date),
-      'Task / Story': l.title,
-      'Description': l.description,
-      'Hours': l.hours,
+      developer:   l.developer,
+      date:        fmtDate(l.date),
+      task:        l.title,
+      description: l.description,
+      hours:       l.hours,
     }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Daily Log');
-    XLSX.writeFile(wb, `daily-log-${today}.xlsx`);
+    exportExcel(columns, rows, 'Daily Log', `daily-log-${today}.xlsx`);
   };
 
   const openEdit = (log: DailyLog) => {

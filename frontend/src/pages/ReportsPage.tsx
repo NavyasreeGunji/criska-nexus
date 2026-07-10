@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import * as XLSX from 'xlsx';
+import { exportExcel } from '../utils/exportExcel';
 import {
   Box,
   Paper,
@@ -108,23 +108,33 @@ export default function ReportsPage() {
   );
 
   const handleExportXLS = () => {
+    const columns = [
+      { key: 'storyNo',   label: 'Story No.',  width: 12, align: 'center' as const },
+      { key: 'title',     label: 'Title',       width: 45 },
+      { key: 'points',    label: 'Points',      width: 8,  align: 'center' as const, numFmt: '0' },
+      { key: 'status',    label: 'Status',      width: 16, align: 'center' as const },
+      { key: 'reporter',  label: 'Reporter',    width: 22 },
+      { key: 'assignee',  label: 'Assignee',    width: 22 },
+      { key: 'team',      label: 'Team',        width: 18 },
+      { key: 'sprint',    label: 'Sprint',      width: 18 },
+      { key: 'dueDate',   label: 'Due Date',    width: 13, align: 'center' as const },
+      { key: 'started',   label: 'Started',     width: 13, align: 'center' as const },
+      { key: 'completed', label: 'Completed',   width: 13, align: 'center' as const },
+    ];
     const rows = filtered.map((s) => ({
-      'Story No.': s.storyNumber || '',
-      'Title': s.title,
-      'Points': s.points,
-      'Status': statusConfig[s.status].label,
-      'Reporter': s.reporter,
-      'Assignee': s.assignee,
-      'Team': teams.find((t) => t.id === s.teamId)?.name ?? '',
-      'Sprint': sprints.find((sp) => sp.id === s.sprintId)?.name ?? '',
-      'Due Date': fmtDate(s.dueDate),
-      'Started': fmtDate(s.startedDate),
-      'Completed': fmtDate(s.completedDate),
+      storyNo:   s.storyNumber || '',
+      title:     s.title,
+      points:    s.points ?? '',
+      status:    statusConfig[s.status].label,
+      reporter:  s.reporter,
+      assignee:  s.assignee,
+      team:      teams.find((t) => t.id === s.teamId)?.name ?? '',
+      sprint:    sprints.find((sp) => sp.id === s.sprintId)?.name ?? '',
+      dueDate:   fmtDate(s.dueDate),
+      started:   fmtDate(s.startedDate),
+      completed: fmtDate(s.completedDate),
     }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Stories');
-    XLSX.writeFile(wb, `story-report-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    exportExcel(columns, rows, 'Stories', `story-report-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
