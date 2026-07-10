@@ -93,6 +93,7 @@ export default function LeavePage() {
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'view'>('view');
   const [actionComments, setActionComments] = useState('');
   const [actioning, setActioning] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   const workingDays = countWorkingDays(applyForm.fromDate, applyForm.toDate);
 
@@ -140,12 +141,16 @@ export default function LeavePage() {
   const handleAction = async () => {
     if (!actionLeave) return;
     setActioning(true);
+    setActionError('');
     try {
       if (actionType === 'approve') await apiApproveLeave(actionLeave.id, currentUser!.name, actionComments);
       else if (actionType === 'reject') await apiRejectLeave(actionLeave.id, currentUser!.name, actionComments);
       setActionLeave(null);
       setActionComments('');
-      reload();
+      setActionError('');
+      await reload();
+    } catch (e: any) {
+      setActionError(e.message ?? 'Operation failed. Please try again.');
     } finally { setActioning(false); }
   };
 
@@ -270,13 +275,13 @@ export default function LeavePage() {
                             <>
                               <Tooltip title="Approve">
                                 <IconButton size="small" color="success"
-                                  onClick={() => { setActionLeave(leave); setActionType('approve'); setActionComments(''); }}>
+                                  onClick={() => { setActionLeave(leave); setActionType('approve'); setActionComments(''); setActionError(''); }}>
                                   <CheckCircleIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Reject">
                                 <IconButton size="small" color="error"
-                                  onClick={() => { setActionLeave(leave); setActionType('reject'); setActionComments(''); }}>
+                                  onClick={() => { setActionLeave(leave); setActionType('reject'); setActionComments(''); setActionError(''); }}>
                                   <CancelIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
@@ -408,12 +413,13 @@ export default function LeavePage() {
 
       {/* View / Approve / Reject Dialog */}
       {actionLeave && (
-        <Dialog open onClose={() => setActionLeave(null)} maxWidth="sm" fullWidth>
+        <Dialog open onClose={() => { setActionLeave(null); setActionError(''); }} maxWidth="sm" fullWidth>
           <DialogTitle fontWeight={700}>
             {actionType === 'view' ? 'Leave Details' : actionType === 'approve' ? 'Approve Leave' : 'Reject Leave'}
           </DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
+              {actionError && <Alert severity="error">{actionError}</Alert>}
               <Stack direction="row" spacing={2} flexWrap="wrap">
                 <Box><Typography variant="caption" color="text.secondary">Employee</Typography>
                   <Typography variant="body2" fontWeight={600}>{actionLeave.employeeName}</Typography></Box>
@@ -448,7 +454,7 @@ export default function LeavePage() {
             </Stack>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={() => setActionLeave(null)}>Close</Button>
+            <Button onClick={() => { setActionLeave(null); setActionError(''); }}>Close</Button>
             {actionType === 'approve' && (
               <Button variant="contained" color="success" onClick={handleAction} disabled={actioning}>
                 {actioning ? 'Approving…' : 'Approve'}
