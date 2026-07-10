@@ -63,7 +63,7 @@ export default function ReportsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const teamSprints = useMemo(
     () => sprints.filter((s) => filterTeamId === 'all' || s.teamId === filterTeamId),

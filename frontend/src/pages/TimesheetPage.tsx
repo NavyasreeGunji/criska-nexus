@@ -72,7 +72,7 @@ export default function TimesheetPage() {
   const weekDays = getWeekDays(weekMonday);
 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const prevWeek = () => setWeekMonday((m) => addDays(m, -7));
   const nextWeek = () => setWeekMonday((m) => addDays(m, 7));

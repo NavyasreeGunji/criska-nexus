@@ -231,9 +231,9 @@ function DrawerContent({ isOpen, onNavigate }: { isOpen: boolean; onNavigate: ()
         {isOpen && (
           <Box sx={{ display: 'flex', flexShrink: 0 }}>
             <Tooltip title="Change password" placement="top">
-              <IconButton size="small" onClick={() => setPwOpen(true)}
-                sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white' } }}>
-                <LockResetIcon fontSize="small" />
+              <IconButton onClick={() => setPwOpen(true)}
+                sx={{ color: 'rgba(255,255,255,0.55)', '&:hover': { color: 'white' } }}>
+                <LockResetIcon sx={{ fontSize: '1.4rem' }} />
               </IconButton>
             </Tooltip>
             <Tooltip title="Sign out" placement="top">

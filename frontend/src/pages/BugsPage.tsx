@@ -173,7 +173,7 @@ export default function BugsPage() {
 
   // Pagination
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const filtered = bugs
     .filter((b) => filterStatus === 'all' || b.status === filterStatus)

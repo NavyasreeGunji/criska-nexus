@@ -38,7 +38,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SpeedIcon from '@mui/icons-material/Speed';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import SendIcon from '@mui/icons-material/Send';
 import { Story, Comment, initialStories, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
@@ -94,111 +93,7 @@ const PRIVILEGED_ROLES = ['Admin', 'Manager', 'Associate Manager', 'Delivery Man
 
 // ─── Kanban board ─────────────────────────────────────────────────────────────
 
-const KANBAN_COLUMNS: { status: StoryStatus; label: string; color: string }[] = [
-  { status: 'backlog',         label: 'Backlog',     color: '#94a3b8' },
-  { status: 'to_do',          label: 'To Do',       color: '#64748b' },
-  { status: 'in_progress',    label: 'In Progress', color: '#2563EB' },
-  { status: 'in_review',      label: 'In Review',   color: '#d97706' },
-  { status: 'for_qe_testing', label: 'QA Testing',  color: '#7C3AED' },
-  { status: 'done',           label: 'Done',        color: '#16a34a' },
-  { status: 'on_hold',        label: 'On Hold',     color: '#ea580c' },
-];
 
-function KanbanBoard({
-  stories,
-  onStatusChange,
-  canEdit,
-  onView,
-}: {
-  stories: Story[];
-  onStatusChange: (story: Story, newStatus: StoryStatus) => void;
-  canEdit: (s: Story) => boolean;
-  onView: (s: Story) => void;
-}) {
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [overColumn, setOverColumn] = useState<StoryStatus | null>(null);
-  const draggingStory = stories.find((s) => s.id === draggingId);
-
-  return (
-    <Box sx={{ display: 'flex', gap: 1.5, overflowX: 'auto', pb: 2, pt: 0.5, minHeight: 420 }}>
-      {KANBAN_COLUMNS.map((col) => {
-        const colStories = stories.filter((s) => s.status === col.status);
-        const isOver = overColumn === col.status;
-        return (
-          <Box
-            key={col.status}
-            sx={{ minWidth: 200, flex: '0 0 200px' }}
-            onDragOver={(e) => { e.preventDefault(); setOverColumn(col.status); }}
-            onDragLeave={() => setOverColumn(null)}
-            onDrop={() => {
-              if (draggingStory && draggingStory.status !== col.status && canEdit(draggingStory)) {
-                onStatusChange(draggingStory, col.status);
-              }
-              setDraggingId(null);
-              setOverColumn(null);
-            }}
-          >
-            <Box sx={{
-              px: 1.5, py: 1, mb: 1.5, borderRadius: 2,
-              bgcolor: isOver ? col.color + '22' : col.color + '14',
-              borderTop: `3px solid ${col.color}`,
-              transition: 'background 0.15s',
-            }}>
-              <Typography variant="caption" fontWeight={700} sx={{ color: col.color }}>
-                {col.label}
-              </Typography>
-              <Typography variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
-                {colStories.length}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {colStories.map((story) => (
-                <Paper
-                  key={story.id}
-                  elevation={draggingId === story.id ? 6 : 1}
-                  draggable={canEdit(story)}
-                  onDragStart={() => setDraggingId(story.id)}
-                  onDragEnd={() => { setDraggingId(null); setOverColumn(null); }}
-                  sx={{
-                    p: 1.5,
-                    cursor: canEdit(story) ? 'grab' : 'default',
-                    opacity: draggingId === story.id ? 0.45 : 1,
-                    '&:hover': { boxShadow: 3 },
-                    transition: 'box-shadow 0.15s, opacity 0.15s',
-                  }}
-                >
-                  <Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber}</Typography>
-                  <Typography
-                    variant="body2" fontWeight={500}
-                    sx={{ mb: 1, mt: 0.25, lineHeight: 1.4, cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
-                    onClick={() => onView(story)}
-                  >
-                    {story.title}
-                  </Typography>
-                  <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap">
-                    <Chip label={story.points + ' pts'} size="small" color="primary" variant="outlined"
-                      sx={{ height: 18, fontSize: 10, '& .MuiChip-label': { px: 0.75 } }} />
-                    <Box sx={{ flexGrow: 1 }} />
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10 }}>
-                      {story.assignee.split(' ')[0]}
-                    </Typography>
-                  </Stack>
-                </Paper>
-              ))}
-              {isOver && draggingStory && draggingStory.status !== col.status && (
-                <Box sx={{
-                  height: 60, border: `2px dashed ${col.color}`,
-                  borderRadius: 2, opacity: 0.5,
-                }} />
-              )}
-            </Box>
-          </Box>
-        );
-      })}
-    </Box>
-  );
-}
 
 // ─── Comments section ─────────────────────────────────────────────────────────
 
@@ -313,7 +208,7 @@ export default function StoriesPage() {
     }
   }, [backendChecked, backendOnline]);
 
-  const [viewBy, setViewBy] = useState<'sprint' | 'kanban' | 'month'>('sprint');
+  const [viewBy, setViewBy] = useState<'sprint' | 'month'>('sprint');
 
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [selectedSprintId, setSelectedSprintId] = useState('');
@@ -338,7 +233,7 @@ export default function StoriesPage() {
 
   // Pagination
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const teamSprints = useMemo(
     () => selectedTeamId === 'all'
@@ -369,15 +264,13 @@ export default function StoriesPage() {
     return months;
   }, []);
 
-  const effectiveViewBy = viewBy === 'kanban' ? 'sprint' : viewBy;
-
   const baseFiltered = useMemo(() => {
-    if (effectiveViewBy === 'sprint') {
+    if (viewBy === 'sprint') {
       if (selectedTeamId === 'all') return stories;
       return stories.filter((s) => s.teamId === selectedTeamId && s.sprintId === resolvedSprintId);
     }
     return stories.filter((s) => getMonthKey(s.createdDate) === selectedMonth);
-  }, [stories, effectiveViewBy, selectedTeamId, resolvedSprintId, selectedMonth]);
+  }, [stories, viewBy, selectedTeamId, resolvedSprintId, selectedMonth]);
 
   const filtered = useMemo(
     () => baseFiltered
@@ -457,23 +350,12 @@ export default function StoriesPage() {
     }
   };
 
-  const handleKanbanStatusChange = async (story: Story, newStatus: StoryStatus) => {
-    const updated = { ...story, status: newStatus };
-    setStories((prev) => prev.map((s) => (s.id === story.id ? updated : s)));
-    if (backendOnline) {
-      try {
-        await apiUpdateStory(story.id, updated);
-      } catch {
-        setStories((prev) => prev.map((s) => (s.id === story.id ? story : s)));
-      }
-    }
-  };
 
-  const viewLabel = effectiveViewBy === 'sprint'
+  const viewLabel = viewBy === 'sprint'
     ? `${selectedTeam?.name ?? ''} · ${selectedSprint?.name ?? ''}`
     : formatMonth(selectedMonth);
 
-  const isSprintLike = viewBy === 'sprint' || viewBy === 'kanban';
+  const isSprintLike = viewBy === 'sprint';
 
   return (
     <Box>
@@ -482,9 +364,6 @@ export default function StoriesPage() {
         <ToggleButtonGroup value={viewBy} exclusive onChange={(_, v) => v && setViewBy(v)} size="small">
           <ToggleButton value="sprint" sx={{ gap: 0.75, px: 2 }}>
             <SpeedIcon fontSize="small" /> Sprint
-          </ToggleButton>
-          <ToggleButton value="kanban" sx={{ gap: 0.75, px: 2 }}>
-            <ViewKanbanIcon fontSize="small" /> Kanban
           </ToggleButton>
           <ToggleButton value="month" sx={{ gap: 0.75, px: 2 }}>
             <CalendarMonthIcon fontSize="small" /> Monthly
@@ -587,7 +466,7 @@ export default function StoriesPage() {
             </Select>
           </FormControl>
         )}
-        {selectedSprint?.status !== 'completed' && viewBy !== 'kanban' && (
+        {selectedSprint?.status !== 'completed' && (
           <>
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Status</InputLabel>
@@ -611,23 +490,7 @@ export default function StoriesPage() {
         )}
       </Stack>
 
-      {/* Kanban board */}
-      {viewBy === 'kanban' && selectedTeamId !== 'all' && (
-        <KanbanBoard
-          stories={baseFiltered}
-          onStatusChange={handleKanbanStatusChange}
-          canEdit={canEditStory}
-          onView={setViewStory}
-        />
-      )}
-      {viewBy === 'kanban' && selectedTeamId === 'all' && (
-        <Alert severity="info">Select a team to view the Kanban board.</Alert>
-      )}
-
-      {/* Table view */}
-      {viewBy !== 'kanban' && (
-        <>
-          <Paper>
+      <Paper>
           <TableContainer>
             <Table size="small">
               <TableHead>
@@ -707,9 +570,7 @@ export default function StoriesPage() {
               sx={paginationSx}
             />
           )}
-          </Paper>
-        </>
-      )}
+      </Paper>
 
       {/* Add/Edit dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
