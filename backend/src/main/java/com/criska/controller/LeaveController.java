@@ -20,7 +20,7 @@ public class LeaveController {
     private static final double CASUAL_TOTAL  = 6.0;
     private static final double SICK_TOTAL    = 6.0;
     private static final double ANNUAL_TOTAL  = 15.0;
-    private static final double MAX_CARRY_FWD = 5.0;
+    // No cap on PL carry forward — all unused annual leave rolls over
 
     private final LeaveRequestRepository requestRepo;
     private final LeaveBalanceRepository balanceRepo;
@@ -173,7 +173,7 @@ public class LeaveController {
             if (prev != null) {
                 double totalPrev = prev.getAnnualTotal() + (prev.getCarryForward() != null ? prev.getCarryForward() : 0);
                 double unused = totalPrev - prev.getAnnualUsed();
-                carryFwd = Math.min(Math.max(unused, 0), MAX_CARRY_FWD);
+                carryFwd = Math.max(unused, 0);
             }
             LeaveBalance b = new LeaveBalance();
             b.setEmployeeName(name);
