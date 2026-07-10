@@ -1,6 +1,7 @@
 package com.criska.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
@@ -37,6 +38,11 @@ public class Story {
     @Column(name = "issue_created_date")
     private LocalDate createdDate;
 
+    // Fallback audit timestamp — maps to the column left from when Story extended BaseAudit.
+    // Set on creation so past stories with null issue_created_date can be matched by date.
+    @Column(name = "created_date")
+    private Instant createdAt;
+
     private LocalDate dueDate;
     private LocalDate startedDate;
     private LocalDate completedDate;
@@ -69,6 +75,8 @@ public class Story {
     public void setSpilledFromSprintId(Long spilledFromSprintId) { this.spilledFromSprintId = spilledFromSprintId; }
     public LocalDate getCreatedDate() { return createdDate; }
     public void setCreatedDate(LocalDate createdDate) { this.createdDate = createdDate; }
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
     public LocalDate getStartedDate() { return startedDate; }

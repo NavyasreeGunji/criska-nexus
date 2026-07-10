@@ -341,6 +341,8 @@ export const apiUpdateSprint = (id: string, s: Omit<Sprint, 'id'>) =>
 // ─── Stories ─────────────────────────────────────────────────────────────────
 
 export const apiGetStories = () => req<any[]>('/stories').then(list => list.map(mapStory));
+export const apiGetStoriesCreatedOn = (date: string) =>
+  req<any[]>(`/stories/created-on/${date}`).then(list => list.map(mapStory));
 export const apiCreateStory = (s: Omit<Story, 'id'>) =>
   req<any>('/stories', { method: 'POST', body: JSON.stringify(unmapStory(s)) }).then(mapStory);
 export const apiUpdateStory = (id: string, s: Omit<Story, 'id'>) =>

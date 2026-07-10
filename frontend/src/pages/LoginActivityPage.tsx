@@ -18,7 +18,7 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import { useApp } from '../context/AppContext';
 import {
   apiGetLoginEvents, LoginEvent, apiGetStatusSubmittedOn,
-  apiGetStories, apiGetBugs, apiGetDeployments,
+  apiGetStoriesCreatedOn, apiGetBugs, apiGetDeployments,
 } from '../api/api';
 
 const today = new Date().toISOString().slice(0, 10);
@@ -69,7 +69,7 @@ export default function LoginActivityPage() {
     Promise.all([
       apiGetLoginEvents(selectedDate).catch(() => [] as any[]),
       apiGetStatusSubmittedOn(selectedDate).catch(() => [] as any[]),
-      apiGetStories().catch(() => [] as any[]),
+      apiGetStoriesCreatedOn(selectedDate).catch(() => [] as any[]),
       apiGetBugs().catch(() => [] as any[]),
       apiGetDeployments().catch(() => [] as any[]),
     ])
@@ -88,12 +88,12 @@ export default function LoginActivityPage() {
           if (resolved) inc(logMap, resolved);
         }
 
-        // Stories/bugs: filter by createdDate = selectedDate; attribute to createdBy,
-        // falling back to reporter for stories created before createdBy was tracked.
+        // Stories: backend returns only stories created on selectedDate (with Instant fallback).
+        // Attribute to createdBy, falling back to reporter for older stories.
         const storyMap = new Map<string, number>();
         for (const s of stories) {
           const resolved = resolveKnown(s.createdBy ?? '') ?? resolveKnown(s.reporter ?? '');
-          if (s.createdDate === selectedDate && resolved) inc(storyMap, resolved);
+          if (resolved) inc(storyMap, resolved);
         }
 
         const bugMap = new Map<string, number>();
