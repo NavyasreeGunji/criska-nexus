@@ -38,17 +38,17 @@ public class LeaveController {
     }
 
     @GetMapping("/my/{name}")
-    public List<LeaveRequest> myLeaves(@PathVariable String name) {
+    public List<LeaveRequest> myLeaves(@PathVariable("name") String name) {
         return requestRepo.findByEmployeeNameOrderByAppliedOnDesc(name);
     }
 
     @GetMapping("/balance/{name}/{year}")
-    public LeaveBalance balance(@PathVariable String name, @PathVariable Integer year) {
+    public LeaveBalance balance(@PathVariable("name") String name, @PathVariable("year") Integer year) {
         return getOrCreateBalance(name, year);
     }
 
     @GetMapping("/balances/{year}")
-    public List<LeaveBalance> allBalances(@PathVariable Integer year) {
+    public List<LeaveBalance> allBalances(@PathVariable("year") Integer year) {
         return balanceRepo.findByYear(year);
     }
 
@@ -69,7 +69,7 @@ public class LeaveController {
     // ── Approve ───────────────────────────────────────────────────────────────
 
     @PutMapping("/{id}/approve")
-    public ResponseEntity<?> approve(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> approve(@PathVariable("id") Long id, @RequestBody Map<String, String> body) {
         LeaveRequest req = requestRepo.findById(id).orElse(null);
         if (req == null) return ResponseEntity.notFound().build();
         if (!"pending".equals(req.getStatus())) return ResponseEntity.badRequest().body(Map.of("error", "Not pending"));
@@ -123,7 +123,7 @@ public class LeaveController {
     // ── Reject ────────────────────────────────────────────────────────────────
 
     @PutMapping("/{id}/reject")
-    public ResponseEntity<?> reject(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> reject(@PathVariable("id") Long id, @RequestBody Map<String, String> body) {
         LeaveRequest req = requestRepo.findById(id).orElse(null);
         if (req == null) return ResponseEntity.notFound().build();
         req.setStatus("rejected");
@@ -135,7 +135,7 @@ public class LeaveController {
     // ── Cancel (by employee) ──────────────────────────────────────────────────
 
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<?> cancel(@PathVariable Long id) {
+    public ResponseEntity<?> cancel(@PathVariable("id") Long id) {
         LeaveRequest req = requestRepo.findById(id).orElse(null);
         if (req == null) return ResponseEntity.notFound().build();
 
