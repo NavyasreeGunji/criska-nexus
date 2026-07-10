@@ -158,7 +158,7 @@ function DrawerContent({ isOpen, onNavigate }: { isOpen: boolean; onNavigate: ()
         </Box>
         {isOpen && (
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 900, color: 'white', letterSpacing: 2, lineHeight: 1, fontSize: 15, whiteSpace: 'nowrap' }}>
+            <Typography sx={{ fontWeight: 900, color: 'white', letterSpacing: 1, lineHeight: 1.2, fontSize: 11 }}>
               CRISKA NEXUS & SOLUTIONS
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap' }}>
