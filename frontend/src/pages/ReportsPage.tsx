@@ -326,15 +326,7 @@ export default function ReportsPage() {
                 </TableRow>
               );
             })}
-            <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              <TableCell colSpan={2}>
-                <Typography variant="body2" fontWeight={700}>Total ({filtered.length} stories)</Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" fontWeight={800} color="primary">{totalPoints} pts</Typography>
-              </TableCell>
-              <TableCell colSpan={7} />
-            </TableRow>
+
           </TableBody>
         </Table>
       </TableContainer>
