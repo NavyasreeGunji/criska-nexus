@@ -129,7 +129,7 @@ export default function TimesheetPage() {
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              <TableCell sx={{ fontWeight: 600, minWidth: 160, fontSize: 12, color: '#64748b' }}>
+              <TableCell sx={{ fontWeight: 700, minWidth: 160, fontSize: 14, color: '#64748b' }}>
                 Developer
               </TableCell>
               {weekDays.map((date, i) => {
@@ -139,7 +139,7 @@ export default function TimesheetPage() {
                     key={date}
                     align="center"
                     sx={{
-                      fontWeight: 600, minWidth: 70, fontSize: 12, color: '#64748b',
+                      fontWeight: 700, minWidth: 70, fontSize: 14, color: '#64748b',
                       bgcolor: holiday ? '#fef9c3' : undefined,
                     }}
                   >
@@ -159,7 +159,7 @@ export default function TimesheetPage() {
                   </TableCell>
                 );
               })}
-              <TableCell align="center" sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>
+              <TableCell align="center" sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>
                 Total
               </TableCell>
             </TableRow>

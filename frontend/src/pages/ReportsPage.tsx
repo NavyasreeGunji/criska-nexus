@@ -227,7 +227,7 @@ export default function ReportsPage() {
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
               {['Story No.', 'Title', 'Pts', 'Status', 'Reporter', 'Assignee', 'Sprint', 'Due Date', 'Started', 'Completed'].map((h) => (
-                <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>
+                <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', whiteSpace: 'nowrap' }}>
                   {h}
                 </TableCell>
               ))}
@@ -360,7 +360,7 @@ export default function ReportsPage() {
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
               {['Developer', 'Stories', 'Total Pts', 'Delivered', 'On Hold', 'In Progress', 'Delivery Rate'].map((h) => (
-                <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>
+                <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>
                   {h}
                 </TableCell>
               ))}

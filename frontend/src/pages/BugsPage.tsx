@@ -256,7 +256,7 @@ export default function BugsPage() {
           <TableHead>
             <TableRow sx={{ bgcolor: 'action.hover' }}>
               {['ID', 'Title', 'Severity', 'Status', 'Environment', 'Reporter', 'Assignee', 'Created', 'Resolved', 'Actions'].map((h) => (
-                <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary' }}>{h}</TableCell>
+                <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>{h}</TableCell>
               ))}
             </TableRow>
           </TableHead>

@@ -652,7 +652,7 @@ export default function StoriesPage() {
               <TableHead>
                 <TableRow sx={{ bgcolor: 'action.hover' }}>
                   {['Story No.', 'Title', 'Priority', 'Points', 'Status', 'Reporter', 'Assignee', 'Due Date', 'Started', 'Completed', 'Actions'].map((h) => (
-                    <TableCell key={h} sx={{ fontWeight: 600, fontSize: 12, color: 'text.secondary' }}>{h}</TableCell>
+                    <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
