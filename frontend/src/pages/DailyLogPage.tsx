@@ -283,8 +283,15 @@ export default function DailyLogPage() {
                     <Typography variant="body2" fontWeight={500}>{log.developer}</Typography>
                   </TableCell>
                 )}
-                <TableCell>
-                  <Typography variant="body2" fontWeight={600}>{log.title}</Typography>
+                <TableCell sx={{ maxWidth: 240 }}>
+                  <Typography variant="body2" fontWeight={600} sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}>
+                    {log.title}
+                  </Typography>
                 </TableCell>
                 <TableCell sx={{ maxWidth: 300 }}>
                   <Typography variant="body2" sx={{
