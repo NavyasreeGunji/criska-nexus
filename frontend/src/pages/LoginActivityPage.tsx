@@ -8,7 +8,6 @@ import {
   TextField,
   Divider,
   Chip,
-  Alert,
 } from '@mui/material';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -136,10 +135,6 @@ export default function LoginActivityPage() {
   }, [selectedDate, backendChecked, backendOnline]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isToday = selectedDate === today;
-  // Login events and story-creation tracking started July 10, 2026.
-  // Before that the backend was unavailable due to a startup issue, so no real-time events exist.
-  const TRACKING_START = '2026-07-10';
-  const isBeforeTracking = selectedDate < TRACKING_START;
 
   return (
     <Box>
@@ -180,13 +175,6 @@ export default function LoginActivityPage() {
         </Paper>
       ) : (
         <Stack spacing={2}>
-          {isBeforeTracking && (
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              Login event and story creation tracking started on <strong>July 10, 2026</strong>.
-              For earlier dates only timesheet entries (by work date) are available.
-            </Alert>
-          )}
-
           {loading && (
             <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>Loading…</Typography>
           )}
