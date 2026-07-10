@@ -128,6 +128,7 @@ export default function DailyLogPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [viewLog, setViewLog] = useState<DailyLog | null>(null);
   const [copied, setCopied] = useState(false);
+  const [holidayOpen, setHolidayOpen] = useState(false);
   const [form, setForm] = useState<Omit<DailyLog, 'id'>>({
     ...emptyForm(),
     developer: currentUser?.name ?? '',
@@ -225,44 +226,6 @@ export default function DailyLogPage() {
 
   return (
     <Box>
-      {/* JH Holiday Calendar */}
-      <Paper sx={{ overflow: 'hidden', mb: 3 }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 2, py: 1.5, bgcolor: '#f0fdf4', borderBottom: '1px solid #bbf7d0' }}>
-          <CelebrationIcon sx={{ color: '#ca8a04', fontSize: 18 }} />
-          <Typography variant="subtitle2" fontWeight={700}>JH Holiday Calendar 2026–2027</Typography>
-          <Typography variant="caption" color="text.secondary">(United States)</Typography>
-        </Stack>
-        <TableContainer>
-          <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
-            <TableHead>
-              <TableRow sx={{ bgcolor: '#f8fffe' }}>
-                <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#16a34a', width: '55%' }}>Holiday Name</TableCell>
-                <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#16a34a', width: '45%' }}>Observed Date</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {JH_HOLIDAYS.map((h, i) => {
-                const isPast = h.date < today;
-                const isUpcoming = !isPast && h.date <= new Date(new Date().getTime() + 30 * 86400000).toISOString().slice(0, 10);
-                return (
-                  <TableRow key={i} sx={{ opacity: isPast ? 0.45 : 1, bgcolor: isUpcoming ? '#fef9c3' : undefined }}>
-                    <TableCell>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Typography variant="body2" fontWeight={isUpcoming ? 700 : 500}>{h.name}</Typography>
-                        {isUpcoming && <Chip label="Upcoming" size="small" sx={{ bgcolor: '#fde047', color: '#78350f', fontWeight: 600, fontSize: 10 }} />}
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color={isPast ? 'text.disabled' : 'text.primary'}>{fmtHolidayDate(h.date)}</Typography>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-
       <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <InputLabel>Developer</InputLabel>
@@ -301,6 +264,14 @@ export default function DailyLogPage() {
           {filtered.length} entries · {totalHours}h total
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
+
+        <Tooltip title="JH Holiday Calendar">
+          <Button variant="outlined" size="small" startIcon={<CelebrationIcon />}
+            onClick={() => setHolidayOpen(true)}
+            sx={{ borderColor: '#ca8a04', color: '#92400e', '&:hover': { bgcolor: '#fef9c3', borderColor: '#ca8a04' } }}>
+            JH Holidays
+          </Button>
+        </Tooltip>
 
         <Tooltip title="Export Excel">
           <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleExportXLS}>
@@ -497,6 +468,46 @@ export default function DailyLogPage() {
 
       <Snackbar open={copied} autoHideDuration={2000} onClose={() => setCopied(false)}
         message="Copied to clipboard" anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
+
+      <Dialog open={holidayOpen} onClose={() => setHolidayOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
+          <CelebrationIcon sx={{ color: '#ca8a04' }} />
+          JH Holiday Calendar 2026–2027
+          <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>(United States)</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: '#f0fdf4' }}>
+                <TableCell sx={{ fontWeight: 700, color: '#16a34a', pl: 3 }}>Holiday Name</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: '#16a34a' }}>Observed Date</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {JH_HOLIDAYS.map((h, i) => {
+                const isPast = h.date < today;
+                const isUpcoming = !isPast && h.date <= new Date(new Date().getTime() + 30 * 86400000).toISOString().slice(0, 10);
+                return (
+                  <TableRow key={i} sx={{ opacity: isPast ? 0.45 : 1, bgcolor: isUpcoming ? '#fef9c3' : undefined }}>
+                    <TableCell sx={{ pl: 3 }}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Typography variant="body2" fontWeight={isUpcoming ? 700 : 500}>{h.name}</Typography>
+                        {isUpcoming && <Chip label="Upcoming" size="small" sx={{ bgcolor: '#fde047', color: '#78350f', fontWeight: 600, fontSize: 10 }} />}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color={isPast ? 'text.disabled' : 'text.primary'}>{fmtHolidayDate(h.date)}</Typography>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setHolidayOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
