@@ -145,7 +145,7 @@ export default function LoginPage() {
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
             }}>
-              CRISKA NEXUS
+              CRISKA NEXUS & SOLUTIONS
             </Typography>
           </Box>
           <Typography variant="caption" color="text.secondary" display="block">

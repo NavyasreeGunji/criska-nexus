@@ -159,7 +159,7 @@ function DrawerContent({ isOpen, onNavigate }: { isOpen: boolean; onNavigate: ()
         {isOpen && (
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 900, color: 'white', letterSpacing: 2, lineHeight: 1, fontSize: 15, whiteSpace: 'nowrap' }}>
-              CRISKA NEXUS
+              CRISKA NEXUS & SOLUTIONS
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap' }}>
               Project Management Portal

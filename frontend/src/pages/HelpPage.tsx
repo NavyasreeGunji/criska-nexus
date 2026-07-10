@@ -206,7 +206,7 @@ export default function HelpPage() {
     <Box>
       <Typography variant="h6" fontWeight={700} sx={{ mb: 0.5 }}>Help & Guide</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        How to use each section of Criska Nexus.
+        How to use each section of Criska Nexus &amp; Solutions.
       </Typography>
 
       {sections.map((s) => (

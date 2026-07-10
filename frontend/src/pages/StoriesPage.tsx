@@ -527,7 +527,7 @@ export default function StoriesPage() {
                           {story.title}
                         </Typography>
                       </TableCell>
-                      <TableCell><Chip label={story.points} size="small" color="primary" variant="outlined" /></TableCell>
+                      <TableCell><Box sx={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid', borderColor: 'primary.main', color: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{story.points}</Box></TableCell>
                       <TableCell><Chip label={statusLabel(story.status)} size="small" color={statusColor(story.status)} /></TableCell>
                       <TableCell><Typography variant="body2">{story.reporter}</Typography></TableCell>
                       <TableCell><Typography variant="body2">{story.assignee}</Typography></TableCell>

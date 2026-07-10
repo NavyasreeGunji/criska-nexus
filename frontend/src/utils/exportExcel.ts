@@ -15,7 +15,7 @@ export async function exportExcel(
   fileName: string,
 ) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Criska Nexus';
+  wb.creator = 'Criska Nexus & Solutions';
   wb.created = new Date();
 
   const ws = wb.addWorksheet(sheetName);

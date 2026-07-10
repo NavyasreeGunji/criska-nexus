@@ -282,7 +282,7 @@ export default function ReportsPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Chip label={story.points} size="small" color="primary" variant="outlined" />
+                    <Box sx={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid', borderColor: 'primary.main', color: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{story.points}</Box>
                   </TableCell>
                   <TableCell>
                     <Chip
