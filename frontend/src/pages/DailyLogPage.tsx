@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as XLSX from 'xlsx';
 import { useLocation } from 'react-router-dom';
 import {
   Box,
@@ -141,19 +142,18 @@ export default function DailyLogPage() {
     navigator.clipboard.writeText(text).then(() => setCopied(true));
   };
 
-  const handleExportCSV = () => {
-    const headers = ['Developer', 'Date', 'Task / Story', 'Description', 'Hours'];
-    const rows = filtered.map((l) => [
-      l.developer, fmtDate(l.date), `"${l.title}"`, `"${l.description}"`, l.hours,
-    ].join(','));
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `daily-log-${today}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportXLS = () => {
+    const rows = filtered.map((l) => ({
+      'Developer': l.developer,
+      'Date': fmtDate(l.date),
+      'Task / Story': l.title,
+      'Description': l.description,
+      'Hours': l.hours,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Daily Log');
+    XLSX.writeFile(wb, `daily-log-${today}.xlsx`);
   };
 
   const openEdit = (log: DailyLog) => {
@@ -241,9 +241,9 @@ export default function DailyLogPage() {
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
 
-        <Tooltip title="Export CSV">
-          <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleExportCSV}>
-            Export CSV
+        <Tooltip title="Export Excel">
+          <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleExportXLS}>
+            Export Excel
           </Button>
         </Tooltip>
 

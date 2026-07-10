@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import * as XLSX from 'xlsx';
 import {
   Box,
   Paper,
@@ -106,25 +107,24 @@ export default function ReportsPage() {
     [filtered]
   );
 
-  const handleExportCSV = () => {
-    const headers = ['Story No.', 'Title', 'Points', 'Status', 'Reporter', 'Assignee', 'Team', 'Sprint', 'Due Date', 'Started', 'Completed'];
-    const rows = filtered.map((s) => {
-      const team = teams.find((t) => t.id === s.teamId)?.name ?? '';
-      const sprint = sprints.find((sp) => sp.id === s.sprintId);
-      return [
-        s.storyNumber || '', `"${s.title}"`, s.points, statusConfig[s.status].label,
-        s.reporter, s.assignee, team, sprint?.name ?? '',
-        fmtDate(s.dueDate), fmtDate(s.startedDate), fmtDate(s.completedDate),
-      ].join(',');
-    });
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `story-report-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportXLS = () => {
+    const rows = filtered.map((s) => ({
+      'Story No.': s.storyNumber || '',
+      'Title': s.title,
+      'Points': s.points,
+      'Status': statusConfig[s.status].label,
+      'Reporter': s.reporter,
+      'Assignee': s.assignee,
+      'Team': teams.find((t) => t.id === s.teamId)?.name ?? '',
+      'Sprint': sprints.find((sp) => sp.id === s.sprintId)?.name ?? '',
+      'Due Date': fmtDate(s.dueDate),
+      'Started': fmtDate(s.startedDate),
+      'Completed': fmtDate(s.completedDate),
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Stories');
+    XLSX.writeFile(wb, `story-report-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
@@ -210,8 +210,8 @@ export default function ReportsPage() {
         )}
         <Box sx={{ flexGrow: 1 }} />
         <Tooltip title="Export to CSV">
-          <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleExportCSV}>
-            Export CSV
+          <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleExportXLS}>
+            Export Excel
           </Button>
         </Tooltip>
       </Stack>
