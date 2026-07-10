@@ -40,6 +40,7 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import BeachAccessIcon from '@mui/icons-material/BeachAccess';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -69,6 +70,7 @@ const navItems = [
   { label: 'Deployments', icon: <RocketLaunchIcon />, path: '/deployments' },
   { label: 'Reports', icon: <BarChartIcon />, path: '/reports' },
   { label: 'Login Activity', icon: <PersonSearchIcon />, path: '/login-activity', roles: PRIVILEGED_ROLES },
+  { label: 'Leave Management', icon: <BeachAccessIcon />, path: '/leave', roles: ['Admin'] },
   { label: 'Help', icon: <HelpOutlineIcon />, path: '/help' },
 ];
 

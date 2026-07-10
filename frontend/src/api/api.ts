@@ -402,3 +402,95 @@ export interface SearchResults {
 
 export const apiSearch = (q: string): Promise<SearchResults> =>
   req<SearchResults>(`/search?q=${encodeURIComponent(q)}`);
+
+// ─── Leave Management ─────────────────────────────────────────────────────────
+
+export interface LeaveRequest {
+  id: string;
+  employeeName: string;
+  leaveType: 'casual' | 'sick' | 'annual' | 'lop';
+  fromDate: string;
+  toDate: string;
+  days: number;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  appliedOn: string;
+  approvedBy: string;
+  approverComments: string;
+}
+
+export interface LeaveBalance {
+  id: string;
+  employeeName: string;
+  year: number;
+  casualTotal: number;
+  sickTotal: number;
+  annualTotal: number;
+  carryForward: number;
+  casualUsed: number;
+  sickUsed: number;
+  annualUsed: number;
+  lopDays: number;
+}
+
+function mapLeave(r: any): LeaveRequest {
+  return {
+    id: String(r.id),
+    employeeName: r.employeeName ?? '',
+    leaveType: r.leaveType ?? 'casual',
+    fromDate: toDateStr(r.fromDate),
+    toDate: toDateStr(r.toDate),
+    days: r.days ?? 0,
+    reason: r.reason ?? '',
+    status: r.status ?? 'pending',
+    appliedOn: toDateStr(r.appliedOn),
+    approvedBy: r.approvedBy ?? '',
+    approverComments: r.approverComments ?? '',
+  };
+}
+
+function mapBalance(b: any): LeaveBalance {
+  return {
+    id: String(b.id),
+    employeeName: b.employeeName ?? '',
+    year: b.year ?? new Date().getFullYear(),
+    casualTotal: b.casualTotal ?? 8,
+    sickTotal: b.sickTotal ?? 8,
+    annualTotal: b.annualTotal ?? 12,
+    carryForward: b.carryForward ?? 0,
+    casualUsed: b.casualUsed ?? 0,
+    sickUsed: b.sickUsed ?? 0,
+    annualUsed: b.annualUsed ?? 0,
+    lopDays: b.lopDays ?? 0,
+  };
+}
+
+export const apiGetAllLeaves = () =>
+  req<any[]>('/leaves').then(list => list.map(mapLeave));
+
+export const apiGetMyLeaves = (name: string) =>
+  req<any[]>(`/leaves/my/${encodeURIComponent(name)}`).then(list => list.map(mapLeave));
+
+export const apiGetLeaveBalance = (name: string, year: number) =>
+  req<any>(`/leaves/balance/${encodeURIComponent(name)}/${year}`).then(mapBalance);
+
+export const apiGetAllBalances = (year: number) =>
+  req<any[]>(`/leaves/balances/${year}`).then(list => list.map(mapBalance));
+
+export const apiApplyLeave = (data: {
+  employeeName: string; leaveType: string;
+  fromDate: string; toDate: string; reason: string;
+}) => req<any>('/leaves/apply', { method: 'POST', body: JSON.stringify(data) }).then(mapLeave);
+
+export const apiApproveLeave = (id: string, approvedBy: string, comments: string) =>
+  req<any>(`/leaves/${id}/approve`, {
+    method: 'PUT', body: JSON.stringify({ approvedBy, comments }),
+  }).then(mapLeave);
+
+export const apiRejectLeave = (id: string, approvedBy: string, comments: string) =>
+  req<any>(`/leaves/${id}/reject`, {
+    method: 'PUT', body: JSON.stringify({ approvedBy, comments }),
+  }).then(mapLeave);
+
+export const apiCancelLeave = (id: string) =>
+  req<any>(`/leaves/${id}/cancel`, { method: 'PUT' }).then(mapLeave);

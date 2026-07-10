@@ -11,6 +11,7 @@ import DeploymentsPage from './pages/DeploymentsPage';
 import ReportsPage from './pages/ReportsPage';
 import HelpPage from './pages/HelpPage';
 import LoginActivityPage from './pages/LoginActivityPage';
+import LeavePage from './pages/LeavePage';
 import { useApp } from './context/AppContext';
 import { PRIVILEGED_ROLES } from './constants/roles';
 
@@ -22,6 +23,7 @@ export default function AppRoutes() {
   if (!currentUser) return <LoginPage />;
 
   const isPrivileged = PRIVILEGED_ROLES.includes(currentUser.role);
+  const isAdmin = currentUser.role === 'Admin';
 
   return (
     <MainLayout>
@@ -35,6 +37,7 @@ export default function AppRoutes() {
         <Route path="/deployments" element={<DeploymentsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/login-activity" element={isPrivileged ? <LoginActivityPage /> : <Navigate to="/" replace />} />
+        <Route path="/leave" element={isAdmin ? <LeavePage /> : <Navigate to="/" replace />} />
         <Route path="/help" element={<HelpPage />} />
       </Routes>
     </MainLayout>
