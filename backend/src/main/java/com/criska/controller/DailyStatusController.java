@@ -38,11 +38,13 @@ public class DailyStatusController {
     }
 
     // Returns entries submitted (created) on the given date, regardless of work date.
+    // Falls back to work date for older entries that have no createdDate stored.
     @GetMapping("/submitted/{date}")
     public List<DailyStatus> submittedOn(@PathVariable("date") String date) {
-        Instant start = LocalDate.parse(date).atStartOfDay(IST).toInstant();
-        Instant end   = LocalDate.parse(date).plusDays(1).atStartOfDay(IST).toInstant();
-        return repository.findByCreatedDateBetween(start, end);
+        LocalDate workDate = LocalDate.parse(date);
+        Instant start = workDate.atStartOfDay(IST).toInstant();
+        Instant end   = workDate.plusDays(1).atStartOfDay(IST).toInstant();
+        return repository.findSubmittedOnDate(start, end, workDate);
     }
 
     @GetMapping("/{id}")
