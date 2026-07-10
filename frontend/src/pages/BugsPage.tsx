@@ -317,6 +317,15 @@ export default function BugsPage() {
         page={page}
         onPageChange={(_, newPage) => setPage(newPage)}
         onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
+        sx={{
+          '.MuiTablePagination-toolbar': { justifyContent: 'center', minHeight: 52 },
+          '.MuiTablePagination-spacer': { display: 'none' },
+          '.MuiTablePagination-actions': {
+            ml: 2,
+            '& button': { p: '10px' },
+            '& .MuiSvgIcon-root': { fontSize: '1.6rem' },
+          },
+        }}
       />
       </Paper>
 
