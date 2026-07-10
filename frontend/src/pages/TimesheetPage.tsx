@@ -16,16 +16,10 @@ import {
   Avatar,
   Divider,
   Tooltip,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CelebrationIcon from '@mui/icons-material/Celebration';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { dailyLogs, developers } from '../data/mockData';
 import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
 
@@ -105,8 +99,6 @@ export default function TimesheetPage() {
   // Holidays that fall in the current week
   const weekHolidays = weekDays.filter((d) => holidayMap[d]);
 
-  const [holidayOpen, setHolidayOpen] = useState(false);
-
   return (
     <Box>
       {/* Week holiday banner */}
@@ -146,16 +138,6 @@ export default function TimesheetPage() {
         <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
           Total: <strong>{grandTotal}h</strong>
         </Typography>
-        <Box sx={{ flexGrow: 1 }} />
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<CalendarMonthIcon />}
-          onClick={() => setHolidayOpen(true)}
-          sx={{ borderColor: '#ca8a04', color: '#92400e', '&:hover': { bgcolor: '#fef9c3', borderColor: '#ca8a04' } }}
-        >
-          JH Holiday Calendar
-        </Button>
       </Stack>
 
       <Paper sx={{ mb: 3 }}>
@@ -353,52 +335,44 @@ export default function TimesheetPage() {
         })}
       </Paper>
 
-      {/* JH Holiday Calendar Dialog */}
-      <Dialog open={holidayOpen} onClose={() => setHolidayOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
-          <CelebrationIcon sx={{ color: '#ca8a04' }} />
-          JH Holiday Calendar 2026–2027
-        </DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow sx={{ bgcolor: '#f0fdf4' }}>
-                <TableCell sx={{ fontWeight: 700, color: '#16a34a', pl: 3 }}>Holiday Name</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#16a34a' }}>Observed Date</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {JH_HOLIDAYS.map((h, i) => {
-                const today = new Date().toISOString().slice(0, 10);
-                const isPast = h.date < today;
-                const isUpcoming = !isPast && h.date <= addDays(today, 30);
-                return (
-                  <TableRow key={i} sx={{ opacity: isPast ? 0.45 : 1, bgcolor: isUpcoming ? '#fef9c3' : undefined }}>
-                    <TableCell sx={{ pl: 3 }}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Typography variant="body2" fontWeight={isUpcoming ? 700 : 500}>{h.name}</Typography>
-                        {isUpcoming && <Chip label="Upcoming" size="small" sx={{ bgcolor: '#fde047', color: '#78350f', fontWeight: 600, fontSize: 10 }} />}
-                        {isPast && <Chip label="Past" size="small" sx={{ bgcolor: '#f1f5f9', color: '#94a3b8', fontSize: 10 }} />}
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color={isPast ? 'text.disabled' : 'text.primary'}>
-                        {fmtHolidayDate(h.date)}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 1.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
-            United States federal holidays observed by JH client
-          </Typography>
-          <Button onClick={() => setHolidayOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      {/* JH Holiday Calendar — always visible */}
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5, mt: 3 }}>
+        <CelebrationIcon sx={{ color: '#ca8a04', fontSize: 20 }} />
+        <Typography variant="subtitle1" fontWeight={700}>JH Holiday Calendar 2026–2027</Typography>
+        <Typography variant="caption" color="text.secondary">(United States)</Typography>
+      </Stack>
+      <Paper sx={{ overflow: 'hidden' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={{ bgcolor: '#f0fdf4' }}>
+              <TableCell sx={{ fontWeight: 700, fontSize: 13, color: '#16a34a' }}>Holiday Name</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: 13, color: '#16a34a' }}>Observed Date</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {JH_HOLIDAYS.map((h, i) => {
+              const today = new Date().toISOString().slice(0, 10);
+              const isPast = h.date < today;
+              const isUpcoming = !isPast && h.date <= addDays(today, 30);
+              return (
+                <TableRow key={i} sx={{ opacity: isPast ? 0.5 : 1, bgcolor: isUpcoming ? '#fef9c3' : undefined }}>
+                  <TableCell>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Typography variant="body2" fontWeight={isUpcoming ? 700 : 500}>{h.name}</Typography>
+                      {isUpcoming && <Chip label="Upcoming" size="small" sx={{ bgcolor: '#fde047', color: '#78350f', fontWeight: 600, fontSize: 10 }} />}
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color={isPast ? 'text.disabled' : 'text.primary'}>
+                      {fmtHolidayDate(h.date)}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Paper>
     </Box>
   );
 }
