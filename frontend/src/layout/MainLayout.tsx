@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useRef, useEffect } from 'react';
 import {
   Box,
   Drawer,
@@ -24,6 +24,12 @@ import {
   TextField,
   Alert,
   InputAdornment,
+  Paper,
+  Popper,
+  ClickAwayListener,
+  CircularProgress,
+  InputBase,
+  Chip,
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
@@ -40,10 +46,15 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import MenuIcon from '@mui/icons-material/Menu';
+import SearchIcon from '@mui/icons-material/Search';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import ArticleIcon from '@mui/icons-material/Article';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useThemeMode } from '../context/ThemeContext';
 import { PRIVILEGED_ROLES } from '../constants/roles';
-import { apiChangePassword } from '../api/api';
+import { apiChangePassword, apiSearch, SearchResults } from '../api/api';
 
 const DRAWER_WIDTH = 240;
 const COLLAPSED_WIDTH = 64;
@@ -68,13 +79,7 @@ function avatarColor(name: string) {
   return colors[Math.abs(hash) % colors.length];
 }
 
-function DrawerContent({
-  isOpen,
-  onNavigate,
-}: {
-  isOpen: boolean;
-  onNavigate: () => void;
-}) {
+function DrawerContent({ isOpen, onNavigate }: { isOpen: boolean; onNavigate: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, logout } = useApp();
@@ -137,29 +142,20 @@ function DrawerContent({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-
-      {/* Header */}
       <Box sx={{
-        px: isOpen ? 2.5 : 1,
-        pt: 2.5,
-        pb: 1.5,
-        display: 'flex',
-        alignItems: 'center',
-        gap: isOpen ? 1.25 : 0,
+        px: isOpen ? 2.5 : 1, pt: 2.5, pb: 1.5,
+        display: 'flex', alignItems: 'center', gap: isOpen ? 1.25 : 0,
         justifyContent: isOpen ? 'flex-start' : 'center',
-        transition: 'padding 0.25s ease',
-        minHeight: 72,
+        transition: 'padding 0.25s ease', minHeight: 72,
       }}>
         <Box sx={{
           width: 32, height: 32, borderRadius: '8px',
           background: 'rgba(255,255,255,0.15)',
           border: '1px solid rgba(255,255,255,0.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
           <Typography sx={{ fontSize: 11, fontWeight: 900, color: 'white', letterSpacing: 0.5 }}>CN</Typography>
         </Box>
-
         {isOpen && (
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 900, color: 'white', letterSpacing: 2, lineHeight: 1, fontSize: 15, whiteSpace: 'nowrap' }}>
@@ -174,7 +170,6 @@ function DrawerContent({
 
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
 
-      {/* Nav items */}
       <List sx={{ px: isOpen ? 1.5 : 0.75, py: 1.5, flexGrow: 1 }}>
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -189,15 +184,10 @@ function DrawerContent({
                     bgcolor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
                     '&:hover': { bgcolor: 'rgba(255,255,255,0.07)', color: 'white' },
                     justifyContent: isOpen ? 'flex-start' : 'center',
-                    px: isOpen ? 1.5 : 1,
-                    minHeight: 42,
+                    px: isOpen ? 1.5 : 1, minHeight: 42,
                   }}
                 >
-                  <ListItemIcon sx={{
-                    color: 'inherit',
-                    minWidth: isOpen ? 38 : 0,
-                    justifyContent: 'center',
-                  }}>
+                  <ListItemIcon sx={{ color: 'inherit', minWidth: isOpen ? 38 : 0, justifyContent: 'center' }}>
                     {item.icon}
                   </ListItemIcon>
                   {isOpen && (
@@ -215,26 +205,19 @@ function DrawerContent({
 
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
 
-      {/* User footer */}
       <Box sx={{
-        px: isOpen ? 2 : 1,
-        py: 1.5,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        justifyContent: isOpen ? 'flex-start' : 'center',
-        overflow: 'hidden',
+        px: isOpen ? 2 : 1, py: 1.5,
+        display: 'flex', alignItems: 'center', gap: 1,
+        justifyContent: isOpen ? 'flex-start' : 'center', overflow: 'hidden',
       }}>
         <Tooltip title={!isOpen ? (currentUser?.name ?? '') : ''} placement="right">
           <Avatar sx={{
             width: 34, height: 34, fontSize: 13, flexShrink: 0,
-            bgcolor: currentUser ? avatarColor(currentUser.name) : '#2563EB',
-            fontWeight: 600,
+            bgcolor: currentUser ? avatarColor(currentUser.name) : '#2563EB', fontWeight: 600,
           }}>
             {userInitials}
           </Avatar>
         </Tooltip>
-
         {isOpen && (
           <Box sx={{ flexGrow: 1, minWidth: 0, overflow: 'hidden' }}>
             <Typography variant="body2" fontWeight={600} color="white" fontSize={13} noWrap>
@@ -245,7 +228,6 @@ function DrawerContent({
             </Typography>
           </Box>
         )}
-
         {isOpen && (
           <Box sx={{ display: 'flex', flexShrink: 0 }}>
             <Tooltip title="Change password" placement="top">
@@ -272,39 +254,20 @@ function DrawerContent({
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
               {pwError && <Alert severity="error">{pwError}</Alert>}
-              <TextField
-                label="Current Password"
-                type={pwShow.current ? 'text' : 'password'}
-                value={pwForm.current}
+              <TextField label="Current Password" type={pwShow.current ? 'text' : 'password'} value={pwForm.current}
                 onChange={(e) => setPwForm((f) => ({ ...f, current: e.target.value }))}
-                size="small"
-                fullWidth
-                autoComplete="current-password"
-                InputProps={{ endAdornment: eyeBtn('current') }}
-              />
-              <TextField
-                label="New Password"
-                type={pwShow.next ? 'text' : 'password'}
-                value={pwForm.next}
+                size="small" fullWidth autoComplete="current-password"
+                InputProps={{ endAdornment: eyeBtn('current') }} />
+              <TextField label="New Password" type={pwShow.next ? 'text' : 'password'} value={pwForm.next}
                 onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
-                onFocus={() => setPwNextFocused(true)}
-                onBlur={() => setPwNextFocused(false)}
-                size="small"
-                fullWidth
-                autoComplete="new-password"
+                onFocus={() => setPwNextFocused(true)} onBlur={() => setPwNextFocused(false)}
+                size="small" fullWidth autoComplete="new-password"
                 helperText={pwNextFocused ? 'Min 8 chars, at least one number and one special character (@, #, ! …)' : ''}
-                InputProps={{ endAdornment: eyeBtn('next') }}
-              />
-              <TextField
-                label="Confirm New Password"
-                type={pwShow.confirm ? 'text' : 'password'}
-                value={pwForm.confirm}
+                InputProps={{ endAdornment: eyeBtn('next') }} />
+              <TextField label="Confirm New Password" type={pwShow.confirm ? 'text' : 'password'} value={pwForm.confirm}
                 onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
-                size="small"
-                fullWidth
-                autoComplete="new-password"
-                InputProps={{ endAdornment: eyeBtn('confirm') }}
-              />
+                size="small" fullWidth autoComplete="new-password"
+                InputProps={{ endAdornment: eyeBtn('confirm') }} />
             </Box>
           )}
         </DialogContent>
@@ -321,9 +284,151 @@ function DrawerContent({
   );
 }
 
+function GlobalSearch() {
+  const navigate = useNavigate();
+  const { backendOnline } = useApp();
+  const [value, setValue] = useState('');
+  const [results, setResults] = useState<SearchResults | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (value.length < 2) { setResults(null); return; }
+    const timer = setTimeout(async () => {
+      if (!backendOnline) return;
+      setLoading(true);
+      try {
+        const res = await apiSearch(value);
+        setResults(res);
+        setOpen(true);
+      } catch {
+        setResults(null);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [value, backendOnline]);
+
+  const total = results ? results.stories.length + results.bugs.length + results.developers.length : 0;
+
+  const handleSelect = (type: string) => {
+    if (type === 'story') navigate('/stories');
+    else if (type === 'bug') navigate('/bugs');
+    else if (type === 'developer') navigate('/people');
+    setOpen(false);
+    setValue('');
+    setResults(null);
+  };
+
+  const theme = useTheme();
+
+  return (
+    <ClickAwayListener onClickAway={() => setOpen(false)}>
+      <Box ref={anchorRef} sx={{ position: 'relative', flexGrow: 1, maxWidth: 380, mx: 2 }}>
+        <Box sx={{
+          display: 'flex', alignItems: 'center', gap: 1,
+          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#E2E8F0'}`,
+          borderRadius: 2, px: 1.5, py: 0.5,
+          '&:focus-within': { borderColor: 'primary.main', bgcolor: 'background.paper' },
+          transition: 'all 0.15s',
+        }}>
+          <SearchIcon sx={{ color: 'text.disabled', fontSize: 18, flexShrink: 0 }} />
+          <InputBase
+            value={value}
+            onChange={(e) => { setValue(e.target.value); if (e.target.value.length >= 2) setOpen(true); }}
+            onFocus={() => { if (results && total > 0) setOpen(true); }}
+            placeholder={backendOnline ? 'Search stories, bugs, people…' : 'Search (offline)'}
+            sx={{ fontSize: 13.5, flexGrow: 1 }}
+            disabled={!backendOnline}
+          />
+          {loading && <CircularProgress size={14} sx={{ flexShrink: 0 }} />}
+          {value && (
+            <IconButton size="small" onClick={() => { setValue(''); setResults(null); setOpen(false); }}
+              sx={{ p: 0.25 }}>
+              <Typography sx={{ fontSize: 12, color: 'text.disabled', lineHeight: 1 }}>✕</Typography>
+            </IconButton>
+          )}
+        </Box>
+
+        <Popper open={open && !!results && total > 0} anchorEl={anchorRef.current} placement="bottom-start"
+          style={{ zIndex: 1400, width: anchorRef.current?.offsetWidth ?? 380 }}>
+          <Paper elevation={6} sx={{ mt: 0.5, maxHeight: 400, overflow: 'auto', borderRadius: 2 }}>
+            {results && (
+              <Box>
+                {results.stories.length > 0 && (
+                  <Box>
+                    <Typography variant="caption" fontWeight={700} sx={{ px: 2, pt: 1.5, pb: 0.5, display: 'block', color: 'text.secondary' }}>
+                      STORIES
+                    </Typography>
+                    {results.stories.map((r) => (
+                      <Box key={r.id} onClick={() => handleSelect(r.type)}
+                        sx={{ px: 2, py: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5,
+                          '&:hover': { bgcolor: 'action.hover' } }}>
+                        <ArticleIcon sx={{ fontSize: 16, color: 'primary.main', flexShrink: 0 }} />
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" fontWeight={500} noWrap>{r.title}</Typography>
+                          <Typography variant="caption" color="text.secondary" noWrap>{r.subtitle}</Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+                {results.bugs.length > 0 && (
+                  <Box>
+                    <Divider />
+                    <Typography variant="caption" fontWeight={700} sx={{ px: 2, pt: 1.5, pb: 0.5, display: 'block', color: 'text.secondary' }}>
+                      BUGS
+                    </Typography>
+                    {results.bugs.map((r) => (
+                      <Box key={r.id} onClick={() => handleSelect(r.type)}
+                        sx={{ px: 2, py: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5,
+                          '&:hover': { bgcolor: 'action.hover' } }}>
+                        <BugReportIcon sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" fontWeight={500} noWrap>{r.title}</Typography>
+                          <Typography variant="caption" color="text.secondary" noWrap>{r.subtitle}</Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+                {results.developers.length > 0 && (
+                  <Box>
+                    <Divider />
+                    <Typography variant="caption" fontWeight={700} sx={{ px: 2, pt: 1.5, pb: 0.5, display: 'block', color: 'text.secondary' }}>
+                      PEOPLE
+                    </Typography>
+                    {results.developers.map((r) => (
+                      <Box key={r.id} onClick={() => handleSelect(r.type)}
+                        sx={{ px: 2, py: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5,
+                          '&:hover': { bgcolor: 'action.hover' } }}>
+                        <Avatar sx={{ width: 22, height: 22, fontSize: 10, fontWeight: 700, bgcolor: 'primary.main', flexShrink: 0 }}>
+                          {r.title.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" fontWeight={500} noWrap>{r.title}</Typography>
+                          <Typography variant="caption" color="text.secondary" noWrap>{r.subtitle}</Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+            )}
+          </Paper>
+        </Popper>
+      </Box>
+    </ClickAwayListener>
+  );
+}
+
 export default function MainLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const theme = useTheme();
+  const { mode, toggleMode } = useThemeMode();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -343,27 +448,16 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#F1F5F9' }}>
-
-      {/* Desktop: collapsible permanent sidebar */}
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       {!isMobile && (
         <Drawer
           variant="permanent"
-          sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            transition: 'width 0.25s ease',
-            '& .MuiDrawer-paper': paperSx,
-          }}
+          sx={{ width: drawerWidth, flexShrink: 0, transition: 'width 0.25s ease', '& .MuiDrawer-paper': paperSx }}
         >
-          <DrawerContent
-            isOpen={sidebarOpen}
-            onNavigate={() => {}}
-          />
+          <DrawerContent isOpen={sidebarOpen} onNavigate={() => {}} />
         </Drawer>
       )}
 
-      {/* Mobile: temporary drawer */}
       {isMobile && (
         <Drawer
           variant="temporary"
@@ -372,43 +466,40 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           ModalProps={{ keepMounted: true }}
           sx={{ '& .MuiDrawer-paper': { ...paperSx, width: DRAWER_WIDTH } }}
         >
-          <DrawerContent
-            isOpen
-            onNavigate={() => setMobileOpen(false)}
-          />
+          <DrawerContent isOpen onNavigate={() => setMobileOpen(false)} />
         </Drawer>
       )}
 
-      {/* Main content */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <AppBar
           position="sticky"
           elevation={0}
-          sx={{ bgcolor: 'white', borderBottom: '1px solid #E2E8F0', color: 'inherit' }}
+          sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', color: 'inherit' }}
         >
           <Toolbar>
             {isMobile ? (
-              <IconButton
-                edge="start"
-                onClick={() => setMobileOpen(true)}
-                sx={{ mr: 1.5, color: '#1e293b' }}
-              >
+              <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ mr: 1.5, color: 'text.primary' }}>
                 <MenuIcon />
               </IconButton>
             ) : (
               <Tooltip title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}>
-                <IconButton
-                  edge="start"
-                  onClick={() => setSidebarOpen((v) => !v)}
-                  sx={{ mr: 1.5, color: '#64748b', '&:hover': { color: '#1e293b' } }}
-                >
+                <IconButton edge="start" onClick={() => setSidebarOpen((v) => !v)}
+                  sx={{ mr: 1.5, color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
                   <MenuIcon />
                 </IconButton>
               </Tooltip>
             )}
-            <Typography variant="h6" fontWeight={600} sx={{ color: '#1e293b', fontSize: 17 }}>
+            <Typography variant="h6" fontWeight={600} sx={{ color: 'text.primary', fontSize: 17, flexShrink: 0 }}>
               {activePage}
             </Typography>
+
+            <GlobalSearch />
+
+            <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+              <IconButton onClick={toggleMode} sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
+                {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+              </IconButton>
+            </Tooltip>
           </Toolbar>
         </AppBar>
 

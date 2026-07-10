@@ -1,4 +1,5 @@
 export type StoryStatus = 'backlog' | 'to_do' | 'in_progress' | 'in_review' | 'for_qe_testing' | 'done' | 'on_hold';
+export type StoryPriority = 'critical' | 'high' | 'medium' | 'low';
 export type BugSeverity = 'critical' | 'high' | 'medium' | 'low';
 export type BugStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 export type DeploymentStatus = 'planned' | 'in_progress' | 'success' | 'failed' | 'rolled_back';
@@ -29,6 +30,7 @@ export interface Story {
   description: string;
   points: number;
   status: StoryStatus;
+  priority?: StoryPriority;
   reporter: string;
   assignee: string;
   createdDate: string;
@@ -39,6 +41,15 @@ export interface Story {
   sprintId: string;
   spilledFromSprintId?: string | null;
   createdBy?: string;
+}
+
+export interface Comment {
+  id: string;
+  entityType: 'story' | 'bug';
+  entityId: string;
+  author: string;
+  content: string;
+  createdAt: string;
 }
 
 export interface Bug {

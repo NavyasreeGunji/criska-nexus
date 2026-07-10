@@ -1,6 +1,6 @@
 import {
-  DeveloperProfile, Team, Sprint, Story, Bug, DailyLog, Deployment,
-  DeveloperRole, ProjectType, StoryStatus, BugSeverity, BugStatus, DeploymentStatus, SprintStatus,
+  DeveloperProfile, Team, Sprint, Story, Bug, DailyLog, Deployment, Comment,
+  DeveloperRole, ProjectType, StoryStatus, StoryPriority, BugSeverity, BugStatus, DeploymentStatus, SprintStatus,
 } from '../data/mockData';
 
 const BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:8080') + '/api';
@@ -92,6 +92,7 @@ function mapStory(s: any): Story {
     description: s.description ?? '',
     points: s.points ?? 0,
     status: (s.status ?? 'backlog') as StoryStatus,
+    priority: (s.priority ?? 'medium') as StoryPriority,
     reporter: s.reporter ?? '',
     assignee: s.assignee ?? '',
     teamId: String(s.teamId ?? ''),
@@ -102,6 +103,17 @@ function mapStory(s: any): Story {
     completedDate: toDateStr(s.completedDate),
     spilledFromSprintId: s.spilledFromSprintId ? String(s.spilledFromSprintId) : null,
     createdBy: s.createdBy ?? '',
+  };
+}
+
+function mapComment(c: any): Comment {
+  return {
+    id: String(c.id),
+    entityType: c.entityType as 'story' | 'bug',
+    entityId: String(c.entityId),
+    author: c.author ?? '',
+    content: c.content ?? '',
+    createdAt: toDateTimeStr(c.createdAt),
   };
 }
 
@@ -174,7 +186,8 @@ function unmapStory(s: Omit<Story, 'id'>) {
   return {
     storyNumber: s.storyNumber,
     title: s.title, description: s.description, points: s.points,
-    status: s.status, reporter: s.reporter, assignee: s.assignee,
+    status: s.status, priority: s.priority ?? 'medium',
+    reporter: s.reporter, assignee: s.assignee,
     teamId: Number(s.teamId), sprintId: Number(s.sprintId),
     createdDate: s.createdDate || null,
     dueDate: s.dueDate || null,
@@ -358,3 +371,32 @@ export const apiCreateDeployment = (d: Omit<Deployment, 'id'>) =>
   req<any>('/deployments', { method: 'POST', body: JSON.stringify(unmapDeployment(d)) }).then(mapDeployment);
 export const apiUpdateDeployment = (id: string, d: Omit<Deployment, 'id'>) =>
   req<any>(`/deployments/${id}`, { method: 'PUT', body: JSON.stringify(unmapDeployment(d)) }).then(mapDeployment);
+
+// ─── Comments ─────────────────────────────────────────────────────────────────
+
+export const apiGetComments = (entityType: string, entityId: string) =>
+  req<any[]>(`/comments?entityType=${entityType}&entityId=${entityId}`).then(list => list.map(mapComment));
+
+export const apiCreateComment = (entityType: string, entityId: string, author: string, content: string) =>
+  req<any>('/comments', {
+    method: 'POST',
+    body: JSON.stringify({ entityType, entityId: Number(entityId), author, content }),
+  }).then(mapComment);
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+
+export interface SearchResult {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: 'story' | 'bug' | 'developer';
+}
+
+export interface SearchResults {
+  stories: SearchResult[];
+  bugs: SearchResult[];
+  developers: SearchResult[];
+}
+
+export const apiSearch = (q: string): Promise<SearchResults> =>
+  req<SearchResults>(`/search?q=${encodeURIComponent(q)}`);

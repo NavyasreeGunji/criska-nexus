@@ -22,6 +22,7 @@ public class Story {
 
     private Integer points;
     private String status;
+    private String priority; // critical | high | medium | low
     private String reporter;
     private String assignee;
 
@@ -52,6 +53,8 @@ public class Story {
     public void setPoints(Integer points) { this.points = points; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public String getPriority() { return priority; }
+    public void setPriority(String priority) { this.priority = priority; }
     public String getReporter() { return reporter; }
     public void setReporter(String reporter) { this.reporter = reporter; }
     public String getAssignee() { return assignee; }
