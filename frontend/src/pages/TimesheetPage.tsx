@@ -68,14 +68,20 @@ function getWeekDays(mondayStr: string): string[] {
 }
 
 export default function TimesheetPage() {
-  const [weekMonday, setWeekMonday] = useState(() => getMonday('2026-06-14'));
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const currentWeekMonday = getMonday(todayStr);
+  const lastWeekMonday = addDays(currentWeekMonday, -7);
+
+  const [weekMonday, setWeekMonday] = useState(() => currentWeekMonday);
   const weekDays = getWeekDays(weekMonday);
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const prevWeek = () => setWeekMonday((m) => addDays(m, -7));
-  const nextWeek = () => setWeekMonday((m) => addDays(m, 7));
+  const canGoPrev = weekMonday > lastWeekMonday;
+  const canGoNext = weekMonday < currentWeekMonday;
+  const prevWeek = () => { if (canGoPrev) setWeekMonday((m) => addDays(m, -7)); };
+  const nextWeek = () => { if (canGoNext) setWeekMonday((m) => addDays(m, 7)); };
 
   const getHours = (dev: string, date: string) =>
     dailyLogs
@@ -110,13 +116,23 @@ export default function TimesheetPage() {
       )}
 
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <IconButton onClick={prevWeek} size="small">
+        <IconButton onClick={prevWeek} size="small" disabled={!canGoPrev}>
           <ChevronLeftIcon />
         </IconButton>
         <Typography variant="subtitle1" fontWeight={700} sx={{ minWidth: 210, textAlign: 'center' }}>
           {weekDays[0]} – {weekDays[6]}
+          {weekMonday === currentWeekMonday && (
+            <Typography component="span" variant="caption" sx={{ ml: 1, color: 'primary.main', fontWeight: 600 }}>
+              (This week)
+            </Typography>
+          )}
+          {weekMonday === lastWeekMonday && (
+            <Typography component="span" variant="caption" sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
+              (Last week)
+            </Typography>
+          )}
         </Typography>
-        <IconButton onClick={nextWeek} size="small">
+        <IconButton onClick={nextWeek} size="small" disabled={!canGoNext}>
           <ChevronRightIcon />
         </IconButton>
         <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
