@@ -170,7 +170,7 @@ export default function LeavePage() {
           <Box>
             <Typography variant="h6" fontWeight={700} lineHeight={1.2}>Leave Management</Typography>
             <Typography variant="caption" color="text.secondary">
-              Apply · Track · Approve · Policy: 8 CL · 8 SL · 12 PL per year
+              Apply · Track · Approve · Policy: 6 CL · 6 SL · 15 PL per year
             </Typography>
           </Box>
         </Stack>
@@ -226,13 +226,14 @@ export default function LeavePage() {
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Reason</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Applied On</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Reviewed By</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {leavesToShow.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+                    <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
                       No leave requests found
                     </TableCell>
                   </TableRow>
@@ -263,6 +264,11 @@ export default function LeavePage() {
                       <TableCell>
                         <Chip label={st.label} size="small"
                           sx={{ bgcolor: st.bg, color: st.color, fontWeight: 600, fontSize: 11 }} />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color={leave.approvedBy ? 'text.primary' : 'text.disabled'}>
+                          {leave.approvedBy || '—'}
+                        </Typography>
                       </TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>
                         <Stack direction="row" spacing={0.5} justifyContent="center">

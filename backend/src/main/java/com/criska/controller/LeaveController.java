@@ -17,9 +17,9 @@ import java.util.Map;
 public class LeaveController {
 
     // Default annual leave policy
-    private static final double CASUAL_TOTAL  = 8.0;
-    private static final double SICK_TOTAL    = 8.0;
-    private static final double ANNUAL_TOTAL  = 12.0;
+    private static final double CASUAL_TOTAL  = 6.0;
+    private static final double SICK_TOTAL    = 6.0;
+    private static final double ANNUAL_TOTAL  = 15.0;
     private static final double MAX_CARRY_FWD = 5.0;
 
     private final LeaveRequestRepository requestRepo;
