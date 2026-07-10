@@ -232,33 +232,35 @@ export default function DailyLogPage() {
           <Typography variant="subtitle2" fontWeight={700}>JH Holiday Calendar 2026–2027</Typography>
           <Typography variant="caption" color="text.secondary">(United States)</Typography>
         </Stack>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ bgcolor: '#f8fffe' }}>
-              <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#16a34a' }}>Holiday Name</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#16a34a' }}>Observed Date</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {JH_HOLIDAYS.map((h, i) => {
-              const isPast = h.date < today;
-              const isUpcoming = !isPast && h.date <= new Date(new Date().getTime() + 30 * 86400000).toISOString().slice(0, 10);
-              return (
-                <TableRow key={i} sx={{ opacity: isPast ? 0.45 : 1, bgcolor: isUpcoming ? '#fef9c3' : undefined }}>
-                  <TableCell>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <Typography variant="body2" fontWeight={isUpcoming ? 700 : 500}>{h.name}</Typography>
-                      {isUpcoming && <Chip label="Upcoming" size="small" sx={{ bgcolor: '#fde047', color: '#78350f', fontWeight: 600, fontSize: 10 }} />}
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" color={isPast ? 'text.disabled' : 'text.primary'}>{fmtHolidayDate(h.date)}</Typography>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <TableContainer>
+          <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
+            <TableHead>
+              <TableRow sx={{ bgcolor: '#f8fffe' }}>
+                <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#16a34a', width: '55%' }}>Holiday Name</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: 12, color: '#16a34a', width: '45%' }}>Observed Date</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {JH_HOLIDAYS.map((h, i) => {
+                const isPast = h.date < today;
+                const isUpcoming = !isPast && h.date <= new Date(new Date().getTime() + 30 * 86400000).toISOString().slice(0, 10);
+                return (
+                  <TableRow key={i} sx={{ opacity: isPast ? 0.45 : 1, bgcolor: isUpcoming ? '#fef9c3' : undefined }}>
+                    <TableCell>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Typography variant="body2" fontWeight={isUpcoming ? 700 : 500}>{h.name}</Typography>
+                        {isUpcoming && <Chip label="Upcoming" size="small" sx={{ bgcolor: '#fde047', color: '#78350f', fontWeight: 600, fontSize: 10 }} />}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color={isPast ? 'text.disabled' : 'text.primary'}>{fmtHolidayDate(h.date)}</Typography>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Paper>
 
       <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
