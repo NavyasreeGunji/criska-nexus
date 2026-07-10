@@ -272,13 +272,17 @@ export default function StoriesPage() {
     return stories.filter((s) => getMonthKey(s.createdDate) === selectedMonth);
   }, [stories, viewBy, selectedTeamId, resolvedSprintId, selectedMonth]);
 
-  const filtered = useMemo(
-    () => baseFiltered
-      .filter((s) => filterStatus === 'all' || s.status === filterStatus)
+  const filtered = useMemo(() => {
+    const td = new Date().toISOString().slice(0, 10);
+    return baseFiltered
+      .filter((s) =>
+        filterStatus === 'all' ? true :
+        filterStatus === 'overdue' ? (!!s.dueDate && s.dueDate < td && !s.completedDate) :
+        s.status === filterStatus
+      )
       .filter((s) => filterAssignee === 'all' || s.assignee === filterAssignee)
-      .sort((a, b) => (b.createdDate ?? '').localeCompare(a.createdDate ?? '')),
-    [baseFiltered, filterStatus, filterAssignee]
-  );
+      .sort((a, b) => (b.createdDate ?? '').localeCompare(a.createdDate ?? ''));
+  }, [baseFiltered, filterStatus, filterAssignee]);
 
   const paginated = useMemo(
     () => filtered.slice(page * rowsPerPage, (page + 1) * rowsPerPage),
@@ -472,6 +476,7 @@ export default function StoriesPage() {
               <InputLabel>Status</InputLabel>
               <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
                 <MenuItem value="all">All Statuses</MenuItem>
+                <MenuItem value="overdue">⚠ Overdue</MenuItem>
                 {statusOptions.map((o) => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
               </Select>
             </FormControl>

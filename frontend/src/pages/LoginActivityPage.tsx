@@ -88,16 +88,17 @@ export default function LoginActivityPage() {
           if (resolved) inc(logMap, resolved);
         }
 
-        // Stories/bugs: filter by createdDate = selectedDate AND createdBy = known developer
+        // Stories/bugs: filter by createdDate = selectedDate; attribute to createdBy,
+        // falling back to reporter for stories created before createdBy was tracked.
         const storyMap = new Map<string, number>();
         for (const s of stories) {
-          const resolved = resolveKnown(s.createdBy ?? '');
+          const resolved = resolveKnown(s.createdBy ?? '') ?? resolveKnown(s.reporter ?? '');
           if (s.createdDate === selectedDate && resolved) inc(storyMap, resolved);
         }
 
         const bugMap = new Map<string, number>();
         for (const b of bugs) {
-          const resolved = resolveKnown(b.createdBy ?? '');
+          const resolved = resolveKnown(b.createdBy ?? '') ?? resolveKnown(b.reporter ?? '');
           if (b.createdDate === selectedDate && resolved) inc(bugMap, resolved);
         }
 
