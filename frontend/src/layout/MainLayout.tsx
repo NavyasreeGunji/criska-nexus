@@ -149,16 +149,16 @@ function DrawerContent({ isOpen, onNavigate }: { isOpen: boolean; onNavigate: ()
         transition: 'padding 0.25s ease', minHeight: 72,
       }}>
         <Box sx={{
-          width: 32, height: 32, borderRadius: '8px',
+          width: 44, height: 44, borderRadius: '10px',
           background: 'rgba(255,255,255,0.15)',
           border: '1px solid rgba(255,255,255,0.25)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
-          <Typography sx={{ fontSize: 11, fontWeight: 900, color: 'white', letterSpacing: 0.5 }}>CN</Typography>
+          <Typography sx={{ fontSize: 14, fontWeight: 900, color: 'white', letterSpacing: 0.5 }}>CN</Typography>
         </Box>
         {isOpen && (
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 900, color: 'white', letterSpacing: 1, lineHeight: 1.2, fontSize: 11 }}>
+            <Typography sx={{ fontWeight: 900, color: 'white', letterSpacing: 1, lineHeight: 1.2, fontSize: 15 }}>
               CRISKA NEXUS & SOLUTIONS
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap' }}>
