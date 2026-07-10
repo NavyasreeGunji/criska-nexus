@@ -10,6 +10,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Button,
   Dialog,
   DialogTitle,
@@ -29,6 +30,7 @@ import {
   Snackbar,
   Divider,
 } from '@mui/material';
+import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -98,6 +100,8 @@ export default function DailyLogPage() {
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>(navPeriod);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLog, setEditingLog] = useState<DailyLog | null>(null);
   const [saveError, setSaveError] = useState('');
@@ -201,7 +205,7 @@ export default function DailyLogPage() {
       <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <InputLabel>Developer</InputLabel>
-          <Select value={filterDev} label="Developer" onChange={(e) => setFilterDev(e.target.value)}>
+          <Select value={filterDev} label="Developer" onChange={(e) => { setFilterDev(e.target.value); setPage(0); }}>
             <MenuItem value="all">All Developers</MenuItem>
             {developerProfiles.map((d) => (
               <MenuItem key={d.id} value={d.name}>{d.name}</MenuItem>
@@ -213,7 +217,7 @@ export default function DailyLogPage() {
           value={filterPeriod === 'custom' ? null : filterPeriod}
           exclusive
           onChange={(_, val) => {
-            if (val) { setFilterPeriod(val); setFromDate(''); setToDate(''); }
+            if (val) { setFilterPeriod(val); setFromDate(''); setToDate(''); setPage(0); }
           }}
           size="small"
         >
@@ -224,11 +228,11 @@ export default function DailyLogPage() {
         <Stack direction="row" spacing={1} alignItems="center">
           <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>From</Typography>
           <TextField type="date" size="small" value={fromDate}
-            onChange={(e) => { setFromDate(e.target.value); setFilterPeriod('custom'); }}
+            onChange={(e) => { setFromDate(e.target.value); setFilterPeriod('custom'); setPage(0); }}
             sx={{ width: 140 }} />
           <Typography variant="caption" color="text.secondary">To</Typography>
           <TextField type="date" size="small" value={toDate}
-            onChange={(e) => { setToDate(e.target.value); setFilterPeriod('custom'); }}
+            onChange={(e) => { setToDate(e.target.value); setFilterPeriod('custom'); setPage(0); }}
             sx={{ width: 140 }} />
         </Stack>
 
@@ -249,22 +253,23 @@ export default function DailyLogPage() {
         </Button>
       </Stack>
 
-      <TableContainer component={Paper}>
+      <Paper>
+      <TableContainer>
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', width: '10%' }}>Date</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '10%' }}>Date</TableCell>
               {showDevColumn && (
-                <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', width: '16%' }}>Developer</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '16%' }}>Developer</TableCell>
               )}
-              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', width: '22%' }}>Task / Story</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b' }}>Description</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', width: '8%', textAlign: 'center' }}>Hours</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: 12, color: '#64748b', width: '8%', textAlign: 'center' }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '22%' }}>Task / Story</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Description</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '8%', textAlign: 'center' }}>Hours</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '8%', textAlign: 'center' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filtered.map((log) => (
+            {filtered.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map((log) => (
               <TableRow key={log.id} hover>
                 <TableCell>
                   <Typography variant="body2">{fmtDate(log.date)}</Typography>
@@ -319,6 +324,18 @@ export default function DailyLogPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 20, 50]}
+        component="div"
+        count={filtered.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
+        ActionsComponent={TablePaginationActions}
+        sx={paginationSx}
+      />
+      </Paper>
 
       {/* View Log Dialog */}
       {viewLog && (
