@@ -129,25 +129,26 @@ export default function LoginPage() {
       <Paper sx={{ p: 4, width: '100%', maxWidth: 400 }}>
         <Box sx={{ textAlign: 'center', mb: 3.5 }}>
           <Box sx={{
-            width: 52, height: 52, borderRadius: '14px',
+            width: 56, height: 56, borderRadius: '16px',
             background: 'linear-gradient(135deg, #1e3a8a 0%, #2563EB 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(37,99,235,0.4)',
-            mx: 'auto', mb: 1.5,
+            boxShadow: '0 6px 18px rgba(37,99,235,0.4)',
+            mx: 'auto', mb: 2,
           }}>
-            <Typography sx={{ fontSize: 16, fontWeight: 900, color: 'white', letterSpacing: 0.5 }}>CN</Typography>
+            <Typography sx={{ fontSize: 17, fontWeight: 900, color: 'white', letterSpacing: 1 }}>CN</Typography>
           </Box>
           <Typography sx={{
-            fontWeight: 900, fontSize: 18, letterSpacing: 2,
+            fontWeight: 900, fontSize: 16, letterSpacing: 1.5,
+            whiteSpace: 'nowrap',
             background: 'linear-gradient(135deg, #1e3a8a 0%, #2563EB 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
-            mb: 0.5,
+            mb: 0.75,
           }}>
             CRISKA NEXUS & SOLUTIONS
           </Typography>
-          <Typography variant="caption" color="text.secondary" display="block">
+          <Typography variant="body2" color="text.secondary" display="block" sx={{ letterSpacing: 0.5 }}>
             Project Management Portal
           </Typography>
         </Box>
