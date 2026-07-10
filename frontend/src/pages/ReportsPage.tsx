@@ -9,6 +9,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Chip,
   MenuItem,
   Select,
@@ -60,6 +61,8 @@ export default function ReportsPage() {
   const [filterSprintId, setFilterSprintId] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const teamSprints = useMemo(
     () => sprints.filter((s) => filterTeamId === 'all' || s.teamId === filterTeamId),
@@ -200,7 +203,7 @@ export default function ReportsPage() {
           </Select>
         </FormControl>
         {(dateFrom || dateTo || filterStatus !== 'all' || filterAssignee !== 'all' || filterTeamId !== 'all' || filterSprintId !== 'all') && (
-          <Button size="small" onClick={() => { setDateFrom(''); setDateTo(''); setFilterStatus('all'); setFilterAssignee('all'); setFilterTeamId('all'); setFilterSprintId('all'); }}>
+          <Button size="small" onClick={() => { setDateFrom(''); setDateTo(''); setFilterStatus('all'); setFilterAssignee('all'); setFilterTeamId('all'); setFilterSprintId('all'); setPage(0); }}>
             Clear Filters
           </Button>
         )}
@@ -217,7 +220,8 @@ export default function ReportsPage() {
         <Typography variant="subtitle1" fontWeight={700}>Story Report</Typography>
         <Typography variant="body2" color="text.secondary">{filtered.length} stories · {totalPoints} pts</Typography>
       </Stack>
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
+      <Paper sx={{ mb: 3 }}>
+      <TableContainer>
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
@@ -229,7 +233,7 @@ export default function ReportsPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filtered.map((story) => {
+            {filtered.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map((story) => {
               const sprint = sprints.find((s) => s.id === story.sprintId);
               const team = teams.find((t) => t.id === story.teamId);
               const today = new Date().toISOString().slice(0, 10);
@@ -333,6 +337,16 @@ export default function ReportsPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[10, 20, 50]}
+        component="div"
+        count={filtered.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
+      />
+      </Paper>
 
       {/* Points by Developer */}
       <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>

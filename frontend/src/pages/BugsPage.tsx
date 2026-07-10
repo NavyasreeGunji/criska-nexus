@@ -249,7 +249,8 @@ export default function BugsPage() {
         </Button>
       </Stack>
 
-      <TableContainer component={Paper}>
+      <Paper>
+      <TableContainer>
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: 'action.hover' }}>
@@ -317,6 +318,7 @@ export default function BugsPage() {
         onPageChange={(_, newPage) => setPage(newPage)}
         onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
       />
+      </Paper>
 
       {/* Report/Edit dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>

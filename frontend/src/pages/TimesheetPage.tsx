@@ -9,6 +9,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Chip,
   IconButton,
   Stack,
@@ -69,6 +70,9 @@ export default function TimesheetPage() {
   const [weekMonday, setWeekMonday] = useState(() => getMonday('2026-06-14'));
   const weekDays = getWeekDays(weekMonday);
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const prevWeek = () => setWeekMonday((m) => addDays(m, -7));
   const nextWeek = () => setWeekMonday((m) => addDays(m, 7));
 
@@ -119,7 +123,8 @@ export default function TimesheetPage() {
         </Typography>
       </Stack>
 
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
+      <Paper sx={{ mb: 3 }}>
+      <TableContainer>
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
@@ -159,7 +164,7 @@ export default function TimesheetPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {developers.map((dev) => {
+            {developers.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map((dev) => {
               const weekTotal = getWeekTotal(dev);
               return (
                 <TableRow key={dev} hover>
@@ -261,6 +266,16 @@ export default function TimesheetPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[10, 20, 50]}
+        component="div"
+        count={developers.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
+      />
+      </Paper>
 
       <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1.5 }}>
         Activity Breakdown (This Week)
