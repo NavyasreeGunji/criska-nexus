@@ -116,7 +116,6 @@ export default function ReportsPage() {
       { key: 'reporter',  label: 'Reporter',    width: 22 },
       { key: 'assignee',  label: 'Assignee',    width: 22 },
       { key: 'team',      label: 'Team',        width: 18 },
-      { key: 'sprint',    label: 'Sprint',      width: 18 },
       { key: 'dueDate',   label: 'Due Date',    width: 13, align: 'center' as const },
       { key: 'started',   label: 'Started',     width: 13, align: 'center' as const },
       { key: 'completed', label: 'Completed',   width: 13, align: 'center' as const },
@@ -129,7 +128,6 @@ export default function ReportsPage() {
       reporter:  s.reporter,
       assignee:  s.assignee,
       team:      teams.find((t) => t.id === s.teamId)?.name ?? '',
-      sprint:    sprints.find((sp) => sp.id === s.sprintId)?.name ?? '',
       dueDate:   fmtDate(s.dueDate),
       started:   fmtDate(s.startedDate),
       completed: fmtDate(s.completedDate),
@@ -236,7 +234,7 @@ export default function ReportsPage() {
         <Table size="small">
           <TableHead>
             <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              {['Story No.', 'Title', 'Pts', 'Status', 'Reporter', 'Assignee', 'Sprint', 'Due Date', 'Started', 'Completed'].map((h) => (
+              {['Story No.', 'Title', 'Pts', 'Status', 'Reporter', 'Assignee', 'Due Date', 'Started', 'Completed'].map((h) => (
                 <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', whiteSpace: 'nowrap' }}>
                   {h}
                 </TableCell>
@@ -245,7 +243,6 @@ export default function ReportsPage() {
           </TableHead>
           <TableBody>
             {filtered.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map((story) => {
-              const sprint = sprints.find((s) => s.id === story.sprintId);
               const team = teams.find((t) => t.id === story.teamId);
               const today = new Date().toISOString().slice(0, 10);
               const dueDate = story.dueDate ?? '';
@@ -296,11 +293,6 @@ export default function ReportsPage() {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight={500}>{story.assignee || '—'}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-                      {sprint?.name ?? '—'}
-                    </Typography>
                   </TableCell>
                   <TableCell>
                     {dueDate ? (
