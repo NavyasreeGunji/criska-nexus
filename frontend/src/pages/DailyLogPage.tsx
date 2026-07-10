@@ -30,6 +30,7 @@ import {
   Tooltip,
   Snackbar,
   Divider,
+  Chip,
 } from '@mui/material';
 import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
 import AddIcon from '@mui/icons-material/Add';
@@ -37,6 +38,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
 import EditIcon from '@mui/icons-material/Edit';
+import CelebrationIcon from '@mui/icons-material/Celebration';
 import Alert from '@mui/material/Alert';
 import {
   DailyLog,
@@ -51,6 +53,23 @@ import { PRIVILEGED_ROLES } from '../constants/roles';
 type FilterPeriod = 'today' | 'week' | 'custom';
 
 const today = new Date().toISOString().slice(0, 10);
+
+const JH_HOLIDAYS: { name: string; date: string }[] = [
+  { name: "New Year's Day",         date: '2026-01-01' },
+  { name: 'Martin Luther King Day', date: '2026-01-19' },
+  { name: "President's Day",        date: '2026-02-16' },
+  { name: 'Good Friday',            date: '2026-04-03' },
+  { name: 'Memorial Day',           date: '2026-05-25' },
+  { name: 'Juneteenth',             date: '2026-06-19' },
+  { name: 'Independence Day',       date: '2026-07-03' },
+  { name: 'Labor Day',              date: '2026-09-07' },
+  { name: 'Thanksgiving Day',       date: '2026-11-26' },
+  { name: 'Christmas Day',          date: '2026-12-25' },
+  { name: "New Year's Day",         date: '2027-01-01' },
+];
+
+const fmtHolidayDate = (d: string) =>
+  new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
 function getWeekRange(): [string, string] {
   const now = new Date();
@@ -440,6 +459,44 @@ export default function DailyLogPage() {
 
       <Snackbar open={copied} autoHideDuration={2000} onClose={() => setCopied(false)}
         message="Copied to clipboard" anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
+
+      {/* JH Holiday Calendar */}
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 4, mb: 1.5 }}>
+        <CelebrationIcon sx={{ color: '#ca8a04', fontSize: 20 }} />
+        <Typography variant="subtitle1" fontWeight={700}>JH Holiday Calendar 2026–2027</Typography>
+        <Typography variant="caption" color="text.secondary">(United States)</Typography>
+      </Stack>
+      <Paper sx={{ overflow: 'hidden' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={{ bgcolor: '#f0fdf4' }}>
+              <TableCell sx={{ fontWeight: 700, fontSize: 13, color: '#16a34a' }}>Holiday Name</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: 13, color: '#16a34a' }}>Observed Date</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {JH_HOLIDAYS.map((h, i) => {
+              const isPast = h.date < today;
+              const isUpcoming = !isPast && h.date <= new Date(new Date().getTime() + 30 * 86400000).toISOString().slice(0, 10);
+              return (
+                <TableRow key={i} sx={{ opacity: isPast ? 0.5 : 1, bgcolor: isUpcoming ? '#fef9c3' : undefined }}>
+                  <TableCell>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Typography variant="body2" fontWeight={isUpcoming ? 700 : 500}>{h.name}</Typography>
+                      {isUpcoming && <Chip label="Upcoming" size="small" sx={{ bgcolor: '#fde047', color: '#78350f', fontWeight: 600, fontSize: 10 }} />}
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color={isPast ? 'text.disabled' : 'text.primary'}>
+                      {fmtHolidayDate(h.date)}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Paper>
     </Box>
   );
 }
