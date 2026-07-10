@@ -61,6 +61,36 @@ public class LeaveController {
         }
         double workingDays = countWorkingDays(req.getFromDate(), req.getToDate());
         req.setDays(workingDays);
+
+        // Block application if insufficient balance (LOP can always be applied directly)
+        if (!"lop".equals(req.getLeaveType()) && req.getEmployeeName() != null) {
+            int year = req.getFromDate().getYear();
+            LeaveBalance bal = getOrCreateBalance(req.getEmployeeName(), year);
+            double available;
+            String typeName;
+            switch (req.getLeaveType()) {
+                case "casual":
+                    available = bal.getCasualTotal() - bal.getCasualUsed();
+                    typeName = "Casual Leave";
+                    break;
+                case "sick":
+                    available = bal.getSickTotal() - bal.getSickUsed();
+                    typeName = "Sick Leave";
+                    break;
+                case "annual":
+                    available = bal.getAnnualTotal() + (bal.getCarryForward() != null ? bal.getCarryForward() : 0) - bal.getAnnualUsed();
+                    typeName = "Annual / Privilege Leave";
+                    break;
+                default:
+                    available = 0;
+                    typeName = "Leave";
+            }
+            if (workingDays > available) {
+                return ResponseEntity.badRequest().body(Map.of("error",
+                    "Insufficient " + typeName + " balance. Available: " + (int) available + " day(s), requested: " + (int) workingDays + " day(s). Please choose a different leave type or reduce the duration."));
+            }
+        }
+
         req.setStatus("pending");
         req.setAppliedOn(LocalDate.now());
         return ResponseEntity.ok(requestRepo.save(req));
@@ -78,38 +108,15 @@ public class LeaveController {
         LeaveBalance bal = getOrCreateBalance(req.getEmployeeName(), year);
         double days = req.getDays() != null ? req.getDays() : 0;
 
-        // Deduct from appropriate bucket; overflow → LOP
+        // Deduct from the applied leave type bucket (balance already validated at apply time)
         String type = req.getLeaveType();
         if ("casual".equals(type)) {
-            double remaining = bal.getCasualTotal() - bal.getCasualUsed();
-            if (days <= remaining) {
-                bal.setCasualUsed(bal.getCasualUsed() + days);
-            } else {
-                bal.setCasualUsed(bal.getCasualTotal());
-                bal.setLopDays(bal.getLopDays() + (days - remaining));
-                req.setLeaveType("lop");
-            }
+            bal.setCasualUsed(bal.getCasualUsed() + days);
         } else if ("sick".equals(type)) {
-            double remaining = bal.getSickTotal() - bal.getSickUsed();
-            if (days <= remaining) {
-                bal.setSickUsed(bal.getSickUsed() + days);
-            } else {
-                bal.setSickUsed(bal.getSickTotal());
-                bal.setLopDays(bal.getLopDays() + (days - remaining));
-                req.setLeaveType("lop");
-            }
+            bal.setSickUsed(bal.getSickUsed() + days);
         } else if ("annual".equals(type)) {
-            double totalAnnual = bal.getAnnualTotal() + (bal.getCarryForward() != null ? bal.getCarryForward() : 0);
-            double remaining = totalAnnual - bal.getAnnualUsed();
-            if (days <= remaining) {
-                bal.setAnnualUsed(bal.getAnnualUsed() + days);
-            } else {
-                bal.setAnnualUsed(totalAnnual);
-                bal.setLopDays(bal.getLopDays() + (days - remaining));
-                req.setLeaveType("lop");
-            }
+            bal.setAnnualUsed(bal.getAnnualUsed() + days);
         } else {
-            // lop directly
             bal.setLopDays(bal.getLopDays() + days);
         }
 
