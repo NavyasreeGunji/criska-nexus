@@ -163,6 +163,20 @@ public class LeaveController {
         return ResponseEntity.ok(requestRepo.save(req));
     }
 
+    // ── Reset policy totals for all balances in a year ───────────────────────
+
+    @PutMapping("/balances/{year}/reset-policy")
+    public ResponseEntity<?> resetPolicyTotals(@PathVariable("year") Integer year) {
+        List<LeaveBalance> all = balanceRepo.findByYear(year);
+        for (LeaveBalance b : all) {
+            b.setCasualTotal(CASUAL_TOTAL);
+            b.setSickTotal(SICK_TOTAL);
+            b.setAnnualTotal(ANNUAL_TOTAL);
+            balanceRepo.save(b);
+        }
+        return ResponseEntity.ok(Map.of("updated", all.size()));
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private LeaveBalance getOrCreateBalance(String name, int year) {
