@@ -81,6 +81,13 @@ function getWeekRange(): [string, string] {
   return [mon.toISOString().slice(0, 10), sun.toISOString().slice(0, 10)];
 }
 
+function getTwoWeekRange(): [string, string] {
+  const [mon, sun] = getWeekRange();
+  const lastMon = new Date(mon + 'T00:00:00');
+  lastMon.setDate(lastMon.getDate() - 7);
+  return [lastMon.toISOString().slice(0, 10), sun];
+}
+
 const fmtDate = (d: string) => {
   if (!d) return d;
   const [y, m, day] = d.split('-');
@@ -427,8 +434,8 @@ export default function DailyLogPage() {
               <TextField label="Date" type="date" value={form.date}
                 onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
                 size="small" InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getWeekRange()[0], max: getWeekRange()[1] }}
-                helperText="Current week only"
+                inputProps={{ min: getTwoWeekRange()[0], max: getTwoWeekRange()[1] }}
+                helperText="Current and last week"
                 fullWidth required />
             </Stack>
 
