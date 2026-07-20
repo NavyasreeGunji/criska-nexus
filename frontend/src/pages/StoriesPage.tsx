@@ -631,7 +631,7 @@ export default function StoriesPage() {
                 <InputLabel required>Sprint</InputLabel>
                 <Select value={form.sprintId} label="Sprint"
                   onChange={(e) => setForm((f) => ({ ...f, sprintId: e.target.value }))}>
-                  {sprints.filter((s) => s.teamId === form.teamId && s.status !== 'completed').map((s) => (
+                  {sprints.filter((s) => s.teamId === form.teamId && (s.status !== 'completed' || s.id === form.sprintId)).map((s) => (
                     <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
                   ))}
                 </Select>
