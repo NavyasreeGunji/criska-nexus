@@ -99,7 +99,7 @@ const emptyForm = (): Omit<DailyLog, 'id'> => ({
   date: today,
   title: '',
   description: '',
-  hours: 4,
+  hours: 8,
 });
 
 export default function DailyLogPage() {
