@@ -500,3 +500,8 @@ export const apiDeleteLeave = (id: string) =>
 
 export const apiDeleteLeaveBalance = (id: string) =>
   req<any>(`/leaves/balance/${id}`, { method: 'DELETE' });
+
+export const apiUpdateCarryForward = (id: string, carryForward: number) =>
+  req<any>(`/leaves/balance/${id}/carry-forward`, {
+    method: 'PUT', body: JSON.stringify({ carryForward }),
+  }).then(mapBalance);

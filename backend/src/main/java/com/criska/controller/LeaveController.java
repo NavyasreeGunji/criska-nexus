@@ -166,6 +166,16 @@ public class LeaveController {
         return ResponseEntity.ok(Map.of("updated", all.size()));
     }
 
+    // ── Update carry forward for a balance record ─────────────────────────────
+
+    @PutMapping("/balance/{id}/carry-forward")
+    public ResponseEntity<?> updateCarryForward(@PathVariable("id") Long id, @RequestBody Map<String, Double> body) {
+        LeaveBalance bal = balanceRepo.findById(id).orElse(null);
+        if (bal == null) return ResponseEntity.notFound().build();
+        bal.setCarryForward(body.getOrDefault("carryForward", 0.0));
+        return ResponseEntity.ok(balanceRepo.save(bal));
+    }
+
     // ── Delete leave request ──────────────────────────────────────────────────
 
     @DeleteMapping("/{id}")

@@ -15,11 +15,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EventBusyIcon from '@mui/icons-material/EventBusy';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
 import { useApp } from '../context/AppContext';
 import {
   apiGetAllLeaves, apiGetMyLeaves, apiGetLeaveBalance, apiGetAllBalances,
   apiApplyLeave, apiApproveLeave, apiRejectLeave, apiCancelLeave,
-  apiDeleteLeave, apiDeleteLeaveBalance,
+  apiDeleteLeave, apiDeleteLeaveBalance, apiUpdateCarryForward,
   LeaveRequest, LeaveBalance,
 } from '../api/api';
 
@@ -179,6 +181,15 @@ export default function LeavePage() {
     reload();
   };
 
+  const [cfEdit, setCfEdit] = useState<{ id: string; value: string } | null>(null);
+
+  const handleSaveCf = async () => {
+    if (!cfEdit) return;
+    await apiUpdateCarryForward(cfEdit.id, parseFloat(cfEdit.value) || 0);
+    setCfEdit(null);
+    reload();
+  };
+
   const leavesToShow = tab === 0 ? myLeaves : allLeaves;
 
   return (
@@ -206,13 +217,13 @@ export default function LeavePage() {
         <Stack direction="row" spacing={2} sx={{ mb: 3 }} flexWrap="wrap">
           <BalanceCard label="Casual Leave" total={myBalance.casualTotal} used={myBalance.casualUsed} color="#0891b2" />
           <BalanceCard label="Sick Leave" total={myBalance.sickTotal} used={myBalance.sickUsed} color="#7C3AED" />
-          {myBalance.carryForward > 0 && (
-            <Paper sx={{ p: 2, flex: 1, minWidth: 140, border: '1.5px solid #bbf7d0' }}>
-              <Typography variant="caption" color="#16a34a" fontWeight={600}>Carry Forward</Typography>
-              <Typography variant="h5" fontWeight={800} color="#16a34a" sx={{ my: 0.5 }}>+{myBalance.carryForward}</Typography>
-              <Typography variant="caption" color="text.secondary">days from prev year</Typography>
-            </Paper>
-          )}
+          <Paper sx={{ p: 2, flex: 1, minWidth: 140, border: '1.5px solid #bbf7d0' }}>
+            <Typography variant="caption" color="#16a34a" fontWeight={600}>Carry Forward</Typography>
+            <Typography variant="h5" fontWeight={800} color={myBalance.carryForward > 0 ? '#16a34a' : 'text.secondary'} sx={{ my: 0.5 }}>
+              {myBalance.carryForward > 0 ? `+${myBalance.carryForward}` : '0'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">days from prev year</Typography>
+          </Paper>
           {myBalance.lopDays > 0 && (
             <Paper sx={{ p: 2, flex: 1, minWidth: 140, border: '1.5px solid #fca5a5' }}>
               <Typography variant="caption" color="error.main" fontWeight={600}>Loss of Pay</Typography>
@@ -374,9 +385,37 @@ export default function LeavePage() {
                       <Typography variant="body2">{b.sickUsed} / {b.sickTotal}</Typography>
                     </TableCell>
                     <TableCell sx={{ textAlign: 'center' }}>
-                      <Typography variant="body2" color={b.carryForward > 0 ? '#16a34a' : 'text.secondary'}>
-                        {b.carryForward > 0 ? `+${b.carryForward}` : '—'}
-                      </Typography>
+                      {canDelete && cfEdit?.id === b.id ? (
+                        <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
+                          <TextField
+                            size="small"
+                            type="number"
+                            value={cfEdit.value}
+                            onChange={(e) => setCfEdit({ id: b.id, value: e.target.value })}
+                            sx={{ width: 70 }}
+                            inputProps={{ min: 0, step: 0.5 }}
+                            autoFocus
+                          />
+                          <Tooltip title="Save">
+                            <IconButton size="small" color="success" onClick={handleSaveCf}>
+                              <SaveIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      ) : (
+                        <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
+                          <Typography variant="body2" color={b.carryForward > 0 ? '#16a34a' : 'text.secondary'}>
+                            {b.carryForward > 0 ? `+${b.carryForward}` : '0'}
+                          </Typography>
+                          {canDelete && (
+                            <Tooltip title="Edit carry forward">
+                              <IconButton size="small" onClick={() => setCfEdit({ id: b.id, value: String(b.carryForward) })}>
+                                <EditIcon sx={{ fontSize: 14 }} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Stack>
+                      )}
                     </TableCell>
                     <TableCell sx={{ textAlign: 'center' }}>
                       <Typography variant="body2" fontWeight={b.lopDays > 0 ? 700 : 400}
