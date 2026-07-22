@@ -420,14 +420,18 @@ export default function LeavePage() {
               <DatePicker
                 label="From Date"
                 value={applyForm.fromDate ? dayjs(applyForm.fromDate) : null}
-                onChange={(d: Dayjs | null) => setApplyForm(f => ({ ...f, fromDate: d ? d.format('YYYY-MM-DD') : '' }))}
+                onChange={(d: Dayjs | null) => {
+                  if (d && d.isValid()) setApplyForm(f => ({ ...f, fromDate: d.format('YYYY-MM-DD') }));
+                }}
                 slotProps={{ textField: { size: 'small', fullWidth: true } }}
               />
               <DatePicker
                 label="To Date"
                 value={applyForm.toDate ? dayjs(applyForm.toDate) : null}
                 minDate={applyForm.fromDate ? dayjs(applyForm.fromDate) : undefined}
-                onChange={(d: Dayjs | null) => setApplyForm(f => ({ ...f, toDate: d ? d.format('YYYY-MM-DD') : '' }))}
+                onChange={(d: Dayjs | null) => {
+                  if (d && d.isValid()) setApplyForm(f => ({ ...f, toDate: d.format('YYYY-MM-DD') }));
+                }}
                 slotProps={{ textField: { size: 'small', fullWidth: true } }}
               />
             </Stack>
@@ -436,7 +440,9 @@ export default function LeavePage() {
                 <strong>{workingDays} working day{workingDays !== 1 ? 's' : ''}</strong> (weekends excluded)
               </Alert>
             )}
-            <TextField fullWidth multiline rows={3} size="small" label="Reason *"
+            <TextField fullWidth multiline rows={3} label="Reason *"
+              placeholder="Enter reason for leave"
+              InputLabelProps={{ shrink: true }}
               value={applyForm.reason}
               onChange={(e) => setApplyForm(f => ({ ...f, reason: e.target.value }))} />
             {myBalance && (
