@@ -440,11 +440,15 @@ export default function LeavePage() {
                 <strong>{workingDays} working day{workingDays !== 1 ? 's' : ''}</strong> (weekends excluded)
               </Alert>
             )}
-            <TextField fullWidth multiline rows={3} label="Reason *"
-              placeholder="Enter reason for leave"
-              InputLabelProps={{ shrink: true }}
-              value={applyForm.reason}
-              onChange={(e) => setApplyForm(f => ({ ...f, reason: e.target.value }))} />
+            <Box>
+              <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                Reason <Typography component="span" color="error">*</Typography>
+              </Typography>
+              <TextField fullWidth multiline rows={3}
+                placeholder="Enter reason for leave"
+                value={applyForm.reason}
+                onChange={(e) => setApplyForm(f => ({ ...f, reason: e.target.value }))} />
+            </Box>
             {myBalance && (
               <Box sx={{ bgcolor: '#F8FAFC', borderRadius: 1, p: 1.5, border: '1px solid #E2E8F0' }}>
                 <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ letterSpacing: 0.5 }}>YOUR BALANCE</Typography>
