@@ -74,6 +74,10 @@ public class LeaveController {
                     available = bal.getSickTotal() - bal.getSickUsed();
                     typeName = "Sick Leave";
                     break;
+                case "carry_forward":
+                    available = bal.getCarryForward() != null ? bal.getCarryForward() : 0;
+                    typeName = "Carry Forward";
+                    break;
                 default:
                     available = 0;
                     typeName = "Leave";
@@ -107,6 +111,8 @@ public class LeaveController {
             bal.setCasualUsed(bal.getCasualUsed() + days);
         } else if ("sick".equals(type)) {
             bal.setSickUsed(bal.getSickUsed() + days);
+        } else if ("carry_forward".equals(type)) {
+            bal.setCarryForward(Math.max(0, (bal.getCarryForward() != null ? bal.getCarryForward() : 0) - days));
         } else {
             bal.setLopDays(bal.getLopDays() + days);
         }
@@ -145,6 +151,7 @@ public class LeaveController {
             String type = req.getLeaveType();
             if ("casual".equals(type)) bal.setCasualUsed(Math.max(0, bal.getCasualUsed() - days));
             else if ("sick".equals(type)) bal.setSickUsed(Math.max(0, bal.getSickUsed() - days));
+            else if ("carry_forward".equals(type)) bal.setCarryForward((bal.getCarryForward() != null ? bal.getCarryForward() : 0) + days);
             else bal.setLopDays(Math.max(0, bal.getLopDays() - days));
             balanceRepo.save(bal);
         }
@@ -191,6 +198,7 @@ public class LeaveController {
                 String type = req.getLeaveType();
                 if ("casual".equals(type)) bal.setCasualUsed(Math.max(0, bal.getCasualUsed() - days));
                 else if ("sick".equals(type)) bal.setSickUsed(Math.max(0, bal.getSickUsed() - days));
+                else if ("carry_forward".equals(type)) bal.setCarryForward((bal.getCarryForward() != null ? bal.getCarryForward() : 0) + days);
                 else bal.setLopDays(Math.max(0, bal.getLopDays() - days));
                 balanceRepo.save(bal);
             }

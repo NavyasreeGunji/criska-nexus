@@ -28,9 +28,10 @@ import {
 // Demo mode: only HR can apply; Admin/Manager can view all; Admin can approve/reject/delete
 
 const leaveTypeConfig: Record<string, { label: string; color: string; bg: string }> = {
-  casual: { label: 'Casual Leave', color: '#0891b2', bg: '#ecfeff' },
-  sick:   { label: 'Sick Leave',   color: '#7C3AED', bg: '#faf5ff' },
-  lop:    { label: 'Loss of Pay',  color: '#dc2626', bg: '#fef2f2' },
+  casual:        { label: 'Casual Leave',    color: '#0891b2', bg: '#ecfeff' },
+  sick:          { label: 'Sick Leave',      color: '#7C3AED', bg: '#faf5ff' },
+  carry_forward: { label: 'Carry Forward',   color: '#16a34a', bg: '#f0fdf4' },
+  lop:           { label: 'Loss of Pay',     color: '#dc2626', bg: '#fef2f2' },
 };
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
@@ -452,6 +453,9 @@ export default function LeavePage() {
                 onChange={(e) => setApplyForm(f => ({ ...f, leaveType: e.target.value }))}>
                 <MenuItem value="casual">Casual Leave (CL)</MenuItem>
                 <MenuItem value="sick">Sick Leave (SL)</MenuItem>
+                {myBalance && myBalance.carryForward > 0 && (
+                  <MenuItem value="carry_forward">Carry Forward ({myBalance.carryForward} days available)</MenuItem>
+                )}
                 <MenuItem value="lop">Loss of Pay (LOP)</MenuItem>
               </Select>
             </FormControl>
