@@ -221,13 +221,19 @@ public class LeaveController {
 
     private LeaveBalance getOrCreateBalance(String name, int year) {
         return balanceRepo.findByEmployeeNameAndYear(name, year).orElseGet(() -> {
+            // Carry forward = remaining CF days from previous year
+            double carryFwd = 0;
+            LeaveBalance prev = balanceRepo.findByEmployeeNameAndYear(name, year - 1).orElse(null);
+            if (prev != null && prev.getCarryForward() != null && prev.getCarryForward() > 0) {
+                carryFwd = prev.getCarryForward();
+            }
             LeaveBalance b = new LeaveBalance();
             b.setEmployeeName(name);
             b.setYear(year);
             b.setCasualTotal(CASUAL_TOTAL);
             b.setSickTotal(SICK_TOTAL);
             b.setAnnualTotal(0.0);
-            b.setCarryForward(0.0);
+            b.setCarryForward(carryFwd);
             b.setCasualUsed(0.0);
             b.setSickUsed(0.0);
             b.setAnnualUsed(0.0);
