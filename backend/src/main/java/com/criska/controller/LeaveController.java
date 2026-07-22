@@ -16,11 +16,8 @@ import java.util.Map;
 @RequestMapping("/api/leaves")
 public class LeaveController {
 
-    // Default annual leave policy
-    private static final double CASUAL_TOTAL  = 6.0;
-    private static final double SICK_TOTAL    = 6.0;
-    private static final double ANNUAL_TOTAL  = 15.0;
-    // No cap on PL carry forward — all unused annual leave rolls over
+    private static final double CASUAL_TOTAL = 6.0;
+    private static final double SICK_TOTAL   = 6.0;
 
     private final LeaveRequestRepository requestRepo;
     private final LeaveBalanceRepository balanceRepo;
@@ -77,10 +74,6 @@ public class LeaveController {
                     available = bal.getSickTotal() - bal.getSickUsed();
                     typeName = "Sick Leave";
                     break;
-                case "annual":
-                    available = bal.getAnnualTotal() + (bal.getCarryForward() != null ? bal.getCarryForward() : 0) - bal.getAnnualUsed();
-                    typeName = "Annual / Privilege Leave";
-                    break;
                 default:
                     available = 0;
                     typeName = "Leave";
@@ -114,8 +107,6 @@ public class LeaveController {
             bal.setCasualUsed(bal.getCasualUsed() + days);
         } else if ("sick".equals(type)) {
             bal.setSickUsed(bal.getSickUsed() + days);
-        } else if ("annual".equals(type)) {
-            bal.setAnnualUsed(bal.getAnnualUsed() + days);
         } else {
             bal.setLopDays(bal.getLopDays() + days);
         }
@@ -154,7 +145,6 @@ public class LeaveController {
             String type = req.getLeaveType();
             if ("casual".equals(type)) bal.setCasualUsed(Math.max(0, bal.getCasualUsed() - days));
             else if ("sick".equals(type)) bal.setSickUsed(Math.max(0, bal.getSickUsed() - days));
-            else if ("annual".equals(type)) bal.setAnnualUsed(Math.max(0, bal.getAnnualUsed() - days));
             else bal.setLopDays(Math.max(0, bal.getLopDays() - days));
             balanceRepo.save(bal);
         }
@@ -171,31 +161,55 @@ public class LeaveController {
         for (LeaveBalance b : all) {
             b.setCasualTotal(CASUAL_TOTAL);
             b.setSickTotal(SICK_TOTAL);
-            b.setAnnualTotal(ANNUAL_TOTAL);
             balanceRepo.save(b);
         }
         return ResponseEntity.ok(Map.of("updated", all.size()));
+    }
+
+    // ── Delete leave request ──────────────────────────────────────────────────
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteRequest(@PathVariable("id") Long id) {
+        LeaveRequest req = requestRepo.findById(id).orElse(null);
+        if (req == null) return ResponseEntity.notFound().build();
+
+        if ("approved".equals(req.getStatus())) {
+            int year = req.getFromDate().getYear();
+            LeaveBalance bal = balanceRepo.findByEmployeeNameAndYear(req.getEmployeeName(), year).orElse(null);
+            if (bal != null) {
+                double days = req.getDays() != null ? req.getDays() : 0;
+                String type = req.getLeaveType();
+                if ("casual".equals(type)) bal.setCasualUsed(Math.max(0, bal.getCasualUsed() - days));
+                else if ("sick".equals(type)) bal.setSickUsed(Math.max(0, bal.getSickUsed() - days));
+                else bal.setLopDays(Math.max(0, bal.getLopDays() - days));
+                balanceRepo.save(bal);
+            }
+        }
+
+        requestRepo.deleteById(id);
+        return ResponseEntity.ok(Map.of("deleted", id));
+    }
+
+    // ── Delete leave balance ──────────────────────────────────────────────────
+
+    @DeleteMapping("/balance/{id}")
+    public ResponseEntity<?> deleteBalance(@PathVariable("id") Long id) {
+        if (!balanceRepo.existsById(id)) return ResponseEntity.notFound().build();
+        balanceRepo.deleteById(id);
+        return ResponseEntity.ok(Map.of("deleted", id));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private LeaveBalance getOrCreateBalance(String name, int year) {
         return balanceRepo.findByEmployeeNameAndYear(name, year).orElseGet(() -> {
-            // Compute carry-forward: unused annual leave from previous year (max MAX_CARRY_FWD)
-            double carryFwd = 0;
-            LeaveBalance prev = balanceRepo.findByEmployeeNameAndYear(name, year - 1).orElse(null);
-            if (prev != null) {
-                double totalPrev = prev.getAnnualTotal() + (prev.getCarryForward() != null ? prev.getCarryForward() : 0);
-                double unused = totalPrev - prev.getAnnualUsed();
-                carryFwd = Math.max(unused, 0);
-            }
             LeaveBalance b = new LeaveBalance();
             b.setEmployeeName(name);
             b.setYear(year);
             b.setCasualTotal(CASUAL_TOTAL);
             b.setSickTotal(SICK_TOTAL);
-            b.setAnnualTotal(ANNUAL_TOTAL);
-            b.setCarryForward(carryFwd);
+            b.setAnnualTotal(0.0);
+            b.setCarryForward(0.0);
             b.setCasualUsed(0.0);
             b.setSickUsed(0.0);
             b.setAnnualUsed(0.0);

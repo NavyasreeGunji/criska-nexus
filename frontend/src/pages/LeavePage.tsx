@@ -12,20 +12,21 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EventBusyIcon from '@mui/icons-material/EventBusy';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useApp } from '../context/AppContext';
 import {
   apiGetAllLeaves, apiGetMyLeaves, apiGetLeaveBalance, apiGetAllBalances,
   apiApplyLeave, apiApproveLeave, apiRejectLeave, apiCancelLeave,
+  apiDeleteLeave, apiDeleteLeaveBalance,
   LeaveRequest, LeaveBalance,
 } from '../api/api';
 
-const LEAVE_ROLES = ['Admin', 'Manager', 'HR'];
+// Demo mode: only HR can apply; Admin/Manager can view all; Admin can approve/reject/delete
 
 const leaveTypeConfig: Record<string, { label: string; color: string; bg: string }> = {
-  casual:  { label: 'Casual Leave',  color: '#0891b2', bg: '#ecfeff' },
-  sick:    { label: 'Sick Leave',    color: '#7C3AED', bg: '#faf5ff' },
-  annual:  { label: 'Annual Leave',  color: '#16a34a', bg: '#f0fdf4' },
-  lop:     { label: 'Loss of Pay',   color: '#dc2626', bg: '#fef2f2' },
+  casual: { label: 'Casual Leave', color: '#0891b2', bg: '#ecfeff' },
+  sick:   { label: 'Sick Leave',   color: '#7C3AED', bg: '#faf5ff' },
+  lop:    { label: 'Loss of Pay',  color: '#dc2626', bg: '#fef2f2' },
 };
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
@@ -72,7 +73,11 @@ function BalanceCard({ label, total, used, color }: BalanceCardProps) {
 
 export default function LeavePage() {
   const { currentUser, developerProfiles } = useApp();
-  const isPrivileged = LEAVE_ROLES.includes(currentUser?.role ?? '');
+  const role = currentUser?.role ?? '';
+  const canViewAll       = role === 'Admin' || role === 'Manager';
+  const canApply         = role === 'HR';
+  const canApproveReject = role === 'Admin';
+  const canDelete        = role === 'Admin';
   const currentYear = new Date().getFullYear();
 
   const [tab, setTab] = useState(0);
@@ -100,7 +105,7 @@ export default function LeavePage() {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      if (isPrivileged) {
+      if (canViewAll) {
         const [all, bals] = await Promise.all([
           apiGetAllLeaves().catch(() => []),
           apiGetAllBalances(currentYear).catch(() => []),
@@ -119,7 +124,7 @@ export default function LeavePage() {
     } finally {
       setLoading(false);
     }
-  }, [isPrivileged, currentUser, currentYear]);
+  }, [canViewAll, currentUser, currentYear]);
 
   useEffect(() => { reload(); }, [reload]);
 
@@ -159,6 +164,18 @@ export default function LeavePage() {
     reload();
   };
 
+  const handleDeleteRequest = async (leave: LeaveRequest) => {
+    if (!window.confirm(`Delete this leave request for ${leave.employeeName}?`)) return;
+    await apiDeleteLeave(leave.id);
+    reload();
+  };
+
+  const handleDeleteBalance = async (balance: LeaveBalance) => {
+    if (!window.confirm(`Delete balance record for ${balance.employeeName} (${balance.year})?`)) return;
+    await apiDeleteLeaveBalance(balance.id);
+    reload();
+  };
+
   const leavesToShow = tab === 0 ? myLeaves : allLeaves;
 
   return (
@@ -170,13 +187,15 @@ export default function LeavePage() {
           <Box>
             <Typography variant="h6" fontWeight={700} lineHeight={1.2}>Leave Management</Typography>
             <Typography variant="caption" color="text.secondary">
-              Apply · Track · Approve · Policy: 6 CL · 6 SL · 15 PL per year
+              Apply · Track · Approve · Policy: 6 CL · 6 SL per year
             </Typography>
           </Box>
         </Stack>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setApplyForm({ leaveType: 'casual', fromDate: '', toDate: '', reason: '' }); setApplyError(''); setApplyOpen(true); }}>
-          Apply Leave
-        </Button>
+        {canApply && (
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setApplyForm({ leaveType: 'casual', fromDate: '', toDate: '', reason: '' }); setApplyError(''); setApplyOpen(true); }}>
+            Apply Leave
+          </Button>
+        )}
       </Stack>
 
       {/* My Balance Cards */}
@@ -184,12 +203,13 @@ export default function LeavePage() {
         <Stack direction="row" spacing={2} sx={{ mb: 3 }} flexWrap="wrap">
           <BalanceCard label="Casual Leave" total={myBalance.casualTotal} used={myBalance.casualUsed} color="#0891b2" />
           <BalanceCard label="Sick Leave" total={myBalance.sickTotal} used={myBalance.sickUsed} color="#7C3AED" />
-          <BalanceCard
-            label={`Annual Leave${myBalance.carryForward > 0 ? ` (+${myBalance.carryForward} CF)` : ''}`}
-            total={myBalance.annualTotal + myBalance.carryForward}
-            used={myBalance.annualUsed}
-            color="#16a34a"
-          />
+          {myBalance.carryForward > 0 && (
+            <Paper sx={{ p: 2, flex: 1, minWidth: 140, border: '1.5px solid #bbf7d0' }}>
+              <Typography variant="caption" color="#16a34a" fontWeight={600}>Carry Forward</Typography>
+              <Typography variant="h5" fontWeight={800} color="#16a34a" sx={{ my: 0.5 }}>+{myBalance.carryForward}</Typography>
+              <Typography variant="caption" color="text.secondary">days from prev year</Typography>
+            </Paper>
+          )}
           {myBalance.lopDays > 0 && (
             <Paper sx={{ p: 2, flex: 1, minWidth: 140, border: '1.5px solid #fca5a5' }}>
               <Typography variant="caption" color="error.main" fontWeight={600}>Loss of Pay</Typography>
@@ -201,7 +221,7 @@ export default function LeavePage() {
       )}
 
       {/* Tabs */}
-      {isPrivileged && (
+      {canViewAll && (
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
           <Tab label="My Leaves" />
           <Tab label={`All Requests${allLeaves.filter(l => l.status === 'pending').length > 0 ? ` (${allLeaves.filter(l => l.status === 'pending').length} pending)` : ''}`} />
@@ -218,7 +238,7 @@ export default function LeavePage() {
             <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                  {isPrivileged && tab === 1 && <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Employee</TableCell>}
+                  {canViewAll && tab === 1 && <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Employee</TableCell>}
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Type</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>From</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>To</TableCell>
@@ -243,7 +263,7 @@ export default function LeavePage() {
                   const st = statusConfig[leave.status] ?? statusConfig.pending;
                   return (
                     <TableRow key={leave.id} hover>
-                      {isPrivileged && tab === 1 && (
+                      {canViewAll && tab === 1 && (
                         <TableCell><Typography variant="body2" fontWeight={500}>{leave.employeeName}</Typography></TableCell>
                       )}
                       <TableCell>
@@ -277,7 +297,7 @@ export default function LeavePage() {
                               <VisibilityIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          {isPrivileged && leave.status === 'pending' && (
+                          {canApproveReject && leave.status === 'pending' && (
                             <>
                               <Tooltip title="Approve">
                                 <IconButton size="small" color="success"
@@ -300,6 +320,13 @@ export default function LeavePage() {
                               </IconButton>
                             </Tooltip>
                           )}
+                          {canDelete && (
+                            <Tooltip title="Delete">
+                              <IconButton size="small" color="error" onClick={() => handleDeleteRequest(leave)}>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -312,7 +339,7 @@ export default function LeavePage() {
       )}
 
       {/* Team Balances Tab */}
-      {tab === 2 && isPrivileged && (
+      {tab === 2 && canViewAll && (
         <Paper>
           <TableContainer>
             <Table size="small">
@@ -321,15 +348,15 @@ export default function LeavePage() {
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Employee</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>CL Used / Total</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>SL Used / Total</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>PL Used / Total</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>Carry Fwd</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#16a34a', textAlign: 'center' }}>Carry Fwd</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#dc2626', textAlign: 'center' }}>LOP Days</TableCell>
+                  {canDelete && <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>Actions</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {allBalances.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+                    <TableCell colSpan={canDelete ? 6 : 5} sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
                       No balance records yet
                     </TableCell>
                   </TableRow>
@@ -344,9 +371,6 @@ export default function LeavePage() {
                       <Typography variant="body2">{b.sickUsed} / {b.sickTotal}</Typography>
                     </TableCell>
                     <TableCell sx={{ textAlign: 'center' }}>
-                      <Typography variant="body2">{b.annualUsed} / {b.annualTotal}</Typography>
-                    </TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}>
                       <Typography variant="body2" color={b.carryForward > 0 ? '#16a34a' : 'text.secondary'}>
                         {b.carryForward > 0 ? `+${b.carryForward}` : '—'}
                       </Typography>
@@ -357,6 +381,15 @@ export default function LeavePage() {
                         {b.lopDays > 0 ? b.lopDays : '—'}
                       </Typography>
                     </TableCell>
+                    {canDelete && (
+                      <TableCell sx={{ textAlign: 'center' }}>
+                        <Tooltip title="Delete balance record">
+                          <IconButton size="small" color="error" onClick={() => handleDeleteBalance(b)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -377,7 +410,6 @@ export default function LeavePage() {
                 onChange={(e) => setApplyForm(f => ({ ...f, leaveType: e.target.value }))}>
                 <MenuItem value="casual">Casual Leave (CL)</MenuItem>
                 <MenuItem value="sick">Sick Leave (SL)</MenuItem>
-                <MenuItem value="annual">Annual / Privilege Leave (PL)</MenuItem>
                 <MenuItem value="lop">Loss of Pay (LOP)</MenuItem>
               </Select>
             </FormControl>
@@ -404,7 +436,6 @@ export default function LeavePage() {
                 <Stack direction="row" spacing={3} sx={{ mt: 0.5 }}>
                   <Typography variant="body2">CL: <b>{myBalance.casualTotal - myBalance.casualUsed}</b> left</Typography>
                   <Typography variant="body2">SL: <b>{myBalance.sickTotal - myBalance.sickUsed}</b> left</Typography>
-                  <Typography variant="body2">PL: <b>{myBalance.annualTotal + myBalance.carryForward - myBalance.annualUsed}</b> left</Typography>
                 </Stack>
               </Box>
             )}

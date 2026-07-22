@@ -494,3 +494,9 @@ export const apiRejectLeave = (id: string, approvedBy: string, comments: string)
 
 export const apiCancelLeave = (id: string) =>
   req<any>(`/leaves/${id}/cancel`, { method: 'PUT' }).then(mapLeave);
+
+export const apiDeleteLeave = (id: string) =>
+  req<any>(`/leaves/${id}`, { method: 'DELETE' });
+
+export const apiDeleteLeaveBalance = (id: string) =>
+  req<any>(`/leaves/balance/${id}`, { method: 'DELETE' });
