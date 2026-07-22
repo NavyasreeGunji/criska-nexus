@@ -400,9 +400,9 @@ export default function LeavePage() {
 
       {/* Apply Leave Dialog */}
       <Dialog open={applyOpen} onClose={() => setApplyOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle fontWeight={700}>Apply for Leave</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2.5} sx={{ mt: 1 }}>
+        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Apply for Leave</DialogTitle>
+        <DialogContent sx={{ px: 3, pt: '12px !important', pb: 1 }}>
+          <Stack spacing={2}>
             {applyError && <Alert severity="error">{applyError}</Alert>}
             <FormControl fullWidth size="small">
               <InputLabel>Leave Type</InputLabel>
@@ -413,7 +413,7 @@ export default function LeavePage() {
                 <MenuItem value="lop">Loss of Pay (LOP)</MenuItem>
               </Select>
             </FormControl>
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={1.5}>
               <TextField fullWidth size="small" label="From Date" type="date" InputLabelProps={{ shrink: true }}
                 value={applyForm.fromDate}
                 onChange={(e) => setApplyForm(f => ({ ...f, fromDate: e.target.value }))} />
@@ -423,7 +423,7 @@ export default function LeavePage() {
                 onChange={(e) => setApplyForm(f => ({ ...f, toDate: e.target.value }))} />
             </Stack>
             {workingDays > 0 && (
-              <Alert severity="info" icon={false}>
+              <Alert severity="info" icon={false} sx={{ py: 0.5 }}>
                 <strong>{workingDays} working day{workingDays !== 1 ? 's' : ''}</strong> (weekends excluded)
               </Alert>
             )}
@@ -431,9 +431,9 @@ export default function LeavePage() {
               value={applyForm.reason}
               onChange={(e) => setApplyForm(f => ({ ...f, reason: e.target.value }))} />
             {myBalance && (
-              <Box sx={{ bgcolor: '#F8FAFC', borderRadius: 1, p: 1.5 }}>
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>YOUR BALANCE</Typography>
-                <Stack direction="row" spacing={3} sx={{ mt: 0.5 }}>
+              <Box sx={{ bgcolor: '#F8FAFC', borderRadius: 1, p: 1.5, border: '1px solid #E2E8F0' }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ letterSpacing: 0.5 }}>YOUR BALANCE</Typography>
+                <Stack direction="row" spacing={4} sx={{ mt: 0.5 }}>
                   <Typography variant="body2">CL: <b>{myBalance.casualTotal - myBalance.casualUsed}</b> left</Typography>
                   <Typography variant="body2">SL: <b>{myBalance.sickTotal - myBalance.sickUsed}</b> left</Typography>
                 </Stack>
@@ -441,7 +441,7 @@ export default function LeavePage() {
             )}
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setApplyOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleApply} disabled={applying}>
             {applying ? 'Submitting…' : 'Submit Request'}
