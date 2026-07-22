@@ -37,7 +37,7 @@ export default function AppRoutes() {
         <Route path="/deployments" element={<DeploymentsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/login-activity" element={isPrivileged ? <LoginActivityPage /> : <Navigate to="/" replace />} />
-        <Route path="/leave" element={isAdmin ? <LeavePage /> : <Navigate to="/" replace />} />
+        <Route path="/leave" element={isPrivileged ? <LeavePage /> : <Navigate to="/" replace />} />
         <Route path="/help" element={<HelpPage />} />
       </Routes>
     </MainLayout>

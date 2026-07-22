@@ -70,7 +70,7 @@ const navItems = [
   { label: 'Deployments', icon: <RocketLaunchIcon />, path: '/deployments' },
   { label: 'Reports', icon: <BarChartIcon />, path: '/reports' },
   { label: 'Login Activity', icon: <PersonSearchIcon />, path: '/login-activity', roles: PRIVILEGED_ROLES },
-  { label: 'Leave Management', icon: <BeachAccessIcon />, path: '/leave', roles: ['Admin'] },
+  { label: 'Leave Management', icon: <BeachAccessIcon />, path: '/leave', roles: ['Admin', 'Manager', 'HR'] },
   { label: 'Help', icon: <HelpOutlineIcon />, path: '/help' },
 ];
 
