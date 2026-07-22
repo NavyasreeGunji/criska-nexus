@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, createTheme } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import AppRoutes from './AppRoutes';
 import { AppProvider } from './context/AppContext';
 import { ThemeModeProvider, useThemeMode } from './context/ThemeContext';
@@ -51,12 +53,14 @@ function ThemedApp() {
 
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AppProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </AppProvider>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <CssBaseline />
+        <AppProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AppProvider>
+      </LocalizationProvider>
     </ThemeProvider>
   );
 }

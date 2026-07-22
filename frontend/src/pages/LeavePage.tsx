@@ -6,6 +6,8 @@ import {
   TextField, MenuItem, Select, FormControl, InputLabel,
   IconButton, Tooltip, Alert, LinearProgress,
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs, { Dayjs } from 'dayjs';
 import BeachAccessIcon from '@mui/icons-material/BeachAccess';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -414,13 +416,19 @@ export default function LeavePage() {
               </Select>
             </FormControl>
             <Stack direction="row" spacing={1.5}>
-              <TextField fullWidth size="small" label="From Date" type="date" InputLabelProps={{ shrink: true }}
-                value={applyForm.fromDate}
-                onChange={(e) => setApplyForm(f => ({ ...f, fromDate: e.target.value }))} />
-              <TextField fullWidth size="small" label="To Date" type="date" InputLabelProps={{ shrink: true }}
-                value={applyForm.toDate}
-                inputProps={{ min: applyForm.fromDate }}
-                onChange={(e) => setApplyForm(f => ({ ...f, toDate: e.target.value }))} />
+              <DatePicker
+                label="From Date"
+                value={applyForm.fromDate ? dayjs(applyForm.fromDate) : null}
+                onChange={(d: Dayjs | null) => setApplyForm(f => ({ ...f, fromDate: d ? d.format('YYYY-MM-DD') : '' }))}
+                slotProps={{ textField: { size: 'small', fullWidth: true } }}
+              />
+              <DatePicker
+                label="To Date"
+                value={applyForm.toDate ? dayjs(applyForm.toDate) : null}
+                minDate={applyForm.fromDate ? dayjs(applyForm.fromDate) : undefined}
+                onChange={(d: Dayjs | null) => setApplyForm(f => ({ ...f, toDate: d ? d.format('YYYY-MM-DD') : '' }))}
+                slotProps={{ textField: { size: 'small', fullWidth: true } }}
+              />
             </Stack>
             {workingDays > 0 && (
               <Alert severity="info" icon={false} sx={{ py: 0.5 }}>
