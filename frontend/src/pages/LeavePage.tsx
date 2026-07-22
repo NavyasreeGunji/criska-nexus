@@ -91,7 +91,8 @@ export default function LeavePage() {
 
   // Apply dialog
   const [applyOpen, setApplyOpen] = useState(false);
-  const [applyForm, setApplyForm] = useState({ leaveType: 'casual', fromDate: '', toDate: '', reason: '' });
+  const today = dayjs().format('YYYY-MM-DD');
+  const [applyForm, setApplyForm] = useState({ leaveType: 'casual', fromDate: today, toDate: today, reason: '' });
   const [applyError, setApplyError] = useState('');
   const [applying, setSaving] = useState(false);
 
@@ -139,7 +140,7 @@ export default function LeavePage() {
     try {
       await apiApplyLeave({ employeeName: currentUser!.name, ...applyForm });
       setApplyOpen(false);
-      setApplyForm({ leaveType: 'casual', fromDate: '', toDate: '', reason: '' });
+      setApplyForm({ leaveType: 'casual', fromDate: today, toDate: today, reason: '' });
       reload();
     } catch (e: any) { setApplyError(e.message); }
     finally { setSaving(false); }
@@ -194,7 +195,7 @@ export default function LeavePage() {
           </Box>
         </Stack>
         {canApply && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setApplyForm({ leaveType: 'casual', fromDate: '', toDate: '', reason: '' }); setApplyError(''); setApplyOpen(true); }}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setApplyForm({ leaveType: 'casual', fromDate: today, toDate: today, reason: '' }); setApplyError(''); setApplyOpen(true); }}>
             Apply Leave
           </Button>
         )}
