@@ -217,9 +217,9 @@ export default function LeavePage() {
         <Stack direction="row" spacing={2} sx={{ mb: 3 }} flexWrap="wrap">
           <BalanceCard label="Casual Leave" total={myBalance.casualTotal} used={myBalance.casualUsed} color="#0891b2" />
           <BalanceCard label="Sick Leave" total={myBalance.sickTotal} used={myBalance.sickUsed} color="#7C3AED" />
-          <Paper sx={{ p: 2, flex: 1, minWidth: 140, border: '1.5px solid #bbf7d0' }}>
-            <Typography variant="caption" color="#16a34a" fontWeight={600}>Carry Forward</Typography>
-            <Typography variant="h5" fontWeight={800} color={myBalance.carryForward > 0 ? '#16a34a' : 'text.secondary'} sx={{ my: 0.5 }}>
+          <Paper sx={{ p: 2, flex: 1, minWidth: 140, border: '1.5px solid', borderColor: myBalance.carryForward > 0 ? '#16a34a' : 'divider' }}>
+            <Typography variant="caption" color={myBalance.carryForward > 0 ? '#16a34a' : 'text.secondary'} fontWeight={600}>Carry Forward</Typography>
+            <Typography variant="h5" fontWeight={800} color={myBalance.carryForward > 0 ? '#16a34a' : 'text.disabled'} sx={{ my: 0.5 }}>
               {myBalance.carryForward > 0 ? `+${myBalance.carryForward}` : '0'}
             </Typography>
             <Typography variant="caption" color="text.secondary">days from prev year</Typography>
@@ -489,11 +489,14 @@ export default function LeavePage() {
                 onChange={(e) => setApplyForm(f => ({ ...f, reason: e.target.value }))} />
             </Box>
             {myBalance && (
-              <Box sx={{ bgcolor: '#F8FAFC', borderRadius: 1, p: 1.5, border: '1px solid #E2E8F0' }}>
+              <Box sx={{ bgcolor: 'action.hover', borderRadius: 1, p: 1.5, border: '1px solid', borderColor: 'divider' }}>
                 <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ letterSpacing: 0.5 }}>YOUR BALANCE</Typography>
-                <Stack direction="row" spacing={4} sx={{ mt: 0.5 }}>
+                <Stack direction="row" spacing={3} sx={{ mt: 0.5 }} flexWrap="wrap">
                   <Typography variant="body2">CL: <b>{myBalance.casualTotal - myBalance.casualUsed}</b> left</Typography>
                   <Typography variant="body2">SL: <b>{myBalance.sickTotal - myBalance.sickUsed}</b> left</Typography>
+                  {myBalance.carryForward > 0 && (
+                    <Typography variant="body2" color="#16a34a">CF: <b>+{myBalance.carryForward}</b> days</Typography>
+                  )}
                 </Stack>
               </Box>
             )}
