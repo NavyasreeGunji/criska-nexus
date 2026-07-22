@@ -70,7 +70,7 @@ function BalanceCard({ label, total, used, color }: BalanceCardProps) {
         {remaining}<Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>/ {total}</Typography>
       </Typography>
       <LinearProgress variant="determinate" value={Math.min(pct, 100)}
-        sx={{ height: 4, borderRadius: 2, bgcolor: '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: color } }} />
+        sx={{ height: 4, borderRadius: 2, bgcolor: 'action.selected', '& .MuiLinearProgress-bar': { bgcolor: color } }} />
       <Typography variant="caption" color="text.secondary">{used} used</Typography>
     </Paper>
   );
@@ -252,16 +252,16 @@ export default function LeavePage() {
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                  {canViewAll && tab === 1 && <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Employee</TableCell>}
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Type</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>From</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>To</TableCell>
+                <TableRow sx={{ bgcolor: 'action.hover' }}>
+                  {canViewAll && tab === 1 && <TableCell sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>Employee</TableCell>}
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>Type</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>From</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>To</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>Days</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Reason</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Applied On</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Reviewed By</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>Reason</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>Applied On</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>Reviewed By</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -359,8 +359,8 @@ export default function LeavePage() {
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Employee</TableCell>
+                <TableRow sx={{ bgcolor: 'action.hover' }}>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>Employee</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>CL Used / Total</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', textAlign: 'center' }}>SL Used / Total</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#16a34a', textAlign: 'center' }}>Carry Fwd</TableCell>
@@ -496,8 +496,8 @@ export default function LeavePage() {
               <Box sx={{ bgcolor: 'action.hover', borderRadius: 1, p: 1.5, border: '1px solid', borderColor: 'divider' }}>
                 <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ letterSpacing: 0.5 }}>YOUR BALANCE</Typography>
                 <Stack direction="row" spacing={3} sx={{ mt: 0.5 }} flexWrap="wrap">
-                  <Typography variant="body2">CL: <b>{myBalance.casualTotal - myBalance.casualUsed}</b> left</Typography>
-                  <Typography variant="body2">SL: <b>{myBalance.sickTotal - myBalance.sickUsed}</b> left</Typography>
+                  <Typography variant="body2" color="text.primary">CL: <b>{myBalance.casualTotal - myBalance.casualUsed}</b> left</Typography>
+                  <Typography variant="body2" color="text.primary">SL: <b>{myBalance.sickTotal - myBalance.sickUsed}</b> left</Typography>
                   {myBalance.carryForward > 0 && (
                     <Typography variant="body2" color="#16a34a">CF: <b>+{myBalance.carryForward}</b> days</Typography>
                   )}
