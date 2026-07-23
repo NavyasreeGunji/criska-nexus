@@ -453,8 +453,8 @@ export default function LeavePage() {
                 onChange={(e) => setApplyForm(f => ({ ...f, leaveType: e.target.value }))}>
                 <MenuItem value="casual">Casual Leave (CL)</MenuItem>
                 <MenuItem value="sick">Sick Leave (SL)</MenuItem>
-                <MenuItem value="carry_forward" disabled={!myBalance || (myBalance.carryForward ?? 0) <= 0}>
-                  Carry Forward{myBalance && (myBalance.carryForward ?? 0) > 0 ? ` (${myBalance.carryForward} days available)` : ' (none available)'}
+                <MenuItem value="carry_forward">
+                  Carry Forward{myBalance && (myBalance.carryForward ?? 0) > 0 ? ` (${myBalance.carryForward} days available)` : ''}
                 </MenuItem>
                 <MenuItem value="lop">Loss of Pay (LOP)</MenuItem>
               </Select>
