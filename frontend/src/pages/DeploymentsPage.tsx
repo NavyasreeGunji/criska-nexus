@@ -59,7 +59,7 @@ const emptyForm = (): Omit<Deployment, 'id'> => ({
   hours: undefined,
 });
 
-const PRIVILEGED_ROLES = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
+const PRIVILEGED_ROLES = ['Admin', 'Managing Director', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
 
 export default function DeploymentsPage() {
   const { developerProfiles, backendOnline, backendChecked, currentUser } = useApp();

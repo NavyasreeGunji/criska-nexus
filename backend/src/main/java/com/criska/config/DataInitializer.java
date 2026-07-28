@@ -57,11 +57,12 @@ public class DataInitializer implements CommandLineRunner {
         migrateProjectTypes();
         migratePasswordsIfBlank("criska@123");
         migrateRole("navya.gunji", "HR");
+        migrateRole("praneeth", "Managing Director");
 
         if (developerRepository.count() > 0) return;
 
         List<Developer> developers = List.of(
-            dev("Praneeth",           "praneeth@criskasecurity.com",    "Manager",     "1,2", "praneeth",           "Client,Internal"),
+            dev("Praneeth",           "praneeth@criskasecurity.com",    "Managing Director", "1,2", "praneeth",           "Client,Internal"),
             dev("Anil Yerupala",      "anil.y@criskasecurity.com",      "Tech Lead",   "1,2", "anil.yerupala",      "Client,Internal"),
             dev("Navya Sree Gunji",   "navya.sree@criskasecurity.com",  "HR",          "1",   "navya.gunji",        "Client"),
             dev("Nagaraju Gunji",     "nagaraju@criskasecurity.com",    "Developer",   "1",   "nagaraju.gunji",     "Client"),

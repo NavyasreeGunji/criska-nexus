@@ -89,7 +89,7 @@ const emptyForm = (teamId = '', sprintId = ''): Omit<Story, 'id'> => ({
   teamId, sprintId,
 });
 
-const PRIVILEGED_ROLES = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
+const PRIVILEGED_ROLES = ['Admin', 'Managing Director', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
 
 // ─── Kanban board ─────────────────────────────────────────────────────────────
 

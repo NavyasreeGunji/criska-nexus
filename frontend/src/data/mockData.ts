@@ -88,7 +88,7 @@ export interface Deployment {
   hours?: number;
 }
 
-export type DeveloperRole = 'Developer' | 'Senior Developer' | 'Full Stack Engineer' | 'Senior Full Stack Engineer' | 'QA Engineer' | 'DevOps' | 'Tech Lead' | 'Manager' | 'HR' | 'Sprint Master' | 'Associate Manager' | 'Delivery Manager' | 'Technical Manager' | 'Security Consultant' | 'Senior Security Consultant' | 'Admin';
+export type DeveloperRole = 'Developer' | 'Senior Developer' | 'Full Stack Engineer' | 'Senior Full Stack Engineer' | 'QA Engineer' | 'DevOps' | 'Tech Lead' | 'Manager' | 'HR' | 'Sprint Master' | 'Associate Manager' | 'Delivery Manager' | 'Technical Manager' | 'Security Consultant' | 'Senior Security Consultant' | 'Admin' | 'Managing Director';
 export type ProjectType = 'Client' | 'Internal';
 
 export interface DeveloperProfile {

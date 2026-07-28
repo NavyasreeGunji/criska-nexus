@@ -1,1 +1,1 @@
-export const PRIVILEGED_ROLES = ['Admin', 'Manager', 'HR'];
+export const PRIVILEGED_ROLES = ['Admin', 'Managing Director', 'Manager', 'HR'];

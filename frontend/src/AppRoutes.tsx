@@ -23,7 +23,7 @@ export default function AppRoutes() {
   if (!currentUser) return <LoginPage />;
 
   const isPrivileged = PRIVILEGED_ROLES.includes(currentUser.role);
-  const isAdmin = currentUser.role === 'Admin';
+  const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Managing Director';
 
   return (
     <MainLayout>

@@ -79,10 +79,10 @@ function BalanceCard({ label, total, used, color }: BalanceCardProps) {
 export default function LeavePage() {
   const { currentUser, developerProfiles } = useApp();
   const role = currentUser?.role ?? '';
-  const canViewAll       = role === 'Admin' || role === 'Manager';
+  const canViewAll       = role === 'Admin' || role === 'Managing Director' || role === 'Manager';
   const canApply         = role === 'HR';
-  const canApproveReject = role === 'Admin';
-  const canDelete        = role === 'Admin';
+  const canApproveReject = role === 'Admin' || role === 'Managing Director';
+  const canDelete        = role === 'Admin' || role === 'Managing Director';
   const currentYear = new Date().getFullYear();
 
   const [tab, setTab] = useState(0);

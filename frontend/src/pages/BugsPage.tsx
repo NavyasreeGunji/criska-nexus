@@ -58,7 +58,7 @@ const emptyForm = (): Omit<Bug, 'id'> => ({
   createdDate: new Date().toISOString().slice(0, 10), resolvedDate: '',
 });
 
-const PRIVILEGED_ROLES = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
+const PRIVILEGED_ROLES = ['Admin', 'Managing Director', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'HR'];
 
 // ─── Comments section ─────────────────────────────────────────────────────────
 

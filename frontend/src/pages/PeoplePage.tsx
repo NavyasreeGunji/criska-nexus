@@ -49,6 +49,7 @@ const roleConfig: Record<DeveloperRole, { color: string; bg: string }> = {
   'Security Consultant': { color: '#b91c1c', bg: '#fee2e2' },
   'Senior Security Consultant': { color: '#991b1b', bg: '#fecaca' },
   Admin: { color: '#1e293b', bg: '#e2e8f0' },
+  'Managing Director': { color: '#0f172a', bg: '#cbd5e1' },
 };
 
 const roles: DeveloperRole[] = [
@@ -56,11 +57,12 @@ const roles: DeveloperRole[] = [
   'QA Engineer', 'DevOps', 'Tech Lead',
   'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager',
   'Security Consultant', 'Senior Security Consultant',
-  'Admin', 'HR', 'Sprint Master',
+  'Admin', 'Managing Director', 'HR', 'Sprint Master',
 ];
 
 const ROLE_PRIORITY: Record<DeveloperRole, number> = {
   Admin: 1,
+  'Managing Director': 1,
   Manager: 2,
   'Technical Manager': 3,
   'Delivery Manager': 4,
@@ -106,9 +108,9 @@ function isValidName(name: string): boolean {
 export default function PeoplePage() {
   const { teams, developerProfiles, currentUser, addDeveloper, updateDeveloper, updateTeam, deleteDeveloper } = useApp();
 
-  const PRIVILEGED_ROLES: DeveloperRole[] = ['Admin', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'Tech Lead', 'HR', 'Sprint Master'];
+  const PRIVILEGED_ROLES: DeveloperRole[] = ['Admin', 'Managing Director', 'Manager', 'Associate Manager', 'Delivery Manager', 'Technical Manager', 'Tech Lead', 'HR', 'Sprint Master'];
   const canEditAll = currentUser ? PRIVILEGED_ROLES.includes(currentUser.role) : false;
-  const canDelete = currentUser?.role === 'Manager';
+  const canDelete = currentUser?.role === 'Manager' || currentUser?.role === 'Managing Director';
   const canEdit = (dev: DeveloperProfile) => canEditAll || currentUser?.id === dev.id;
   const [filterRole, setFilterRole] = useState('all');
   const [filterTeam, setFilterTeam] = useState('all');
