@@ -126,7 +126,7 @@ export default function ReportsPage() {
       byAssignee
         .map((row) => ({ name: row.dev, points: row.total }))
         .filter((r) => r.points > 0)
-        .sort((a, b) => a.points - b.points),
+        .sort((a, b) => b.points - a.points),
     [byAssignee]
   );
 
