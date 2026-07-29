@@ -30,6 +30,8 @@ import {
   CircularProgress,
   InputBase,
   Chip,
+  Tab,
+  Tabs,
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
@@ -46,6 +48,7 @@ import LockResetIcon from '@mui/icons-material/LockReset';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import PersonIcon from '@mui/icons-material/Person';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -56,6 +59,11 @@ import { useApp } from '../context/AppContext';
 import { useThemeMode } from '../context/ThemeContext';
 import { PRIVILEGED_ROLES } from '../constants/roles';
 import { apiChangePassword, apiSearch, SearchResults } from '../api/api';
+import HelpPage from '../pages/HelpPage';
+import styles, {
+  getLogoBoxSx, getNavListSx, getNavButtonSx, getNavIconSx,
+  getUserBoxSx, getUserAvatarSx, getProfileAvatarSx, getSearchBoxSx,
+} from './MainLayout.styles';
 
 const DRAWER_WIDTH = 240;
 const COLLAPSED_WIDTH = 64;
@@ -65,26 +73,33 @@ const navItems = [
   { label: 'People', icon: <PeopleIcon />, path: '/people' },
   { label: 'Teams', icon: <GroupsIcon />, path: '/teams' },
   { label: 'Stories', icon: <AssignmentIcon />, path: '/stories' },
-  { label: 'Timesheet', icon: <EventNoteIcon />, path: '/daily-log' },
+  { label: 'Timesheet', icon: <EventNoteIcon />, path: '/timesheet' },
   { label: 'Bugs & Issues', icon: <BugReportIcon />, path: '/bugs' },
   { label: 'Deployments', icon: <RocketLaunchIcon />, path: '/deployments' },
   { label: 'Reports', icon: <BarChartIcon />, path: '/reports' },
   { label: 'Login Activity', icon: <PersonSearchIcon />, path: '/login-activity', roles: PRIVILEGED_ROLES },
   { label: 'Leave Management', icon: <BeachAccessIcon />, path: '/leave', roles: ['Admin', 'Managing Director', 'Manager', 'HR'] },
-  { label: 'Help', icon: <HelpOutlineIcon />, path: '/help' },
 ];
 
-function avatarColor(name: string) {
-  const colors = ['#2563EB', '#7C3AED', '#16a34a', '#d97706', '#dc2626', '#0891b2', '#be185d'];
+function avatarBg(name: string) {
+  const gradients = [
+    'linear-gradient(135deg, #667eea, #764ba2)',
+    'linear-gradient(135deg, #f093fb, #f5576c)',
+    'linear-gradient(135deg, #4facfe, #00f2fe)',
+    'linear-gradient(135deg, #43e97b, #38f9d7)',
+    'linear-gradient(135deg, #fa709a, #fee140)',
+    'linear-gradient(135deg, #a18cd1, #fbc2eb)',
+    'linear-gradient(135deg, #30cfd0, #330867)',
+  ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return colors[Math.abs(hash) % colors.length];
+  return gradients[Math.abs(hash) % gradients.length];
 }
 
 function DrawerContent({ isOpen, onNavigate }: { isOpen: boolean; onNavigate: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, logout } = useApp();
+  const { currentUser, logout, teams } = useApp();
   const visibleNavItems = navItems.filter((item) =>
     !item.roles || (currentUser && item.roles.includes(currentUser.role))
   );
@@ -92,6 +107,8 @@ function DrawerContent({ isOpen, onNavigate }: { isOpen: boolean; onNavigate: ()
     ? currentUser.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : '?';
 
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileTab, setProfileTab] = useState(0);
   const [pwOpen, setPwOpen] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
   const [pwShow, setPwShow] = useState({ current: false, next: false, confirm: false });
@@ -143,53 +160,36 @@ function DrawerContent({ isOpen, onNavigate }: { isOpen: boolean; onNavigate: ()
   );
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <Box sx={{
-        px: isOpen ? 2.5 : 1, pt: 2.5, pb: 1.5,
-        display: 'flex', alignItems: 'center', gap: isOpen ? 1.25 : 0,
-        justifyContent: isOpen ? 'flex-start' : 'center',
-        transition: 'padding 0.25s ease', minHeight: 72,
-      }}>
-        <Box sx={{
-          width: 44, height: 44, borderRadius: '10px',
-          background: 'rgba(255,255,255,0.15)',
-          border: '1px solid rgba(255,255,255,0.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>
-          <Typography sx={{ fontSize: 14, fontWeight: 900, color: 'white', letterSpacing: 0.5 }}>CN</Typography>
+    <Box sx={styles.drawerContainer}>
+      <Box sx={getLogoBoxSx(isOpen)}>
+        <Box sx={styles.iconBox}>
+          <Typography sx={styles.logoText}>CN</Typography>
         </Box>
         {isOpen && (
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 900, color: 'white', letterSpacing: 1, lineHeight: 1.2, fontSize: 15 }}>
+            <Typography sx={styles.companyName}>
               CRISKA NEXUS & SOLUTIONS
             </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap' }}>
+            <Typography variant="caption" sx={styles.companyCaption}>
               Project Management Portal
             </Typography>
           </Box>
         )}
       </Box>
 
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Divider sx={styles.drawerDivider} />
 
-      <List sx={{ px: isOpen ? 1.5 : 0.75, py: 1.5, flexGrow: 1 }}>
+      <List sx={getNavListSx(isOpen)}>
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
-            <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>
+            <ListItem key={item.label} disablePadding sx={styles.navItemContainer}>
               <Tooltip title={!isOpen ? item.label : ''} placement="right">
                 <ListItemButton
                   onClick={() => { navigate(item.path); onNavigate(); }}
-                  sx={{
-                    borderRadius: 2,
-                    color: isActive ? 'white' : 'rgba(255,255,255,0.55)',
-                    bgcolor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.07)', color: 'white' },
-                    justifyContent: isOpen ? 'flex-start' : 'center',
-                    px: isOpen ? 1.5 : 1, minHeight: 42,
-                  }}
+                  sx={getNavButtonSx(isActive, isOpen)}
                 >
-                  <ListItemIcon sx={{ color: 'inherit', minWidth: isOpen ? 38 : 0, justifyContent: 'center' }}>
+                  <ListItemIcon sx={getNavIconSx(isOpen)}>
                     {item.icon}
                   </ListItemIcon>
                   {isOpen && (
@@ -205,82 +205,145 @@ function DrawerContent({ isOpen, onNavigate }: { isOpen: boolean; onNavigate: ()
         })}
       </List>
 
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Divider sx={styles.drawerDivider} />
 
-      <Box sx={{
-        px: isOpen ? 2 : 1, py: 1.5,
-        display: 'flex', alignItems: 'center', gap: 1,
-        justifyContent: isOpen ? 'flex-start' : 'center', overflow: 'hidden',
-      }}>
-        <Tooltip title={!isOpen ? (currentUser?.name ?? '') : ''} placement="right">
-          <Avatar sx={{
-            width: 34, height: 34, fontSize: 13, flexShrink: 0,
-            bgcolor: currentUser ? avatarColor(currentUser.name) : '#2563EB', fontWeight: 600,
-          }}>
+      <Box sx={getUserBoxSx(isOpen)}>
+        <Tooltip title={!isOpen ? `${currentUser?.name ?? ''} — click to view profile` : 'View profile'} placement="right">
+          <Avatar
+            onClick={() => { setProfileOpen(true); setProfileTab(0); }}
+            sx={getUserAvatarSx(currentUser ? avatarBg(currentUser.name) : 'linear-gradient(135deg,#667eea,#764ba2)')}
+          >
             {userInitials}
           </Avatar>
         </Tooltip>
         {isOpen && (
-          <Box sx={{ flexGrow: 1, minWidth: 0, overflow: 'hidden' }}>
+          <Box
+            onClick={() => { setProfileOpen(true); setProfileTab(0); }}
+            sx={styles.userClickBox}
+          >
             <Typography variant="body2" fontWeight={600} color="white" fontSize={13} noWrap>
               {currentUser?.name ?? ''}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', display: 'block' }} noWrap>
+            <Typography variant="caption" sx={styles.userCaption} noWrap>
               {currentUser?.role ?? ''}
             </Typography>
           </Box>
         )}
         {isOpen && (
-          <Box sx={{ display: 'flex', flexShrink: 0 }}>
-            <Tooltip title="Change password" placement="top">
-              <IconButton onClick={() => setPwOpen(true)}
-                sx={{ color: 'rgba(255,255,255,0.55)', '&:hover': { color: 'white' } }}>
-                <LockResetIcon sx={{ fontSize: '1.8rem' }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Sign out" placement="top">
-              <IconButton size="small" onClick={logout}
-                sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white' } }}>
-                <LogoutIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
+          <Tooltip title="Sign out" placement="top">
+            <IconButton size="small" onClick={logout}
+              sx={styles.logoutBtn}>
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         )}
       </Box>
 
-      <Dialog open={pwOpen} onClose={closePwDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Change Password</DialogTitle>
-        <DialogContent>
-          {pwSuccess ? (
-            <Alert severity="success" sx={{ mt: 1 }}>Password changed successfully!</Alert>
-          ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              {pwError && <Alert severity="error">{pwError}</Alert>}
-              <TextField label="Current Password" type={pwShow.current ? 'text' : 'password'} value={pwForm.current}
-                onChange={(e) => setPwForm((f) => ({ ...f, current: e.target.value }))}
-                size="small" fullWidth autoComplete="current-password"
-                InputProps={{ endAdornment: eyeBtn('current') }} />
-              <TextField label="New Password" type={pwShow.next ? 'text' : 'password'} value={pwForm.next}
-                onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
-                onFocus={() => setPwNextFocused(true)} onBlur={() => setPwNextFocused(false)}
-                size="small" fullWidth autoComplete="new-password"
-                helperText={pwNextFocused ? 'Min 8 chars, at least one number and one special character (@, #, ! …)' : ''}
-                InputProps={{ endAdornment: eyeBtn('next') }} />
-              <TextField label="Confirm New Password" type={pwShow.confirm ? 'text' : 'password'} value={pwForm.confirm}
-                onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
-                size="small" fullWidth autoComplete="new-password"
-                InputProps={{ endAdornment: eyeBtn('confirm') }} />
+      {/* Profile Dialog with tabs */}
+      <Dialog
+        open={profileOpen}
+        onClose={() => { setProfileOpen(false); closePwDialog(); }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        {/* Header */}
+        <Box sx={styles.profileHeader}>
+          <Avatar sx={getProfileAvatarSx(currentUser ? avatarBg(currentUser.name) : 'linear-gradient(135deg,#667eea,#764ba2)')}>
+            {userInitials}
+          </Avatar>
+          <Box sx={styles.profileNameBox}>
+            <Typography fontWeight={700} fontSize={17}>{currentUser?.name}</Typography>
+            <Typography variant="body2" color="text.secondary">{currentUser?.role}</Typography>
+          </Box>
+          <IconButton onClick={() => { setProfileOpen(false); closePwDialog(); }} sx={styles.profileCloseBtn}>
+            <Typography sx={{ fontSize: 16, lineHeight: 1 }}>✕</Typography>
+          </IconButton>
+        </Box>
+
+        <Tabs
+          value={profileTab}
+          onChange={(_, v) => { setProfileTab(v); setPwError(''); setPwSuccess(false); }}
+          sx={styles.profileTabs}
+        >
+          <Tab icon={<PersonIcon sx={styles.profileTabIcon} />} iconPosition="start" label="Profile" sx={styles.profileTabItem} />
+          <Tab icon={<LockResetIcon sx={styles.profileTabIcon} />} iconPosition="start" label="Change Password" sx={styles.profileTabItem} />
+          <Tab icon={<HelpOutlineIcon sx={styles.profileTabIcon} />} iconPosition="start" label="Help" sx={styles.profileTabItem} />
+        </Tabs>
+
+        <DialogContent sx={styles.profileContent}>
+          {/* Profile tab */}
+          {profileTab === 0 && (
+            <Box sx={styles.profileFields}>
+              {[
+                { label: 'Full Name', value: currentUser?.name },
+                { label: 'Email', value: currentUser?.email },
+                { label: 'Username', value: currentUser?.username },
+                { label: 'Role', value: currentUser?.role },
+                {
+                  label: 'Teams',
+                  value: currentUser?.teamIds
+                    ?.map((id) => teams.find((t) => t.id === id)?.name)
+                    .filter(Boolean)
+                    .join(', ') || '—',
+                },
+              ].map(({ label, value }) => (
+                <Box key={label} sx={styles.profileField}>
+                  <Typography variant="body2" color="text.secondary" sx={styles.profileLabel}>
+                    {label}
+                  </Typography>
+                  <Typography variant="body2" fontWeight={500}>{value || '—'}</Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
+
+          {/* Change Password tab */}
+          {profileTab === 1 && (
+            pwSuccess ? (
+              <Alert severity="success">Password changed successfully!</Alert>
+            ) : (
+              <Box sx={styles.profileFields}>
+                {pwError && <Alert severity="error">{pwError}</Alert>}
+                <TextField label="Current Password" type={pwShow.current ? 'text' : 'password'} value={pwForm.current}
+                  onChange={(e) => setPwForm((f) => ({ ...f, current: e.target.value }))}
+                  size="small" fullWidth autoComplete="current-password"
+                  InputProps={{ endAdornment: eyeBtn('current') }} />
+                <TextField label="New Password" type={pwShow.next ? 'text' : 'password'} value={pwForm.next}
+                  onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
+                  onFocus={() => setPwNextFocused(true)} onBlur={() => setPwNextFocused(false)}
+                  size="small" fullWidth autoComplete="new-password"
+                  helperText={pwNextFocused ? 'Min 8 chars, at least one number and one special character (@, #, ! …)' : ''}
+                  InputProps={{ endAdornment: eyeBtn('next') }} />
+                <TextField label="Confirm New Password" type={pwShow.confirm ? 'text' : 'password'} value={pwForm.confirm}
+                  onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
+                  size="small" fullWidth autoComplete="new-password"
+                  InputProps={{ endAdornment: eyeBtn('confirm') }} />
+              </Box>
+            )
+          )}
+
+          {/* Help tab */}
+          {profileTab === 2 && (
+            <Box sx={styles.helpBox}>
+              <HelpPage />
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closePwDialog}>{pwSuccess ? 'Close' : 'Cancel'}</Button>
-          {!pwSuccess && (
+
+        {profileTab === 1 && !pwSuccess && (
+          <DialogActions sx={styles.dialogActions}>
+            <Button onClick={() => { setProfileOpen(false); closePwDialog(); }}>Cancel</Button>
             <Button onClick={handleChangePw} variant="contained" disabled={pwSaving}>
               {pwSaving ? 'Saving…' : 'Change Password'}
             </Button>
-          )}
-        </DialogActions>
+          </DialogActions>
+        )}
+        {pwSuccess && profileTab === 1 && (
+          <DialogActions sx={styles.dialogActions}>
+            <Button onClick={() => { setProfileOpen(false); closePwDialog(); }}>Close</Button>
+          </DialogActions>
+        )}
       </Dialog>
     </Box>
   );
@@ -328,49 +391,40 @@ function GlobalSearch() {
 
   return (
     <ClickAwayListener onClickAway={() => setOpen(false)}>
-      <Box ref={anchorRef} sx={{ position: 'relative', flexGrow: 1, maxWidth: 380, mx: 2 }}>
-        <Box sx={{
-          display: 'flex', alignItems: 'center', gap: 1,
-          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
-          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#E2E8F0'}`,
-          borderRadius: 2, px: 1.5, py: 0.5,
-          '&:focus-within': { borderColor: 'primary.main', bgcolor: 'background.paper' },
-          transition: 'all 0.15s',
-        }}>
-          <SearchIcon sx={{ color: 'text.disabled', fontSize: 18, flexShrink: 0 }} />
+      <Box ref={anchorRef} sx={styles.searchWrapper}>
+        <Box sx={getSearchBoxSx(theme.palette.mode === 'dark')}>
+          <SearchIcon sx={styles.searchIcon} />
           <InputBase
             value={value}
             onChange={(e) => { setValue(e.target.value); if (e.target.value.length >= 2) setOpen(true); }}
             onFocus={() => { if (results && total > 0) setOpen(true); }}
             placeholder={backendOnline ? 'Search stories, bugs, people…' : 'Search (offline)'}
-            sx={{ fontSize: 13.5, flexGrow: 1 }}
+            sx={styles.searchInputBase}
             disabled={!backendOnline}
           />
-          {loading && <CircularProgress size={14} sx={{ flexShrink: 0 }} />}
+          {loading && <CircularProgress size={14} sx={styles.searchProgress} />}
           {value && (
             <IconButton size="small" onClick={() => { setValue(''); setResults(null); setOpen(false); }}
-              sx={{ p: 0.25 }}>
-              <Typography sx={{ fontSize: 12, color: 'text.disabled', lineHeight: 1 }}>✕</Typography>
+              sx={styles.clearBtn}>
+              <Typography sx={styles.clearBtnText}>✕</Typography>
             </IconButton>
           )}
         </Box>
 
         <Popper open={open && !!results && total > 0} anchorEl={anchorRef.current} placement="bottom-start"
           style={{ zIndex: 1400, width: anchorRef.current?.offsetWidth ?? 380 }}>
-          <Paper elevation={6} sx={{ mt: 0.5, maxHeight: 400, overflow: 'auto', borderRadius: 2 }}>
+          <Paper elevation={6} sx={styles.resultPaper}>
             {results && (
               <Box>
                 {results.stories.length > 0 && (
                   <Box>
-                    <Typography variant="caption" fontWeight={700} sx={{ px: 2, pt: 1.5, pb: 0.5, display: 'block', color: 'text.secondary' }}>
+                    <Typography variant="caption" fontWeight={700} sx={styles.sectionLabel}>
                       STORIES
                     </Typography>
                     {results.stories.map((r) => (
-                      <Box key={r.id} onClick={() => handleSelect(r.type)}
-                        sx={{ px: 2, py: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5,
-                          '&:hover': { bgcolor: 'action.hover' } }}>
-                        <ArticleIcon sx={{ fontSize: 16, color: 'primary.main', flexShrink: 0 }} />
-                        <Box sx={{ minWidth: 0 }}>
+                      <Box key={r.id} onClick={() => handleSelect(r.type)} sx={styles.resultItem}>
+                        <ArticleIcon sx={styles.storyIcon} />
+                        <Box sx={styles.resultInner}>
                           <Typography variant="body2" fontWeight={500} noWrap>{r.title}</Typography>
                           <Typography variant="caption" color="text.secondary" noWrap>{r.subtitle}</Typography>
                         </Box>
@@ -381,15 +435,13 @@ function GlobalSearch() {
                 {results.bugs.length > 0 && (
                   <Box>
                     <Divider />
-                    <Typography variant="caption" fontWeight={700} sx={{ px: 2, pt: 1.5, pb: 0.5, display: 'block', color: 'text.secondary' }}>
+                    <Typography variant="caption" fontWeight={700} sx={styles.sectionLabel}>
                       BUGS
                     </Typography>
                     {results.bugs.map((r) => (
-                      <Box key={r.id} onClick={() => handleSelect(r.type)}
-                        sx={{ px: 2, py: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5,
-                          '&:hover': { bgcolor: 'action.hover' } }}>
-                        <BugReportIcon sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />
-                        <Box sx={{ minWidth: 0 }}>
+                      <Box key={r.id} onClick={() => handleSelect(r.type)} sx={styles.resultItem}>
+                        <BugReportIcon sx={styles.bugIcon} />
+                        <Box sx={styles.resultInner}>
                           <Typography variant="body2" fontWeight={500} noWrap>{r.title}</Typography>
                           <Typography variant="caption" color="text.secondary" noWrap>{r.subtitle}</Typography>
                         </Box>
@@ -400,17 +452,15 @@ function GlobalSearch() {
                 {results.developers.length > 0 && (
                   <Box>
                     <Divider />
-                    <Typography variant="caption" fontWeight={700} sx={{ px: 2, pt: 1.5, pb: 0.5, display: 'block', color: 'text.secondary' }}>
+                    <Typography variant="caption" fontWeight={700} sx={styles.sectionLabel}>
                       PEOPLE
                     </Typography>
                     {results.developers.map((r) => (
-                      <Box key={r.id} onClick={() => handleSelect(r.type)}
-                        sx={{ px: 2, py: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5,
-                          '&:hover': { bgcolor: 'action.hover' } }}>
-                        <Avatar sx={{ width: 22, height: 22, fontSize: 10, fontWeight: 700, bgcolor: 'primary.main', flexShrink: 0 }}>
+                      <Box key={r.id} onClick={() => handleSelect(r.type)} sx={styles.resultItem}>
+                        <Avatar sx={styles.searchDevAvatar}>
                           {r.title.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                         </Avatar>
-                        <Box sx={{ minWidth: 0 }}>
+                        <Box sx={styles.resultInner}>
                           <Typography variant="body2" fontWeight={500} noWrap>{r.title}</Typography>
                           <Typography variant="caption" color="text.secondary" noWrap>{r.subtitle}</Typography>
                         </Box>
@@ -437,6 +487,20 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
   const activePage = navItems.find((item) => item.path === location.pathname)?.label ?? 'Dashboard';
 
+  const pageSubtitles: Record<string, string> = {
+    Dashboard: 'Overview of project health and team activity',
+    People: 'Manage team members and their roles',
+    Teams: 'Organise developers into project teams',
+    Stories: 'Track user stories and sprint work',
+    Timesheet: 'Log and review daily work hours',
+    'Bugs & Issues': 'Report and track bugs across projects',
+    Deployments: 'Monitor production deployments',
+    Reports: 'Story delivery and developer performance',
+    'Login Activity': 'Monitor team login history',
+    'Leave Management': 'Manage leave requests and balances',
+  };
+  const activeSubtitle = pageSubtitles[activePage];
+
   const drawerWidth = sidebarOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH;
 
   const paperSx = {
@@ -450,7 +514,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={styles.mainBox}>
       {!isMobile && (
         <Drawer
           variant="permanent"
@@ -472,40 +536,47 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         </Drawer>
       )}
 
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <Box sx={styles.contentBox}>
         <AppBar
           position="sticky"
           elevation={0}
-          sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', color: 'inherit' }}
+          sx={styles.appBar}
         >
           <Toolbar>
             {isMobile ? (
-              <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ mr: 1.5, color: 'text.primary' }}>
+              <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={styles.mobileMenuBtn}>
                 <MenuIcon />
               </IconButton>
             ) : (
               <Tooltip title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}>
                 <IconButton edge="start" onClick={() => setSidebarOpen((v) => !v)}
-                  sx={{ mr: 1.5, color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
+                  sx={styles.sidebarToggleBtn}>
                   <MenuIcon />
                 </IconButton>
               </Tooltip>
             )}
-            <Typography variant="h6" fontWeight={600} sx={{ color: 'text.primary', fontSize: 17, flexShrink: 0 }}>
-              {activePage}
-            </Typography>
+            <Box sx={styles.pageTitleBox}>
+              <Typography variant="h6" fontWeight={600} sx={styles.pageTitleText}>
+                {activePage}
+              </Typography>
+              {activeSubtitle && (
+                <Typography variant="caption" color="text.disabled" sx={styles.pageCaption}>
+                  {activeSubtitle}
+                </Typography>
+              )}
+            </Box>
 
             <GlobalSearch />
 
             <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-              <IconButton onClick={toggleMode} sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
+              <IconButton onClick={toggleMode} sx={styles.themeToggleBtn}>
                 {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
             </Tooltip>
           </Toolbar>
         </AppBar>
 
-        <Box sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2, md: 3 } }}>
+        <Box sx={styles.mainContent}>
           {children}
         </Box>
       </Box>

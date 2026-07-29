@@ -43,6 +43,8 @@ import { Story, Comment, initialStories, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories, apiCreateStory, apiUpdateStory, apiGetComments, apiCreateComment } from '../api/api';
 import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
+import FilterBar from '../components/FilterBar';
+import styles, { getStatBoxSx, getDueDateTextSx, getViewDueDateTextSx } from './StoriesPage.styles';
 
 const statusOptions: { value: StoryStatus; label: string; color: 'default' | 'primary' | 'warning' | 'success' | 'secondary' }[] = [
   { value: 'backlog',         label: 'Backlog',          color: 'default' },
@@ -139,7 +141,7 @@ function CommentsSection({ entityType, entityId, currentUserName, backendOnline 
         Comments {comments.length > 0 && `(${comments.length})`}
       </Typography>
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+        <Box sx={styles.loadingCenter}>
           <CircularProgress size={20} />
         </Box>
       ) : (
@@ -149,7 +151,7 @@ function CommentsSection({ entityType, entityId, currentUserName, backendOnline 
           )}
           {comments.map((c) => (
             <Box key={c.id} sx={{ display: 'flex', gap: 1.5 }}>
-              <Avatar sx={{ width: 28, height: 28, fontSize: 11, fontWeight: 700, bgcolor: 'primary.main', flexShrink: 0 }}>
+              <Avatar sx={styles.commentAvatar}>
                 {c.author.split(' ').map((n) => n[0]).join('').slice(0, 2)}
               </Avatar>
               <Box sx={{ flex: 1 }}>
@@ -159,7 +161,7 @@ function CommentsSection({ entityType, entityId, currentUserName, backendOnline 
                     {c.createdAt ? new Date(c.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                   </Typography>
                 </Stack>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{c.content}</Typography>
+                <Typography variant="body2" sx={styles.commentText}>{c.content}</Typography>
               </Box>
             </Box>
           ))}
@@ -177,7 +179,7 @@ function CommentsSection({ entityType, entityId, currentUserName, backendOnline 
           onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handlePost(); }}
         />
         <IconButton color="primary" onClick={handlePost} disabled={!newComment.trim() || posting} size="small"
-          sx={{ alignSelf: 'flex-end', mb: 0.25 }}>
+          sx={styles.sendButton}>
           {posting ? <CircularProgress size={18} /> : <SendIcon fontSize="small" />}
         </IconButton>
       </Stack>
@@ -366,14 +368,14 @@ export default function StoriesPage() {
       {/* View toggle */}
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
         <ToggleButtonGroup value={viewBy} exclusive onChange={(_, v) => v && setViewBy(v)} size="small">
-          <ToggleButton value="sprint" sx={{ gap: 0.75, px: 2 }}>
+          <ToggleButton value="sprint" sx={styles.toggleBtn}>
             <SpeedIcon fontSize="small" /> Sprint
           </ToggleButton>
-          <ToggleButton value="month" sx={{ gap: 0.75, px: 2 }}>
+          <ToggleButton value="month" sx={styles.toggleBtn}>
             <CalendarMonthIcon fontSize="small" /> Monthly
           </ToggleButton>
         </ToggleButtonGroup>
-        <Box sx={{ flexGrow: 1 }} />
+        <Box sx={styles.flexGrow} />
         <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}
           disabled={teams.length === 0 || viewBy === 'month' || selectedSprint?.status === 'completed'}>
           Add Story
@@ -388,8 +390,8 @@ export default function StoriesPage() {
 
       {/* Sprint goal banner */}
       {isSprintLike && selectedSprint?.goal && (
-        <Paper variant="outlined" sx={{ px: 2, py: 1.25, mb: 2, bgcolor: 'action.hover' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>
+        <Paper variant="outlined" sx={styles.sprintGoal}>
+          <Typography variant="body2" color="text.secondary" sx={styles.sprintGoalText}>
             <strong>Sprint Goal:</strong> {selectedSprint.goal}
             <Chip label={`${selectedSprint.startDate} → ${selectedSprint.endDate}`} size="small" variant="outlined" sx={{ ml: 1.5 }} />
           </Typography>
@@ -398,18 +400,17 @@ export default function StoriesPage() {
 
       {/* Summary bar */}
       <Paper sx={{ p: 2.5, mb: 2 }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={styles.summaryHeaderStack}>
           <Typography variant="subtitle1" fontWeight={700}>{viewLabel}</Typography>
           <Typography variant="body2" color="text.secondary">
             {baseFiltered.length} stories · {summary.total} pts
           </Typography>
         </Stack>
-        <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+        <Stack direction="row" justifyContent="space-between" sx={styles.completionRow}>
           <Typography variant="caption" color="text.secondary">Completion</Typography>
           <Typography variant="caption" fontWeight={700} color="success.main">{completionPct}%</Typography>
         </Stack>
-        <LinearProgress variant="determinate" value={completionPct}
-          sx={{ height: 8, borderRadius: 4, bgcolor: '#E2E8F0', mb: 2, '& .MuiLinearProgress-bar': { borderRadius: 4, bgcolor: '#16a34a' } }} />
+        <LinearProgress variant="determinate" value={completionPct} sx={styles.progressBar} />
         <Grid container spacing={1.5}>
           {[
             { label: 'Done',             pts: summary.done,       count: summary.doneCount,       color: '#16a34a', bg: '#dcfce7', key: 'done'           as StoryStatus },
@@ -420,10 +421,7 @@ export default function StoriesPage() {
             <Grid item xs={6} sm={3} key={stat.label}>
               <Box
                 onClick={() => setFilterStatus(filterStatus === stat.key ? 'all' : stat.key)}
-                sx={{
-                  p: 1.5, borderRadius: 2, bgcolor: stat.bg, textAlign: 'center', cursor: 'pointer',
-                  border: filterStatus === stat.key ? `2px solid ${stat.color}` : '2px solid transparent',
-                }}
+                sx={getStatBoxSx(stat.bg, stat.color, filterStatus === stat.key)}
               >
                 <Typography variant="h6" fontWeight={800} sx={{ color: stat.color }}>{stat.pts}</Typography>
                 <Typography variant="caption" fontWeight={600} sx={{ color: stat.color }}>{stat.label}</Typography>
@@ -437,13 +435,15 @@ export default function StoriesPage() {
       </Paper>
 
       {/* Filter row */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
+      <FilterBar
+        activeCount={[filterStatus !== 'all', filterAssignee !== 'all', isSprintLike && selectedTeamId !== 'all', viewBy === 'month' && !!selectedMonth].filter(Boolean).length}
+        onClearAll={() => { setFilterStatus('all'); setFilterAssignee('all'); }}
+      >
         {isSprintLike && (
           <>
             <FormControl size="small" sx={{ minWidth: 170 }}>
               <InputLabel>Team</InputLabel>
-              <Select value={selectedTeamId} label="Team"
-                onChange={(e) => { setSelectedTeamId(e.target.value); setSelectedSprintId(''); }}>
+              <Select value={selectedTeamId} label="Team" onChange={(e) => { setSelectedTeamId(e.target.value); setSelectedSprintId(''); }}>
                 <MenuItem value="all">All Teams</MenuItem>
                 {teams.map((t) => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
               </Select>
@@ -480,7 +480,6 @@ export default function StoriesPage() {
                 {statusOptions.map((o) => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
               </Select>
             </FormControl>
-
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Assignee</InputLabel>
               <Select value={filterAssignee} label="Assignee" onChange={(e) => setFilterAssignee(e.target.value)}>
@@ -488,27 +487,24 @@ export default function StoriesPage() {
                 {developerProfiles.map((d) => <MenuItem key={d.id} value={d.name}>{d.name}</MenuItem>)}
               </Select>
             </FormControl>
-            <Typography variant="body2" color="text.secondary">
-              Showing {filtered.length} of {baseFiltered.length} stories
-            </Typography>
           </>
         )}
-      </Stack>
+      </FilterBar>
 
       <Paper>
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: 'action.hover' }}>
+                <TableRow sx={styles.tableHeaderRow}>
                   {['Story No.', 'Title', 'Points', 'Status', 'Reporter', 'Assignee', 'Due Date', 'Started', 'Completed', 'Actions'].map((h) => (
-                    <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>{h}</TableCell>
+                    <TableCell key={h} sx={styles.tableHeaderCell}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {paginated.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4 }}>
+                    <TableCell colSpan={10} sx={styles.emptyTableCell}>
                       <Typography color="text.secondary">No stories found</Typography>
                     </TableCell>
                   </TableRow>
@@ -519,15 +515,14 @@ export default function StoriesPage() {
                       <TableCell>
                         <Typography variant="caption" color="primary" fontWeight={700}>{story.storyNumber || '—'}</Typography>
                       </TableCell>
-                      <TableCell sx={{ maxWidth: 200, overflow: 'hidden' }}>
+                      <TableCell sx={styles.titleCell}>
                         <Typography variant="body2" fontWeight={500}
-                          sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main', textDecoration: 'underline' },
-                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                          sx={styles.titleLink}
                           onClick={() => setViewStory(story)}>
                           {story.title}
                         </Typography>
                       </TableCell>
-                      <TableCell><Box sx={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid', borderColor: 'primary.main', color: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{story.points}</Box></TableCell>
+                      <TableCell><Box sx={styles.pointsBadge}>{story.points}</Box></TableCell>
                       <TableCell><Chip label={statusLabel(story.status)} size="small" color={statusColor(story.status)} /></TableCell>
                       <TableCell><Typography variant="body2">{story.reporter}</Typography></TableCell>
                       <TableCell><Typography variant="body2">{story.assignee}</Typography></TableCell>
@@ -536,7 +531,7 @@ export default function StoriesPage() {
                           const td = new Date().toISOString().slice(0, 10);
                           const overdue = story.dueDate < td && !story.completedDate;
                           return (
-                            <Typography variant="caption" sx={{ fontWeight: overdue ? 700 : 400, color: overdue ? '#dc2626' : 'text.secondary' }}>
+                            <Typography variant="caption" sx={getDueDateTextSx(!!overdue)}>
                               {fmtDate(story.dueDate)}
                             </Typography>
                           );
@@ -668,7 +663,7 @@ export default function StoriesPage() {
             </Stack>
           </Stack>
         </DialogContent>
-        {saveError && <Alert severity="error" sx={{ mx: 3, mb: 1 }}>{saveError}</Alert>}
+        {saveError && <Alert severity="error" sx={styles.alertBox}>{saveError}</Alert>}
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleSave} disabled={
@@ -685,7 +680,7 @@ export default function StoriesPage() {
         const sprint = sprints.find((s) => s.id === vs.sprintId);
         const team = teams.find((t) => t.id === vs.teamId);
         const td = new Date().toISOString().slice(0, 10);
-        const overdue = vs.dueDate && vs.dueDate < td && !vs.completedDate;
+        const overdue = !!(vs.dueDate && vs.dueDate < td && !vs.completedDate);
         return (
           <Dialog open={!!viewStory} onClose={() => setViewStory(null)} maxWidth="sm" fullWidth>
             <DialogTitle>
@@ -701,12 +696,12 @@ export default function StoriesPage() {
               <Stack spacing={2} sx={{ mt: 0.5 }}>
                 {vs.description && (
                   <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 0.5 }}>Description</Typography>
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.7 }}>{vs.description}</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={styles.descLabel}>Description</Typography>
+                    <Typography variant="body2" sx={styles.descText}>{vs.description}</Typography>
                   </Box>
                 )}
                 <Divider />
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+                <Box sx={styles.grid3}>
                   <Box>
                     <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Points</Typography>
                     <Typography variant="body2" fontWeight={600}>{vs.points}</Typography>
@@ -720,7 +715,7 @@ export default function StoriesPage() {
                     <Typography variant="body2">{sprint?.name ?? '—'}</Typography>
                   </Box>
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+                <Box sx={styles.grid2}>
                   <Box>
                     <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Reporter</Typography>
                     <Typography variant="body2">{vs.reporter || '—'}</Typography>
@@ -730,14 +725,14 @@ export default function StoriesPage() {
                     <Typography variant="body2">{vs.assignee || '—'}</Typography>
                   </Box>
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
+                <Box sx={styles.grid4}>
                   <Box>
                     <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Created</Typography>
                     <Typography variant="body2">{fmtDateFull(vs.createdDate)}</Typography>
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Due Date</Typography>
-                    <Typography variant="body2" sx={{ color: overdue ? '#dc2626' : 'inherit', fontWeight: overdue ? 700 : 400 }}>
+                    <Typography variant="body2" sx={getViewDueDateTextSx(overdue)}>
                       {fmtDateFull(vs.dueDate)}{overdue ? ' ⚠' : ''}
                     </Typography>
                   </Box>

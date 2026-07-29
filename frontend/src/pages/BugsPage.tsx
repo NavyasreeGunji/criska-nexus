@@ -37,6 +37,8 @@ import { Bug, Comment, bugs as initialBugs, BugSeverity, BugStatus } from '../da
 import { useApp } from '../context/AppContext';
 import { apiGetBugs, apiCreateBug, apiUpdateBug, apiGetComments, apiCreateComment } from '../api/api';
 import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
+import FilterBar from '../components/FilterBar';
+import styles from './BugsPage.styles';
 
 const severityConfig: Record<BugSeverity, { color: 'error' | 'warning' | 'default'; label: string }> = {
   critical: { color: 'error',   label: 'Critical' },
@@ -103,7 +105,7 @@ function CommentsSection({ entityId, currentUserName, backendOnline }: {
         Comments {comments.length > 0 && `(${comments.length})`}
       </Typography>
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+        <Box sx={styles.loadingCenter}>
           <CircularProgress size={20} />
         </Box>
       ) : (
@@ -113,7 +115,7 @@ function CommentsSection({ entityId, currentUserName, backendOnline }: {
           )}
           {comments.map((c) => (
             <Box key={c.id} sx={{ display: 'flex', gap: 1.5 }}>
-              <Avatar sx={{ width: 28, height: 28, fontSize: 11, fontWeight: 700, bgcolor: 'error.main', flexShrink: 0 }}>
+              <Avatar sx={styles.commentAvatar}>
                 {c.author.split(' ').map((n) => n[0]).join('').slice(0, 2)}
               </Avatar>
               <Box sx={{ flex: 1 }}>
@@ -123,7 +125,7 @@ function CommentsSection({ entityId, currentUserName, backendOnline }: {
                     {c.createdAt ? new Date(c.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                   </Typography>
                 </Stack>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{c.content}</Typography>
+                <Typography variant="body2" sx={styles.commentText}>{c.content}</Typography>
               </Box>
             </Box>
           ))}
@@ -134,7 +136,7 @@ function CommentsSection({ entityId, currentUserName, backendOnline }: {
           placeholder="Add a comment…" multiline maxRows={4} size="small" fullWidth
           onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handlePost(); }} />
         <IconButton color="error" onClick={handlePost} disabled={!newComment.trim() || posting}
-          size="small" sx={{ alignSelf: 'flex-end', mb: 0.25 }}>
+          size="small" sx={styles.sendButton}>
           {posting ? <CircularProgress size={18} /> : <SendIcon fontSize="small" />}
         </IconButton>
       </Stack>
@@ -218,7 +220,15 @@ export default function BugsPage() {
 
   return (
     <Box>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
+      <FilterBar
+        activeCount={[filterStatus !== 'all', filterSeverity !== 'all', filterEnv !== 'all'].filter(Boolean).length}
+        onClearAll={() => { setFilterStatus('all'); setFilterSeverity('all'); setFilterEnv('all'); setPage(0); }}
+        extra={
+          <Button variant="contained" color="error" startIcon={<AddIcon />} onClick={openAdd}>
+            Report Bug
+          </Button>
+        }
+      >
         <FormControl size="small" sx={{ minWidth: 130 }}>
           <InputLabel>Status</InputLabel>
           <Select value={filterStatus} label="Status" onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }}>
@@ -244,26 +254,22 @@ export default function BugsPage() {
         <Typography variant="body2" color="text.secondary">
           {filtered.length} {filtered.length === 1 ? 'bug' : 'bugs'}
         </Typography>
-        <Box sx={{ flexGrow: 1 }} />
-        <Button variant="contained" color="error" startIcon={<AddIcon />} onClick={openAdd}>
-          Report Bug
-        </Button>
-      </Stack>
+      </FilterBar>
 
       <Paper>
       <TableContainer>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: 'action.hover' }}>
+            <TableRow sx={styles.tableHeaderRow}>
               {['ID', 'Title', 'Severity', 'Status', 'Environment', 'Reporter', 'Assignee', 'Created', 'Resolved', 'Actions'].map((h) => (
-                <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: 'text.secondary' }}>{h}</TableCell>
+                <TableCell key={h} sx={styles.tableHeaderCell}>{h}</TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {paginated.length === 0 && (
               <TableRow>
-                <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4 }}>
+                <TableCell colSpan={10} sx={styles.emptyTableCell}>
                   <Typography color="text.secondary">No bugs found</Typography>
                 </TableCell>
               </TableRow>
@@ -273,9 +279,9 @@ export default function BugsPage() {
                 <TableCell>
                   <Typography variant="caption" color="text.disabled" fontWeight={600}>{bug.id}</Typography>
                 </TableCell>
-                <TableCell sx={{ maxWidth: 220, overflow: 'hidden' }}>
+                <TableCell sx={styles.titleCell}>
                   <Typography variant="body2" fontWeight={500} noWrap
-                    sx={{ cursor: 'pointer', '&:hover': { color: 'error.main', textDecoration: 'underline' } }}
+                    sx={styles.titleLink}
                     onClick={() => setViewBug(bug)}>
                     {bug.title}
                   </Typography>
@@ -394,7 +400,7 @@ export default function BugsPage() {
             </Stack>
           </Stack>
         </DialogContent>
-        {saveError && <Alert severity="error" sx={{ mx: 3, mb: 1 }}>{saveError}</Alert>}
+        {saveError && <Alert severity="error" sx={styles.alertBox}>{saveError}</Alert>}
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" color="error" onClick={handleSave}
@@ -424,11 +430,11 @@ export default function BugsPage() {
               {viewBug.description && (
                 <Box>
                   <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 0.5 }}>Description</Typography>
-                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.7 }}>{viewBug.description}</Typography>
+                  <Typography variant="body2" sx={styles.descText}>{viewBug.description}</Typography>
                 </Box>
               )}
               <Divider />
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+              <Box sx={styles.detailGrid}>
                 <Box>
                   <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">Environment</Typography>
                   <Chip label={viewBug.environment} size="small" variant="outlined"

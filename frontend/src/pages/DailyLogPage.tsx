@@ -49,6 +49,8 @@ import {
 import { useApp } from '../context/AppContext';
 import { apiGetLogs, apiCreateLog, apiUpdateLog, apiGetStories } from '../api/api';
 import { PRIVILEGED_ROLES } from '../constants/roles';
+import FilterBar from '../components/FilterBar';
+import styles from './DailyLogPage.styles';
 
 type FilterPeriod = 'today' | 'week' | 'custom';
 
@@ -233,78 +235,74 @@ export default function DailyLogPage() {
 
   return (
     <Box>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
+      <FilterBar
+        activeCount={[filterDev !== 'all', filterPeriod === 'custom' && (!!fromDate || !!toDate), filterPeriod !== 'today' && filterPeriod !== 'custom'].filter(Boolean).length}
+        onClearAll={() => { setFilterDev('all'); setFilterPeriod('today'); setFromDate(''); setToDate(''); setPage(0); }}
+        extra={
+          <Stack direction="row" spacing={1}>
+            <Tooltip title="JH Holiday Calendar">
+              <Button variant="outlined" size="small" startIcon={<CelebrationIcon />}
+                onClick={() => setHolidayOpen(true)}
+                sx={styles.holidayBtn}>
+                JH Holidays
+              </Button>
+            </Tooltip>
+            <Tooltip title="Export Excel">
+              <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleExportXLS}>
+                Export Excel
+              </Button>
+            </Tooltip>
+            <Button variant="contained" startIcon={<AddIcon />}
+              onClick={() => { setSaveError(''); setEditingLog(null); setForm({ ...emptyForm(), developer: currentUser?.name ?? '' }); setDialogOpen(true); }}>
+              Log Work
+            </Button>
+          </Stack>
+        }
+      >
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <InputLabel>Developer</InputLabel>
           <Select value={filterDev} label="Developer" onChange={(e) => { setFilterDev(e.target.value); setPage(0); }}>
             <MenuItem value="all">All Developers</MenuItem>
-            {developerProfiles.map((d) => (
-              <MenuItem key={d.id} value={d.name}>{d.name}</MenuItem>
-            ))}
+            {developerProfiles.map((d) => <MenuItem key={d.id} value={d.name}>{d.name}</MenuItem>)}
           </Select>
         </FormControl>
-
         <ToggleButtonGroup
           value={filterPeriod === 'custom' ? null : filterPeriod}
           exclusive
-          onChange={(_, val) => {
-            if (val) { setFilterPeriod(val); setFromDate(''); setToDate(''); setPage(0); }
-          }}
+          onChange={(_, val) => { if (val) { setFilterPeriod(val); setFromDate(''); setToDate(''); setPage(0); } }}
           size="small"
         >
           <ToggleButton value="today">Today</ToggleButton>
           <ToggleButton value="week">This Week</ToggleButton>
         </ToggleButtonGroup>
-
         <Stack direction="row" spacing={1} alignItems="center">
-          <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>From</Typography>
+          <Typography variant="caption" color="text.secondary" sx={styles.dateLabel}>From</Typography>
           <TextField type="date" size="small" value={fromDate}
             onChange={(e) => { setFromDate(e.target.value); setFilterPeriod('custom'); setPage(0); }}
-            sx={{ width: 140 }} />
+            sx={styles.dateInput} />
           <Typography variant="caption" color="text.secondary">To</Typography>
           <TextField type="date" size="small" value={toDate}
             onChange={(e) => { setToDate(e.target.value); setFilterPeriod('custom'); setPage(0); }}
-            sx={{ width: 140 }} />
+            sx={styles.dateInput} />
         </Stack>
-
         <Typography variant="body2" color="text.secondary">
           {filtered.length} entries · {totalHours}h total
         </Typography>
-        <Box sx={{ flexGrow: 1 }} />
-
-        <Tooltip title="JH Holiday Calendar">
-          <Button variant="outlined" size="small" startIcon={<CelebrationIcon />}
-            onClick={() => setHolidayOpen(true)}
-            sx={{ borderColor: '#ca8a04', color: '#92400e', '&:hover': { bgcolor: '#fef9c3', borderColor: '#ca8a04' } }}>
-            JH Holidays
-          </Button>
-        </Tooltip>
-
-        <Tooltip title="Export Excel">
-          <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleExportXLS}>
-            Export Excel
-          </Button>
-        </Tooltip>
-
-        <Button variant="contained" startIcon={<AddIcon />}
-          onClick={() => { setSaveError(''); setEditingLog(null); setForm({ ...emptyForm(), developer: currentUser?.name ?? '' }); setDialogOpen(true); }}>
-          Log Work
-        </Button>
-      </Stack>
+      </FilterBar>
 
       <Paper>
       <TableContainer>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '10%' }}>Date</TableCell>
+            <TableRow sx={styles.tableHeaderRow}>
+              <TableCell sx={styles.tableHeaderCellDate}>Date</TableCell>
               {showDevColumn && (
-                <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '16%' }}>Developer</TableCell>
+                <TableCell sx={styles.tableHeaderCellDev}>Developer</TableCell>
               )}
-              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '22%' }}>Task / Story</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>Description</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '8%', textAlign: 'center' }}>Hours</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', width: '8%', textAlign: 'center' }}>Actions</TableCell>
+              <TableCell sx={styles.tableHeaderCellTask}>Task / Story</TableCell>
+              <TableCell sx={styles.tableHeaderCellDesc}>Description</TableCell>
+              <TableCell sx={styles.tableHeaderCellHours}>Hours</TableCell>
+              <TableCell sx={styles.tableHeaderCellActions}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -318,31 +316,20 @@ export default function DailyLogPage() {
                     <Typography variant="body2" fontWeight={500}>{log.developer}</Typography>
                   </TableCell>
                 )}
-                <TableCell sx={{ maxWidth: 240 }}>
-                  <Typography variant="body2" fontWeight={600} sx={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}>
+                <TableCell sx={styles.taskCell}>
+                  <Typography variant="body2" fontWeight={600} sx={styles.taskText}>
                     {log.title}
                   </Typography>
                 </TableCell>
-                <TableCell sx={{ maxWidth: 300 }}>
-                  <Typography variant="body2" sx={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 1,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    color: 'text.secondary',
-                  }}>
+                <TableCell sx={styles.descCell}>
+                  <Typography variant="body2" sx={styles.descText}>
                     {log.description}
                   </Typography>
                 </TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>
+                <TableCell sx={styles.hoursCell}>
                   <Typography variant="body2" fontWeight={700}>{log.hours}h</Typography>
                 </TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>
+                <TableCell sx={styles.actionsCell}>
                   <Stack direction="row" spacing={0.5} justifyContent="center">
                     <Tooltip title="View full description">
                       <IconButton size="small" onClick={() => setViewLog(log)}>
@@ -362,7 +349,7 @@ export default function DailyLogPage() {
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={showDevColumn ? 6 : 5} sx={{ textAlign: 'center', py: 4, color: '#94a3b8' }}>
+                <TableCell colSpan={showDevColumn ? 6 : 5} sx={styles.emptyCell}>
                   No logs found for this period
                 </TableCell>
               </TableRow>
@@ -400,10 +387,10 @@ export default function DailyLogPage() {
           </DialogTitle>
           <DialogContent>
             <Divider sx={{ mb: 2 }} />
-            <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 0.75 }}>
+            <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={styles.viewDescLabel}>
               Description
             </Typography>
-            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.8 }}>
+            <Typography variant="body2" sx={styles.viewDescText}>
               {viewLog.description}
             </Typography>
           </DialogContent>
@@ -458,12 +445,12 @@ export default function DailyLogPage() {
               placeholder="What did you work on today?" />
             <TextField label="Hours" type="number" value={form.hours}
               onChange={(e) => setForm((f) => ({ ...f, hours: Number(e.target.value) }))}
-              size="small" sx={{ width: 160 }} inputProps={{ min: 0.5, max: remainingHours, step: 0.5 }} required
+              size="small" sx={styles.hoursInput} inputProps={{ min: 0.5, max: remainingHours, step: 0.5 }} required
               helperText={alreadyLoggedHours > 0 ? `${alreadyLoggedHours}h logged · ${remainingHours}h remaining` : 'Max 8h per day'}
               error={form.hours > remainingHours} />
           </Stack>
         </DialogContent>
-        {saveError && <Alert severity="error" sx={{ mx: 3, mb: 1 }}>{saveError}</Alert>}
+        {saveError && <Alert severity="error" sx={styles.alertBox}>{saveError}</Alert>}
         <DialogActions>
           <Button onClick={() => { setDialogOpen(false); setEditingLog(null); }}>Cancel</Button>
           <Button variant="contained" onClick={handleSave}
@@ -477,17 +464,17 @@ export default function DailyLogPage() {
         message="Copied to clipboard" anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
 
       <Dialog open={holidayOpen} onClose={() => setHolidayOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
-          <CelebrationIcon sx={{ color: '#ca8a04' }} />
+        <DialogTitle sx={styles.holidayDialogTitle}>
+          <CelebrationIcon sx={styles.holidayIcon} />
           JH Holiday Calendar 2026–2027
           <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>(United States)</Typography>
         </DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
+        <DialogContent sx={styles.holidayDialogContent}>
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ bgcolor: '#f0fdf4' }}>
-                <TableCell sx={{ fontWeight: 700, color: '#16a34a', pl: 3 }}>Holiday Name</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#16a34a' }}>Observed Date</TableCell>
+              <TableRow sx={styles.holidayHeader}>
+                <TableCell sx={styles.holidayNameHeaderCell}>Holiday Name</TableCell>
+                <TableCell sx={styles.holidayDateHeaderCell}>Observed Date</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -496,10 +483,10 @@ export default function DailyLogPage() {
                 const isUpcoming = !isPast && h.date <= new Date(new Date().getTime() + 30 * 86400000).toISOString().slice(0, 10);
                 return (
                   <TableRow key={i} sx={{ opacity: isPast ? 0.45 : 1, bgcolor: isUpcoming ? '#fef9c3' : undefined }}>
-                    <TableCell sx={{ pl: 3 }}>
+                    <TableCell sx={styles.holidayNameBodyCell}>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <Typography variant="body2" fontWeight={isUpcoming ? 700 : 500}>{h.name}</Typography>
-                        {isUpcoming && <Chip label="Upcoming" size="small" sx={{ bgcolor: '#fde047', color: '#78350f', fontWeight: 600, fontSize: 10 }} />}
+                        {isUpcoming && <Chip label="Upcoming" size="small" sx={styles.upcomingChip} />}
                       </Stack>
                     </TableCell>
                     <TableCell>

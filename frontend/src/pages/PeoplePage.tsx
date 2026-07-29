@@ -26,6 +26,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EmailIcon from '@mui/icons-material/Email';
 import { DeveloperProfile, DeveloperRole, ProjectType } from '../data/mockData';
 import { useApp } from '../context/AppContext';
+import FilterBar from '../components/FilterBar';
+import styles, { getDevAvatarSx, getRoleChipSx, getEditBtnSx, getDeleteBtnSx, getProjectChipSx } from './PeoplePage.styles';
 
 const projectTypeColor: Record<ProjectType, { color: string; bg: string }> = {
   Client:   { color: '#0891b2', bg: '#e0f2fe' },
@@ -261,7 +263,15 @@ export default function PeoplePage() {
 
   return (
     <Box>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap" useFlexGap>
+      <FilterBar
+        activeCount={[filterRole !== 'all', filterTeam !== 'all', filterProject !== 'all'].filter(Boolean).length}
+        onClearAll={() => { setFilterRole('all'); setFilterTeam('all'); setFilterProject('all'); }}
+        extra={canEditAll ? (
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}>
+            Add Developer
+          </Button>
+        ) : undefined}
+      >
         <FormControl size="small" sx={{ minWidth: 150 }}>
           <InputLabel>Role</InputLabel>
           <Select value={filterRole} label="Role" onChange={(e) => setFilterRole(e.target.value)}>
@@ -287,13 +297,7 @@ export default function PeoplePage() {
         <Typography variant="body2" color="text.secondary">
           {displayed.length} {displayed.length === 1 ? 'person' : 'people'}
         </Typography>
-        <Box sx={{ flexGrow: 1 }} />
-        {canEditAll && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}>
-            Add Developer
-          </Button>
-        )}
-      </Stack>
+      </FilterBar>
 
       <Grid container spacing={2} alignItems="stretch">
         {displayed.map((dev) => {
@@ -301,32 +305,15 @@ export default function PeoplePage() {
           const color = getAvatarColor(dev.name);
           const devTeams = teams.filter((t) => dev.teamIds.includes(t.id) || t.members.includes(dev.name));
           return (
-            <Grid item xs={12} sm={6} md={4} key={dev.id} sx={{ display: 'flex' }}>
-              <Paper
-                sx={{
-                  p: 2.5,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1.5,
-                  position: 'relative',
-                  width: '100%',
-                  height: 260,
-                  overflow: 'hidden',
-                  '&:hover .edit-btn': { opacity: 1 },
-                }}
-              >
+            <Grid item xs={12} sm={6} md={4} key={dev.id} sx={styles.gridItem}>
+              <Paper sx={styles.devCard}>
                 {canEdit(dev) && (
                 <Tooltip title="Edit">
                   <IconButton
                     className="edit-btn"
                     size="small"
                     onClick={() => openEdit(dev)}
-                    sx={{
-                      position: 'absolute', top: 12,
-                      right: canDelete && currentUser?.id !== dev.id ? 40 : 8,
-                      opacity: currentUser?.id === dev.id ? 0.6 : 0,
-                      transition: 'opacity 0.15s',
-                    }}
+                    sx={getEditBtnSx(currentUser?.id === dev.id, canDelete, currentUser?.id === dev.id)}
                   >
                     <EditIcon fontSize="small" />
                   </IconButton>
@@ -338,12 +325,7 @@ export default function PeoplePage() {
                     className="edit-btn"
                     size="small"
                     onClick={() => setDeleteTarget(dev)}
-                    sx={{
-                      position: 'absolute', top: 12, right: 8,
-                      opacity: 0,
-                      transition: 'opacity 0.15s',
-                      color: '#dc2626',
-                    }}
+                    sx={getDeleteBtnSx()}
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
@@ -351,7 +333,7 @@ export default function PeoplePage() {
                 )}
 
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <Avatar sx={{ width: 52, height: 52, bgcolor: color, fontSize: 18, fontWeight: 700 }}>
+                  <Avatar sx={getDevAvatarSx(color)}>
                     {initials(dev.name)}
                   </Avatar>
                   <Box>
@@ -364,11 +346,11 @@ export default function PeoplePage() {
                 <Chip
                   label={dev.role}
                   size="small"
-                  sx={{ bgcolor: rc.bg, color: rc.color, fontWeight: 700, alignSelf: 'flex-start' }}
+                  sx={getRoleChipSx(rc.color, rc.bg)}
                 />
 
-                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
-                  <EmailIcon sx={{ fontSize: 14, color: 'text.disabled', flexShrink: 0 }} />
+                <Stack direction="row" spacing={0.75} alignItems="center" sx={styles.emailStack}>
+                  <EmailIcon sx={styles.emailIcon} />
                   <Tooltip title={dev.email}>
                     <Typography variant="caption" color="text.secondary" noWrap>
                       {dev.email}
@@ -389,8 +371,8 @@ export default function PeoplePage() {
                 )}
 
                 {devTeams.length > 0 && (
-                  <Box sx={{ overflow: 'hidden', maxHeight: 60 }}>
-                    <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ width: '100%' }}>
+                  <Box sx={styles.teamsBox}>
+                    <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={styles.teamsStack}>
                       {devTeams.map((t) => (
                         <Chip key={t.id} label={t.name} size="small" variant="outlined" />
                       ))}
@@ -460,7 +442,7 @@ export default function PeoplePage() {
                 {roles.map((r) => (
                   <MenuItem key={r} value={r}>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: roleConfig[r].color }} />
+                      <Box sx={{ ...styles.roleDot, bgcolor: roleConfig[r].color }} />
                       <span>{r}</span>
                     </Stack>
                   </MenuItem>
@@ -468,7 +450,7 @@ export default function PeoplePage() {
               </Select>
             </FormControl>
             <Box>
-              <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
+              <Typography variant="body2" fontWeight={600} sx={styles.projectTypeLabel}>
                 Project Type <Typography component="span" variant="caption" color="text.secondary">(select all that apply)</Typography>
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -480,13 +462,7 @@ export default function PeoplePage() {
                       key={pt}
                       label={pt}
                       onClick={() => toggleProjectType(pt)}
-                      sx={{
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        bgcolor: selected ? c.bg : undefined,
-                        color: selected ? c.color : undefined,
-                        borderColor: selected ? c.color : undefined,
-                      }}
+                      sx={getProjectChipSx(selected, c.color, c.bg)}
                       variant={selected ? 'filled' : 'outlined'}
                     />
                   );
@@ -494,7 +470,7 @@ export default function PeoplePage() {
               </Stack>
             </Box>
             <Box>
-              <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
+              <Typography variant="body2" fontWeight={600} sx={styles.teamsLabel}>
                 Teams
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>

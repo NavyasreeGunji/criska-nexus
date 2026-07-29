@@ -34,6 +34,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { apiGetStories, apiGetBugs, apiGetLogs, apiGetDeployments, apiGetActiveToday, ActiveUser } from '../api/api';
 import { PRIVILEGED_ROLES } from '../constants/roles';
+import styles, { getMetricAvatarSx } from './DashboardPage.styles';
 
 const storyStatusColor: Record<StoryStatus, 'default' | 'primary' | 'warning' | 'success' | 'info'> = {
   backlog: 'default', to_do: 'default', in_progress: 'primary',
@@ -138,7 +139,7 @@ const metrics = [
     { label: 'Total Story Points', value: totalPoints, sub: `${donePoints} pts delivered`, icon: <AssignmentIcon />, color: '#2563EB', route: '/reports' },
     { label: 'Deployments', value: deployments.length, sub: `${successfulDeploys} successful`, icon: <RocketLaunchIcon />, color: '#0891b2', route: '/deployments' },
     { label: 'Stories Completed', value: doneStories, sub: `of ${stories.length} total`, icon: <CheckCircleIcon />, color: '#16a34a', route: '/reports' },
-    { label: 'Hours Logged Today', value: todayHours, sub: `by ${todayDevCount} developer${todayDevCount !== 1 ? 's' : ''}`, icon: <AccessTimeIcon />, color: '#7C3AED', route: '/daily-log', state: { developer: 'all', period: 'today' } },
+    { label: 'Hours Logged Today', value: todayHours, sub: `by ${todayDevCount} developer${todayDevCount !== 1 ? 's' : ''}`, icon: <AccessTimeIcon />, color: '#7C3AED', route: '/timesheet', state: { developer: 'all', period: 'today' } },
   ];
 
   const activeStories = stories.filter((s) => s.status === 'in_progress').slice(0, 5);
@@ -148,14 +149,14 @@ const metrics = [
   return (
     <Box>
       {/* Metric cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={2} sx={styles.metricsRow}>
         {metrics.map((m) => (
           <Grid item xs={12} sm={6} md={3} key={m.label}>
             <Paper
               onClick={() => navigate(m.route, (m as any).state ? { state: (m as any).state } : undefined)}
-              sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2, cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
+              sx={styles.metricCard}
             >
-              <Avatar sx={{ bgcolor: m.color + '18', color: m.color, width: 50, height: 50 }}>{m.icon}</Avatar>
+              <Avatar sx={getMetricAvatarSx(m.color)}>{m.icon}</Avatar>
               <Box>
                 <Typography variant="h5" fontWeight={700} lineHeight={1.2}>{m.value}</Typography>
                 <Typography variant="body2" color="text.secondary" fontWeight={500}>{m.label}</Typography>
@@ -168,8 +169,8 @@ const metrics = [
 
       <Grid container spacing={2}>
         {/* Active Stories */}
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Paper sx={{ p: 2.5, flex: 1 }}>
+        <Grid item xs={12} md={6} sx={styles.flexColumn}>
+          <Paper sx={styles.panel}>
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>Active Stories</Typography>
             <List dense disablePadding>
               {activeStories.map((story, i) => (
@@ -180,7 +181,7 @@ const metrics = [
                       primary={<Typography variant="body2" fontWeight={500}>{story.title}</Typography>}
                       secondary={`${story.assignee} · ${sprints.find((s) => s.id === story.sprintId)?.name ?? ''}`}
                     />
-                    <Chip label={storyStatusLabel[story.status]} size="small" color={storyStatusColor[story.status]} sx={{ flexShrink: 0 }} />
+                    <Chip label={storyStatusLabel[story.status]} size="small" color={storyStatusColor[story.status]} sx={styles.chipShrink} />
                   </ListItem>
                 </Box>
               ))}
@@ -190,22 +191,22 @@ const metrics = [
         </Grid>
 
         {/* Open Bugs */}
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Paper sx={{ p: 2.5, flex: 1 }}>
+        <Grid item xs={12} md={6} sx={styles.flexColumn}>
+          <Paper sx={styles.panel}>
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>
               Open Bugs {criticalBugs > 0 && <Chip label={`${criticalBugs} critical`} size="small" color="error" sx={{ ml: 1 }} />}
             </Typography>
-            <List dense disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <List dense disablePadding sx={styles.openBugsList}>
               {openBugList.map((bug) => (
                 <ListItem key={bug.id} disableGutters alignItems="center"
-                  sx={{ py: 1, px: 1.5, gap: 1, borderRadius: 1, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider', '&:hover': { bgcolor: 'action.selected' } }}>
+                  sx={styles.bugItem}>
                   <ListItemText
                     primary={<Typography variant="body2" fontWeight={500}>{bug.title}</Typography>}
                     secondary={`${bug.assignee} · ${bug.environment}`}
                   />
                   <Chip label={bug.severity} size="small"
                     color={bug.severity === 'critical' ? 'error' : bug.severity === 'high' ? 'warning' : 'default'}
-                    sx={{ flexShrink: 0 }} />
+                    sx={styles.chipShrink} />
                 </ListItem>
               ))}
               {openBugList.length === 0 && <Typography variant="body2" color="text.secondary">No open bugs</Typography>}
@@ -214,17 +215,17 @@ const metrics = [
         </Grid>
 
         {/* Today's Activity */}
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Paper sx={{ p: 2.5, flex: 1 }}>
+        <Grid item xs={12} md={6} sx={styles.flexColumn}>
+          <Paper sx={styles.panel}>
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>Today's Activity</Typography>
             <List dense disablePadding>
               {todayLogs.map((log, i) => (
                 <Box key={log.id}>
                   {i > 0 && <Divider sx={{ my: 0.5 }} />}
-                  <ListItem disableGutters onClick={() => navigate('/daily-log', { state: { developer: log.developer } })}
-                    sx={{ py: 0.75, cursor: 'pointer', borderRadius: 1, px: 0.5, '&:hover': { bgcolor: 'action.hover' } }}>
-                    <ListItemAvatar sx={{ minWidth: 42 }}>
-                      <Avatar sx={{ width: 30, height: 30, fontSize: 11, fontWeight: 700, bgcolor: '#2563EB18', color: '#2563EB' }}>
+                  <ListItem disableGutters onClick={() => navigate('/timesheet', { state: { developer: log.developer } })}
+                    sx={styles.activityItem}>
+                    <ListItemAvatar sx={styles.activityAvatarMinWidth}>
+                      <Avatar sx={styles.activityAvatar}>
                         {log.developer.split(' ').map((n) => n[0]).join('')}
                       </Avatar>
                     </ListItemAvatar>
@@ -232,7 +233,7 @@ const metrics = [
                       primary={<Typography variant="body2" fontWeight={500}>{log.developer}</Typography>}
                       secondary={log.description}
                     />
-                    <Typography variant="body2" fontWeight={700} color="primary" sx={{ flexShrink: 0 }}>{log.hours}h</Typography>
+                    <Typography variant="body2" fontWeight={700} color="primary" sx={styles.hoursText}>{log.hours}h</Typography>
                   </ListItem>
                 </Box>
               ))}
@@ -242,8 +243,8 @@ const metrics = [
         </Grid>
 
         {/* Recent Deployments */}
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Paper sx={{ p: 2.5, flex: 1 }}>
+        <Grid item xs={12} md={6} sx={styles.flexColumn}>
+          <Paper sx={styles.panel}>
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>Recent Deployments</Typography>
             <List dense disablePadding>
               {recentDeployments.map((dep, i) => (
@@ -259,7 +260,7 @@ const metrics = [
                       }
                       secondary={`${dep.date} at ${dep.time}`}
                     />
-                    <Chip label={deployStatusLabel[dep.status]} size="small" color={deployStatusColor[dep.status]} sx={{ flexShrink: 0 }} />
+                    <Chip label={deployStatusLabel[dep.status]} size="small" color={deployStatusColor[dep.status]} sx={styles.chipShrink} />
                   </ListItem>
                 </Box>
               ))}
@@ -270,12 +271,12 @@ const metrics = [
 
         {/* Sprint Burndown Chart */}
         {burndownData.length > 0 && activeSprint && (
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}>
             <Paper sx={{ p: 2.5 }}>
               <Typography variant="subtitle1" fontWeight={700} gutterBottom>
                 Sprint Burndown — {activeSprint.name}
               </Typography>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={styles.burndownCaption}>
                 {activeSprint.startDate} → {activeSprint.endDate}
               </Typography>
               <ResponsiveContainer width="100%" height={220}>
@@ -298,16 +299,16 @@ const metrics = [
 
 {/* Active Today (admin only) */}
         {canSeeActiveUsers && (
-          <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Paper sx={{ p: 2.5, flex: 1 }}>
+          <Grid item xs={12} sx={styles.flexColumn}>
+            <Paper sx={styles.panel}>
               <Typography variant="subtitle1" fontWeight={700} gutterBottom>Active Today</Typography>
               <List dense disablePadding>
                 {activeUsers.map((user, i) => (
                   <Box key={user.id}>
                     {i > 0 && <Divider sx={{ my: 0.5 }} />}
-                    <ListItem disableGutters sx={{ py: 0.75 }}>
-                      <ListItemAvatar sx={{ minWidth: 42 }}>
-                        <Avatar sx={{ width: 30, height: 30, fontSize: 11, fontWeight: 700, bgcolor: '#16a34a18', color: '#16a34a' }}>
+                    <ListItem disableGutters sx={styles.activeUserItem}>
+                      <ListItemAvatar sx={styles.activeUserAvatarMinWidth}>
+                        <Avatar sx={styles.activeUserAvatar}>
                           {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                         </Avatar>
                       </ListItemAvatar>
@@ -315,7 +316,7 @@ const metrics = [
                         primary={<Typography variant="body2" fontWeight={500}>{user.name}</Typography>}
                         secondary={user.role}
                       />
-                      <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                      <Typography variant="caption" color="text.secondary" sx={styles.activeUserTime}>
                         {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                       </Typography>
                     </ListItem>

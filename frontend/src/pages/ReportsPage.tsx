@@ -23,6 +23,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import SearchOffIcon from '@mui/icons-material/SearchOff';
 import {
   BarChart,
   Bar,
@@ -37,6 +38,8 @@ import { Story, initialStories, developers, StoryStatus } from '../data/mockData
 import { useApp } from '../context/AppContext';
 import { apiGetStories } from '../api/api';
 import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
+import FilterBar from '../components/FilterBar';
+import styles, { getOverdueRowSx, getOverdueDateBoxSx, getOverdueDateTextSx } from './ReportsPage.styles';
 
 
 const fmtDate = (d?: string | null) => {
@@ -160,7 +163,7 @@ export default function ReportsPage() {
   return (
     <Box>
       {/* Summary cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={2} sx={styles.metricsRow}>
         {[
           { label: 'Total Points', value: totalPoints, sub: `${filtered.length} stories`, color: 'primary.main' },
           { label: 'Points Delivered', value: donePoints, sub: `${totalPoints > 0 ? Math.round((donePoints / totalPoints) * 100) : 0}% completion`, color: 'success.main' },
@@ -168,7 +171,7 @@ export default function ReportsPage() {
           { label: 'In Progress', value: inProgressPoints, sub: `${filtered.filter((s) => s.status === 'in_progress').length} stories`, color: 'warning.main' },
         ].map((m) => (
           <Grid item xs={12} sm={6} md={3} key={m.label}>
-            <Paper sx={{ p: 2.5, textAlign: 'center' }}>
+            <Paper sx={styles.summaryCard}>
               <Typography variant="h4" fontWeight={800} sx={{ color: m.color }}>
                 {m.value}
               </Typography>
@@ -183,33 +186,26 @@ export default function ReportsPage() {
         ))}
       </Grid>
 
-      {/* Filters */}
-      <Stack direction="row" spacing={1.5} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap alignItems="center">
-        <TextField
-          label="From Date"
-          type="date"
-          size="small"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ minWidth: 150 }}
-        />
-        <TextField
-          label="To Date"
-          type="date"
-          size="small"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ minWidth: 150 }}
-        />
+      <FilterBar
+        activeCount={[dateFrom, dateTo, filterStatus !== 'all', filterAssignee !== 'all', filterTeamId !== 'all', filterSprintId !== 'all'].filter(Boolean).length}
+        onClearAll={() => { setDateFrom(''); setDateTo(''); setFilterStatus('all'); setFilterAssignee('all'); setFilterTeamId('all'); setFilterSprintId('all'); setPage(0); }}
+        extra={
+          <Tooltip title="Export to Excel">
+            <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleExportXLS}>
+              Export Excel
+            </Button>
+          </Tooltip>
+        }
+      >
+        <TextField label="From Date" type="date" size="small" value={dateFrom}
+          onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: 150 }} />
+        <TextField label="To Date" type="date" size="small" value={dateTo}
+          onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: 150 }} />
         <FormControl size="small" sx={{ minWidth: 140 }}>
           <InputLabel>Status</InputLabel>
           <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
             <MenuItem value="all">All Statuses</MenuItem>
-            {Object.entries(statusConfig).map(([k, v]) => (
-              <MenuItem key={k} value={k}>{v.label}</MenuItem>
-            ))}
+            {Object.entries(statusConfig).map(([k, v]) => <MenuItem key={k} value={k}>{v.label}</MenuItem>)}
           </Select>
         </FormControl>
         <FormControl size="small" sx={{ minWidth: 160 }}>
@@ -233,31 +229,20 @@ export default function ReportsPage() {
             {teamSprints.map((s) => <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>)}
           </Select>
         </FormControl>
-        {(dateFrom || dateTo || filterStatus !== 'all' || filterAssignee !== 'all' || filterTeamId !== 'all' || filterSprintId !== 'all') && (
-          <Button size="small" onClick={() => { setDateFrom(''); setDateTo(''); setFilterStatus('all'); setFilterAssignee('all'); setFilterTeamId('all'); setFilterSprintId('all'); setPage(0); }}>
-            Clear Filters
-          </Button>
-        )}
-        <Box sx={{ flexGrow: 1 }} />
-        <Tooltip title="Export to CSV">
-          <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleExportXLS}>
-            Export Excel
-          </Button>
-        </Tooltip>
-      </Stack>
+      </FilterBar>
 
       {/* Story Report Table */}
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={styles.reportHeader}>
         <Typography variant="subtitle1" fontWeight={700}>Story Report</Typography>
         <Typography variant="body2" color="text.secondary">{filtered.length} stories · {totalPoints} pts</Typography>
       </Stack>
-      <Paper sx={{ mb: 3 }}>
+      <Paper sx={styles.reportPaper}>
       <TableContainer>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+            <TableRow sx={styles.tableHeaderRow}>
               {['Story No.', 'Title', 'Pts', 'Status', 'Reporter', 'Assignee', 'Due Date', 'Started', 'Completed'].map((h) => (
-                <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: '#64748b', whiteSpace: 'nowrap' }}>
+                <TableCell key={h} sx={styles.tableHeaderCell}>
                   {h}
                 </TableCell>
               ))}
@@ -268,30 +253,25 @@ export default function ReportsPage() {
               const team = teams.find((t) => t.id === story.teamId);
               const today = new Date().toISOString().slice(0, 10);
               const dueDate = story.dueDate ?? '';
-              const isOverdue = dueDate && dueDate < today && !story.completedDate;
+              const isOverdue = !!(dueDate && dueDate < today && !story.completedDate);
               return (
                 <TableRow
                   key={story.id}
                   hover
-                  sx={isOverdue ? { bgcolor: '#fff5f5' } : undefined}
+                  sx={getOverdueRowSx(isOverdue)}
                 >
                   <TableCell>
-                    <Typography variant="caption" color="primary" fontWeight={700} sx={{ whiteSpace: 'nowrap' }}>
+                    <Typography variant="caption" color="primary" fontWeight={700} sx={styles.storyNoText}>
                       {story.storyNumber || '—'}
                     </Typography>
                   </TableCell>
-                  <TableCell sx={{ maxWidth: 220 }}>
+                  <TableCell sx={styles.titleCell}>
                     <Stack direction="row" alignItems="center" spacing={0.75}>
-                      <Typography variant="body2" fontWeight={500} sx={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}>
+                      <Typography variant="body2" fontWeight={500} sx={styles.titleText}>
                         {story.title}
                       </Typography>
                       {isOverdue && (
-                        <Chip label="Overdue" size="small" sx={{ bgcolor: '#fee2e2', color: '#dc2626', fontWeight: 700, fontSize: 10, height: 18 }} />
+                        <Chip label="Overdue" size="small" sx={styles.overdueChip} />
                       )}
                     </Stack>
                     {team && (
@@ -301,7 +281,7 @@ export default function ReportsPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Box sx={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid', borderColor: 'primary.main', color: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{story.points}</Box>
+                    <Box sx={styles.pointsBadge}>{story.points}</Box>
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -318,18 +298,10 @@ export default function ReportsPage() {
                   </TableCell>
                   <TableCell>
                     {dueDate ? (
-                      <Box sx={{
-                        display: 'inline-flex', alignItems: 'center', gap: 0.5,
-                        px: 1, py: 0.25, borderRadius: 1,
-                        bgcolor: isOverdue ? '#fee2e2' : 'transparent',
-                      }}>
+                      <Box sx={getOverdueDateBoxSx(!!isOverdue)}>
                         <Typography
                           variant="caption"
-                          sx={{
-                            whiteSpace: 'nowrap',
-                            fontWeight: isOverdue ? 700 : 400,
-                            color: isOverdue ? '#dc2626' : 'text.secondary',
-                          }}
+                          sx={getOverdueDateTextSx(!!isOverdue)}
                         >
                           {fmtDate(dueDate)}
                         </Typography>
@@ -350,7 +322,25 @@ export default function ReportsPage() {
                 </TableRow>
               );
             })}
-
+            {filtered.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={9}>
+                  <Box sx={styles.emptyStateBox}>
+                    <SearchOffIcon sx={styles.emptyStateIcon} />
+                    <Typography variant="body1" fontWeight={600} color="text.secondary">No stories match your filters</Typography>
+                    <Typography variant="caption" color="text.disabled" display="block" sx={styles.emptyStateCaption}>
+                      Try adjusting or clearing the filters above
+                    </Typography>
+                    <Button size="small" variant="outlined" onClick={() => {
+                      setDateFrom(''); setDateTo(''); setFilterStatus('all');
+                      setFilterAssignee('all'); setFilterTeamId('all'); setFilterSprintId('all'); setPage(0);
+                    }}>
+                      Clear Filters
+                    </Button>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -371,8 +361,8 @@ export default function ReportsPage() {
 
       {/* Story Points by Developer — admin only */}
       {isAdmin && devPointsData.length > 0 && (
-        <Paper sx={{ p: 2.5, mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+        <Paper sx={styles.chartPaper}>
+          <Typography variant="subtitle1" fontWeight={700} sx={styles.chartTitle}>
             Story Points by Developer
           </Typography>
           <ResponsiveContainer width="100%" height={Math.max(260, devPointsData.length * 42)}>
@@ -407,15 +397,15 @@ export default function ReportsPage() {
       )}
 
       {/* Points by Developer */}
-      <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
+      <Typography variant="subtitle1" fontWeight={700} sx={styles.devListTitle}>
         Points by Developer
       </Typography>
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: '#F8FAFC' }}>
+            <TableRow sx={styles.tableHeaderRow}>
               {['Developer', 'Stories', 'Total Pts', 'Delivered', 'On Hold', 'In Progress', 'Delivery Rate'].map((h) => (
-                <TableCell key={h} sx={{ fontWeight: 700, fontSize: 14, color: '#64748b' }}>
+                <TableCell key={h} sx={styles.devTableHeaderCell}>
                   {h}
                 </TableCell>
               ))}
@@ -430,7 +420,7 @@ export default function ReportsPage() {
                   <TableCell><Typography variant="body2">{row.count}</Typography></TableCell>
                   <TableCell><Typography variant="body2" fontWeight={700}>{row.total}</Typography></TableCell>
                   <TableCell><Typography variant="body2" fontWeight={700} color="success.main">{row.done}</Typography></TableCell>
-                  <TableCell><Typography variant="body2" fontWeight={700} sx={{ color: '#ea580c' }}>{row.onHold}</Typography></TableCell>
+                  <TableCell><Typography variant="body2" fontWeight={700} sx={styles.onHoldText}>{row.onHold}</Typography></TableCell>
                   <TableCell><Typography variant="body2" fontWeight={700} color="warning.main">{row.inProgress}</Typography></TableCell>
                   <TableCell>
                     <Chip label={`${rate}%`} size="small" color={rate >= 50 ? 'success' : rate >= 25 ? 'warning' : 'default'} />
