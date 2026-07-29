@@ -23,10 +23,26 @@ import {
   Tooltip,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import { Story, initialStories, developers, StoryStatus } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { apiGetStories } from '../api/api';
 import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
+
+const DEV_COLORS = [
+  '#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4',
+  '#8b5cf6', '#f97316', '#ec4899', '#14b8a6', '#84cc16',
+  '#3b82f6', '#a855f7', '#10b981', '#fb923c', '#e11d48',
+];
 
 const fmtDate = (d?: string | null) => {
   if (!d) return '—';
@@ -45,7 +61,8 @@ const statusConfig: Record<StoryStatus, { color: 'default' | 'primary' | 'warnin
 };
 
 export default function ReportsPage() {
-  const { teams, sprints, backendOnline, backendChecked } = useApp();
+  const { teams, sprints, backendOnline, backendChecked, currentUser } = useApp();
+  const isAdmin = currentUser != null && ['Manager', 'Admin', 'Managing Director'].includes(currentUser.role);
   const [stories, setStories] = useState<Story[]>([]);
 
   useEffect(() => {
@@ -104,6 +121,25 @@ export default function ReportsPage() {
         inProgress: devStories.filter((s) => s.status === 'in_progress').reduce((sum, s) => sum + s.points, 0),
       };
     });
+  }, [filtered]);
+
+  const { chartData, chartDevs } = useMemo(() => {
+    const monthMap: Record<string, Record<string, number>> = {};
+    filtered.forEach((s) => {
+      if (!s.createdDate || !s.assignee) return;
+      const month = s.createdDate.slice(0, 7);
+      if (!monthMap[month]) monthMap[month] = {};
+      monthMap[month][s.assignee] = (monthMap[month][s.assignee] ?? 0) + 1;
+    });
+    const data = Object.entries(monthMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, devCounts]) => {
+        const [y, m] = month.split('-');
+        const label = new Date(parseInt(y), parseInt(m) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
+        return { month: label, ...devCounts };
+      });
+    const devs = Array.from(new Set(filtered.filter((s) => s.assignee).map((s) => s.assignee as string))).sort();
+    return { chartData: data, chartDevs: devs };
   }, [filtered]);
 
   const handleExportXLS = () => {
@@ -347,6 +383,37 @@ export default function ReportsPage() {
         />
       )}
       </Paper>
+
+      {/* Stories by Developer per Month — admin only */}
+      {isAdmin && chartData.length > 0 && (
+        <Paper sx={{ p: 2.5, mb: 3 }}>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+            Stories by Developer (per Month)
+          </Typography>
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={chartData} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+              <RechartsTooltip
+                contentStyle={{ borderRadius: 8, fontSize: 13 }}
+                formatter={(value, name) => [value, name]}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              {chartDevs.map((dev, i) => (
+                <Bar
+                  key={dev}
+                  dataKey={dev}
+                  name={dev}
+                  fill={DEV_COLORS[i % DEV_COLORS.length]}
+                  radius={[3, 3, 0, 0]}
+                  maxBarSize={40}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </Paper>
+      )}
 
       {/* Points by Developer */}
       <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
