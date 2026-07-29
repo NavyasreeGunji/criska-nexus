@@ -30,7 +30,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip as RechartsTooltip,
-  Legend,
+  LabelList,
   ResponsiveContainer,
 } from 'recharts';
 import { Story, initialStories, developers, StoryStatus } from '../data/mockData';
@@ -38,11 +38,6 @@ import { useApp } from '../context/AppContext';
 import { apiGetStories } from '../api/api';
 import TablePaginationActions, { paginationSx } from '../components/TablePaginationActions';
 
-const DEV_COLORS = [
-  '#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4',
-  '#8b5cf6', '#f97316', '#ec4899', '#14b8a6', '#84cc16',
-  '#3b82f6', '#a855f7', '#10b981', '#fb923c', '#e11d48',
-];
 
 const fmtDate = (d?: string | null) => {
   if (!d) return '—';
@@ -123,30 +118,10 @@ export default function ReportsPage() {
     });
   }, [filtered]);
 
-  const { chartData, pointsChartData, chartDevs } = useMemo(() => {
-    const countMap: Record<string, Record<string, number>> = {};
-    const pointsMap: Record<string, Record<string, number>> = {};
-    filtered.forEach((s) => {
-      if (!s.createdDate || !s.assignee) return;
-      const month = s.createdDate.slice(0, 7);
-      if (!countMap[month]) countMap[month] = {};
-      if (!pointsMap[month]) pointsMap[month] = {};
-      countMap[month][s.assignee] = (countMap[month][s.assignee] ?? 0) + 1;
-      pointsMap[month][s.assignee] = (pointsMap[month][s.assignee] ?? 0) + (s.points || 0);
-    });
-    const toLabel = (month: string) => {
-      const [y, m] = month.split('-');
-      return new Date(parseInt(y), parseInt(m) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
-    };
-    const data = Object.entries(countMap)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, devCounts]) => ({ month: toLabel(month), ...devCounts }));
-    const pData = Object.entries(pointsMap)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, devPts]) => ({ month: toLabel(month), ...devPts }));
-    const devs = Array.from(new Set(filtered.filter((s) => s.assignee).map((s) => s.assignee as string))).sort();
-    return { chartData: data, pointsChartData: pData, chartDevs: devs };
-  }, [filtered]);
+  const devPointsData = useMemo(
+    () => byAssignee.map((row) => ({ name: row.dev, points: row.total })).filter((r) => r.points > 0),
+    [byAssignee]
+  );
 
   const handleExportXLS = () => {
     const columns = [
@@ -390,63 +365,38 @@ export default function ReportsPage() {
       )}
       </Paper>
 
-      {/* Stories by Developer per Month — admin only */}
-      {isAdmin && chartData.length > 0 && (
+      {/* Story Points by Developer — admin only */}
+      {isAdmin && devPointsData.length > 0 && (
         <Paper sx={{ p: 2.5, mb: 3 }}>
           <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
-            Stories by Developer (per Month)
+            Story Points by Developer
           </Typography>
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={chartData} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+          <ResponsiveContainer width="100%" height={Math.max(260, devPointsData.length * 42)}>
+            <BarChart
+              data={devPointsData}
+              layout="vertical"
+              margin={{ top: 4, right: 48, left: 0, bottom: 4 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+              <YAxis type="category" dataKey="name" hide />
               <RechartsTooltip
                 contentStyle={{ borderRadius: 8, fontSize: 13 }}
-                formatter={(value, name) => [value, name]}
+                formatter={(value) => [`${value} pts`, 'Story Points']}
               />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              {chartDevs.map((dev, i) => (
-                <Bar
-                  key={dev}
-                  dataKey={dev}
-                  name={dev}
-                  fill={DEV_COLORS[i % DEV_COLORS.length]}
-                  radius={[3, 3, 0, 0]}
-                  maxBarSize={40}
+              <Bar dataKey="points" fill="#6366f1" radius={[0, 4, 4, 0]} minPointSize={2}>
+                <LabelList
+                  dataKey="name"
+                  position="insideLeft"
+                  style={{ fill: '#fff', fontSize: 12, fontWeight: 600 }}
                 />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </Paper>
-      )}
-
-      {/* Story Points by Developer per Month — admin only */}
-      {isAdmin && pointsChartData.length > 0 && (
-        <Paper sx={{ p: 2.5, mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
-            Story Points by Developer (per Month)
-          </Typography>
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={pointsChartData} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-              <RechartsTooltip
-                contentStyle={{ borderRadius: 8, fontSize: 13 }}
-                formatter={(value, name) => [`${value} pts`, name]}
-              />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              {chartDevs.map((dev, i) => (
-                <Bar
-                  key={dev}
-                  dataKey={dev}
-                  name={dev}
-                  fill={DEV_COLORS[i % DEV_COLORS.length]}
-                  radius={[3, 3, 0, 0]}
-                  maxBarSize={40}
+                <LabelList
+                  dataKey="points"
+                  position="right"
+                  style={{ fill: '#6366f1', fontSize: 12, fontWeight: 700 }}
+                  formatter={(v) => `${v} pts`}
                 />
-              ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </Paper>
