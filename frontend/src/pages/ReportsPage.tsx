@@ -121,14 +121,31 @@ export default function ReportsPage() {
     });
   }, [filtered]);
 
-  const devPointsData = useMemo(
-    () =>
-      byAssignee
-        .map((row) => ({ name: row.dev, points: row.total }))
-        .filter((r) => r.points > 0)
-        .sort((a, b) => b.points - a.points),
-    [byAssignee]
-  );
+  const [chartFilterType, setChartFilterType] = useState<'sprint' | 'month'>('sprint');
+  const [chartFilterValue, setChartFilterValue] = useState('all');
+
+  const chartMonths = useMemo(() => {
+    const months = Array.from(new Set(stories.map((s) => s.createdDate?.slice(0, 7)).filter(Boolean))) as string[];
+    return months.sort().reverse();
+  }, [stories]);
+
+  const chartStories = useMemo(() => {
+    if (chartFilterType === 'sprint') {
+      return chartFilterValue === 'all' ? stories : stories.filter((s) => s.sprintId === chartFilterValue);
+    }
+    return chartFilterValue === 'all' ? stories : stories.filter((s) => s.createdDate?.startsWith(chartFilterValue));
+  }, [stories, chartFilterType, chartFilterValue]);
+
+  const devPointsData = useMemo(() => {
+    const assignees = Array.from(new Set(chartStories.map((s) => s.assignee).filter(Boolean))).sort() as string[];
+    return assignees
+      .map((dev) => ({
+        name: dev,
+        points: chartStories.filter((s) => s.assignee === dev).reduce((sum, s) => sum + s.points, 0),
+      }))
+      .filter((r) => r.points > 0)
+      .sort((a, b) => b.points - a.points);
+  }, [chartStories]);
 
   const handleExportXLS = () => {
     const columns = [
@@ -360,39 +377,78 @@ export default function ReportsPage() {
       </Paper>
 
       {/* Story Points by Developer — admin only */}
-      {isAdmin && devPointsData.length > 0 && (
+      {isAdmin && (
         <Paper sx={styles.chartPaper}>
-          <Typography variant="subtitle1" fontWeight={700} sx={styles.chartTitle}>
-            Story Points by Developer
-          </Typography>
-          <ResponsiveContainer width="100%" height={Math.max(260, devPointsData.length * 42)}>
-            <BarChart
-              data={devPointsData}
-              layout="vertical"
-              margin={{ top: 4, right: 48, left: 0, bottom: 4 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-              <YAxis type="category" dataKey="name" hide />
-              <RechartsTooltip
-                contentStyle={{ borderRadius: 8, fontSize: 13 }}
-                formatter={(value) => [`${value} pts`, 'Story Points']}
-              />
-              <Bar dataKey="points" fill="#6366f1" radius={[0, 4, 4, 0]} minPointSize={2}>
-                <LabelList
-                  dataKey="name"
-                  position="insideLeft"
-                  style={{ fill: '#fff', fontSize: 12, fontWeight: 600 }}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight={700}>
+              Story Points by Developer
+            </Typography>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <FormControl size="small" sx={{ minWidth: 110 }}>
+                <InputLabel>Filter by</InputLabel>
+                <Select
+                  value={chartFilterType}
+                  label="Filter by"
+                  onChange={(e) => { setChartFilterType(e.target.value as 'sprint' | 'month'); setChartFilterValue('all'); }}
+                >
+                  <MenuItem value="sprint">Sprint</MenuItem>
+                  <MenuItem value="month">Month</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel>{chartFilterType === 'sprint' ? 'Sprint' : 'Month'}</InputLabel>
+                <Select
+                  value={chartFilterValue}
+                  label={chartFilterType === 'sprint' ? 'Sprint' : 'Month'}
+                  onChange={(e) => setChartFilterValue(e.target.value)}
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  {chartFilterType === 'sprint'
+                    ? sprints.map((s) => <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>)
+                    : chartMonths.map((m) => (
+                        <MenuItem key={m} value={m}>
+                          {new Date(m + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </MenuItem>
+                      ))
+                  }
+                </Select>
+              </FormControl>
+            </Stack>
+          </Box>
+          {devPointsData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={Math.max(260, devPointsData.length * 42)}>
+              <BarChart
+                data={devPointsData}
+                layout="vertical"
+                margin={{ top: 4, right: 48, left: 0, bottom: 4 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                <YAxis type="category" dataKey="name" hide />
+                <RechartsTooltip
+                  contentStyle={{ borderRadius: 8, fontSize: 13 }}
+                  formatter={(value) => [`${value} pts`, 'Story Points']}
                 />
-                <LabelList
-                  dataKey="points"
-                  position="right"
-                  style={{ fill: '#6366f1', fontSize: 12, fontWeight: 700 }}
-                  formatter={(v) => `${v} pts`}
-                />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                <Bar dataKey="points" fill="#6366f1" radius={[0, 4, 4, 0]} minPointSize={2}>
+                  <LabelList
+                    dataKey="name"
+                    position="insideLeft"
+                    style={{ fill: '#fff', fontSize: 12, fontWeight: 600 }}
+                  />
+                  <LabelList
+                    dataKey="points"
+                    position="right"
+                    style={{ fill: '#6366f1', fontSize: 12, fontWeight: 700 }}
+                    formatter={(v) => `${v} pts`}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <Box sx={{ py: 6, textAlign: 'center' }}>
+              <Typography color="text.secondary">No story points for the selected filter.</Typography>
+            </Box>
+          )}
         </Paper>
       )}
 

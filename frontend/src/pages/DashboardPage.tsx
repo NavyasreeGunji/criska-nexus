@@ -146,8 +146,20 @@ const metrics = [
   const openBugList = bugs.filter((b) => b.status === 'open' || b.status === 'in_progress');
   const recentDeployments = [...deployments].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const firstName = currentUser?.name?.split(' ')[0] ?? '';
+
   return (
     <Box>
+      <Box sx={{ mb: 2.5 }}>
+        <Typography variant="h5" fontWeight={700} sx={{ color: 'text.primary', lineHeight: 1.3 }}>
+          {greeting}{firstName ? `, ${firstName}` : ''} 👋
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Here's what's happening across your projects today.
+        </Typography>
+      </Box>
       {/* Metric cards */}
       <Grid container spacing={2} sx={styles.metricsRow}>
         {metrics.map((m) => (
