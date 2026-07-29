@@ -119,7 +119,11 @@ export default function ReportsPage() {
   }, [filtered]);
 
   const devPointsData = useMemo(
-    () => byAssignee.map((row) => ({ name: row.dev, points: row.total })).filter((r) => r.points > 0),
+    () =>
+      byAssignee
+        .map((row) => ({ name: row.dev, points: row.total }))
+        .filter((r) => r.points > 0)
+        .sort((a, b) => b.points - a.points),
     [byAssignee]
   );
 
