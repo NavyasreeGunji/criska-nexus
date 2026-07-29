@@ -10,8 +10,8 @@ import {
 } from '../api/api';
 
 const STORAGE_KEY = 'devtrack_user';
-const WAKE_TIMEOUT_MS = 90_000; // give Render 90 s to cold-start
-const RETRY_INTERVAL_MS = 5_000;
+const WAKE_TIMEOUT_MS = import.meta.env.DEV ? 3_000 : 90_000;
+const RETRY_INTERVAL_MS = import.meta.env.DEV ? 1_000 : 5_000;
 
 interface AppContextType {
   teams: Team[];

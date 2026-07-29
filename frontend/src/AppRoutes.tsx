@@ -9,7 +9,6 @@ import DailyLogPage from './pages/DailyLogPage';
 import BugsPage from './pages/BugsPage';
 import DeploymentsPage from './pages/DeploymentsPage';
 import ReportsPage from './pages/ReportsPage';
-import HelpPage from './pages/HelpPage';
 import LoginActivityPage from './pages/LoginActivityPage';
 import LeavePage from './pages/LeavePage';
 import { useApp } from './context/AppContext';
@@ -32,13 +31,14 @@ export default function AppRoutes() {
         <Route path="/people" element={<PeoplePage />} />
         <Route path="/teams" element={<TeamsPage />} />
         <Route path="/stories" element={<StoriesPage />} />
-        <Route path="/daily-log" element={<DailyLogPage />} />
+        <Route path="/timesheet" element={<DailyLogPage />} />
+        <Route path="/daily-log" element={<Navigate to="/timesheet" replace />} />
         <Route path="/bugs" element={<BugsPage />} />
         <Route path="/deployments" element={<DeploymentsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/login-activity" element={isPrivileged ? <LoginActivityPage /> : <Navigate to="/" replace />} />
         <Route path="/leave" element={isPrivileged ? <LeavePage /> : <Navigate to="/" replace />} />
-        <Route path="/help" element={<HelpPage />} />
+        <Route path="/help" element={<Navigate to="/" replace />} />
       </Routes>
     </MainLayout>
   );
