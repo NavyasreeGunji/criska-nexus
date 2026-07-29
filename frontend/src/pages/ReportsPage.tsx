@@ -123,23 +123,29 @@ export default function ReportsPage() {
     });
   }, [filtered]);
 
-  const { chartData, chartDevs } = useMemo(() => {
-    const monthMap: Record<string, Record<string, number>> = {};
+  const { chartData, pointsChartData, chartDevs } = useMemo(() => {
+    const countMap: Record<string, Record<string, number>> = {};
+    const pointsMap: Record<string, Record<string, number>> = {};
     filtered.forEach((s) => {
       if (!s.createdDate || !s.assignee) return;
       const month = s.createdDate.slice(0, 7);
-      if (!monthMap[month]) monthMap[month] = {};
-      monthMap[month][s.assignee] = (monthMap[month][s.assignee] ?? 0) + 1;
+      if (!countMap[month]) countMap[month] = {};
+      if (!pointsMap[month]) pointsMap[month] = {};
+      countMap[month][s.assignee] = (countMap[month][s.assignee] ?? 0) + 1;
+      pointsMap[month][s.assignee] = (pointsMap[month][s.assignee] ?? 0) + (s.points || 0);
     });
-    const data = Object.entries(monthMap)
+    const toLabel = (month: string) => {
+      const [y, m] = month.split('-');
+      return new Date(parseInt(y), parseInt(m) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
+    };
+    const data = Object.entries(countMap)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, devCounts]) => {
-        const [y, m] = month.split('-');
-        const label = new Date(parseInt(y), parseInt(m) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
-        return { month: label, ...devCounts };
-      });
+      .map(([month, devCounts]) => ({ month: toLabel(month), ...devCounts }));
+    const pData = Object.entries(pointsMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, devPts]) => ({ month: toLabel(month), ...devPts }));
     const devs = Array.from(new Set(filtered.filter((s) => s.assignee).map((s) => s.assignee as string))).sort();
-    return { chartData: data, chartDevs: devs };
+    return { chartData: data, pointsChartData: pData, chartDevs: devs };
   }, [filtered]);
 
   const handleExportXLS = () => {
@@ -398,6 +404,37 @@ export default function ReportsPage() {
               <RechartsTooltip
                 contentStyle={{ borderRadius: 8, fontSize: 13 }}
                 formatter={(value, name) => [value, name]}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              {chartDevs.map((dev, i) => (
+                <Bar
+                  key={dev}
+                  dataKey={dev}
+                  name={dev}
+                  fill={DEV_COLORS[i % DEV_COLORS.length]}
+                  radius={[3, 3, 0, 0]}
+                  maxBarSize={40}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </Paper>
+      )}
+
+      {/* Story Points by Developer per Month — admin only */}
+      {isAdmin && pointsChartData.length > 0 && (
+        <Paper sx={{ p: 2.5, mb: 3 }}>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+            Story Points by Developer (per Month)
+          </Typography>
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={pointsChartData} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+              <RechartsTooltip
+                contentStyle={{ borderRadius: 8, fontSize: 13 }}
+                formatter={(value, name) => [`${value} pts`, name]}
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               {chartDevs.map((dev, i) => (
