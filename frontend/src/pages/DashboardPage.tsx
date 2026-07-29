@@ -21,8 +21,6 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -85,17 +83,6 @@ function computeBurndown(sprint: Sprint, stories: Story[]) {
   return data;
 }
 
-function computeVelocity(sprints: Sprint[], stories: Story[]) {
-  return sprints
-    .map((sp) => {
-      const spStories = stories.filter((s) => s.sprintId === sp.id);
-      const committed = spStories.reduce((sum, s) => sum + (s.points || 0), 0);
-      const completed = spStories.filter((s) => s.status === 'done').reduce((sum, s) => sum + (s.points || 0), 0);
-      return { sprint: sp.name, committed, completed };
-    })
-    .filter((v) => v.committed > 0);
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -147,12 +134,7 @@ export default function DashboardPage() {
     () => (activeSprint ? computeBurndown(activeSprint, stories) : []),
     [activeSprint, stories]
   );
-  const velocityData = useMemo(
-    () => computeVelocity(sprints.filter((s) => s.status === 'completed' || s.status === 'active'), stories),
-    [sprints, stories]
-  );
-
-  const metrics = [
+const metrics = [
     { label: 'Total Story Points', value: totalPoints, sub: `${donePoints} pts delivered`, icon: <AssignmentIcon />, color: '#2563EB', route: '/reports' },
     { label: 'Deployments', value: deployments.length, sub: `${successfulDeploys} successful`, icon: <RocketLaunchIcon />, color: '#0891b2', route: '/deployments' },
     { label: 'Stories Completed', value: doneStories, sub: `of ${stories.length} total`, icon: <CheckCircleIcon />, color: '#16a34a', route: '/reports' },
@@ -314,31 +296,7 @@ export default function DashboardPage() {
           </Grid>
         )}
 
-        {/* Team Velocity Chart */}
-        {velocityData.length > 0 && (
-          <Grid item xs={12} md={burndownData.length > 0 ? 6 : 12}>
-            <Paper sx={{ p: 2.5 }}>
-              <Typography variant="subtitle1" fontWeight={700} gutterBottom>Team Velocity</Typography>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
-                Story points committed vs. completed per sprint
-              </Typography>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={velocityData} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                  <XAxis dataKey="sprint" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <RechartsTooltip contentStyle={{ fontSize: 12, borderRadius: 8 }}
-                    formatter={(v: any, name: any) => [v + ' pts', name === 'committed' ? 'Committed' : 'Completed']} />
-                  <Legend formatter={(v) => (v === 'committed' ? 'Committed' : 'Completed')} wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="committed" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="completed" fill="#2563EB" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Grid>
-        )}
-
-        {/* Active Today (admin only) */}
+{/* Active Today (admin only) */}
         {canSeeActiveUsers && (
           <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Paper sx={{ p: 2.5, flex: 1 }}>
