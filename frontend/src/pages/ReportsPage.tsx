@@ -59,8 +59,7 @@ const statusConfig: Record<StoryStatus, { color: 'default' | 'primary' | 'warnin
 };
 
 export default function ReportsPage() {
-  const { teams, sprints, backendOnline, backendChecked, currentUser } = useApp();
-  const isAdmin = currentUser != null && ['Manager', 'Admin', 'Managing Director'].includes(currentUser.role);
+  const { teams, sprints, backendOnline, backendChecked } = useApp();
   const [stories, setStories] = useState<Story[]>([]);
 
   useEffect(() => {
@@ -376,81 +375,79 @@ export default function ReportsPage() {
       )}
       </Paper>
 
-      {/* Story Points by Developer — admin only */}
-      {isAdmin && (
-        <Paper sx={styles.chartPaper}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
-            <Typography variant="subtitle1" fontWeight={700}>
-              Story Points by Developer
-            </Typography>
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <FormControl size="small" sx={{ minWidth: 110 }}>
-                <InputLabel>Filter by</InputLabel>
-                <Select
-                  value={chartFilterType}
-                  label="Filter by"
-                  onChange={(e) => { setChartFilterType(e.target.value as 'sprint' | 'month'); setChartFilterValue('all'); }}
-                >
-                  <MenuItem value="sprint">Sprint</MenuItem>
-                  <MenuItem value="month">Month</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl size="small" sx={{ minWidth: 160 }}>
-                <InputLabel>{chartFilterType === 'sprint' ? 'Sprint' : 'Month'}</InputLabel>
-                <Select
-                  value={chartFilterValue}
-                  label={chartFilterType === 'sprint' ? 'Sprint' : 'Month'}
-                  onChange={(e) => setChartFilterValue(e.target.value)}
-                >
-                  <MenuItem value="all">All</MenuItem>
-                  {chartFilterType === 'sprint'
-                    ? sprints.map((s) => <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>)
-                    : chartMonths.map((m) => (
-                        <MenuItem key={m} value={m}>
-                          {new Date(m + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                        </MenuItem>
-                      ))
-                  }
-                </Select>
-              </FormControl>
-            </Stack>
-          </Box>
-          {devPointsData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={Math.max(260, devPointsData.length * 42)}>
-              <BarChart
-                data={devPointsData}
-                layout="vertical"
-                margin={{ top: 4, right: 48, left: 0, bottom: 4 }}
+      {/* Story Points by Developer */}
+      <Paper sx={styles.chartPaper}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
+          <Typography variant="subtitle1" fontWeight={700}>
+            Story Points by Developer
+          </Typography>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <FormControl size="small" sx={{ minWidth: 110 }}>
+              <InputLabel>Filter by</InputLabel>
+              <Select
+                value={chartFilterType}
+                label="Filter by"
+                onChange={(e) => { setChartFilterType(e.target.value as 'sprint' | 'month'); setChartFilterValue('all'); }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                <YAxis type="category" dataKey="name" hide />
-                <RechartsTooltip
-                  contentStyle={{ borderRadius: 8, fontSize: 13 }}
-                  formatter={(value) => [`${value} pts`, 'Story Points']}
+                <MenuItem value="sprint">Sprint</MenuItem>
+                <MenuItem value="month">Month</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>{chartFilterType === 'sprint' ? 'Sprint' : 'Month'}</InputLabel>
+              <Select
+                value={chartFilterValue}
+                label={chartFilterType === 'sprint' ? 'Sprint' : 'Month'}
+                onChange={(e) => setChartFilterValue(e.target.value)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                {chartFilterType === 'sprint'
+                  ? sprints.map((s) => <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>)
+                  : chartMonths.map((m) => (
+                      <MenuItem key={m} value={m}>
+                        {new Date(m + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </MenuItem>
+                    ))
+                }
+              </Select>
+            </FormControl>
+          </Stack>
+        </Box>
+        {devPointsData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={Math.max(260, devPointsData.length * 42)}>
+            <BarChart
+              data={devPointsData}
+              layout="vertical"
+              margin={{ top: 4, right: 48, left: 0, bottom: 4 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+              <YAxis type="category" dataKey="name" hide />
+              <RechartsTooltip
+                contentStyle={{ borderRadius: 8, fontSize: 13 }}
+                formatter={(value) => [`${value} pts`, 'Story Points']}
+              />
+              <Bar dataKey="points" fill="#6366f1" radius={[0, 4, 4, 0]} minPointSize={2}>
+                <LabelList
+                  dataKey="name"
+                  position="insideLeft"
+                  style={{ fill: '#fff', fontSize: 12, fontWeight: 600 }}
                 />
-                <Bar dataKey="points" fill="#6366f1" radius={[0, 4, 4, 0]} minPointSize={2}>
-                  <LabelList
-                    dataKey="name"
-                    position="insideLeft"
-                    style={{ fill: '#fff', fontSize: 12, fontWeight: 600 }}
-                  />
-                  <LabelList
-                    dataKey="points"
-                    position="right"
-                    style={{ fill: '#6366f1', fontSize: 12, fontWeight: 700 }}
-                    formatter={(v) => `${v} pts`}
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <Box sx={{ py: 6, textAlign: 'center' }}>
-              <Typography color="text.secondary">No story points for the selected filter.</Typography>
-            </Box>
-          )}
-        </Paper>
-      )}
+                <LabelList
+                  dataKey="points"
+                  position="right"
+                  style={{ fill: '#6366f1', fontSize: 12, fontWeight: 700 }}
+                  formatter={(v) => `${v} pts`}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <Box sx={{ py: 6, textAlign: 'center' }}>
+            <Typography color="text.secondary">No story points for the selected filter.</Typography>
+          </Box>
+        )}
+      </Paper>
 
       {/* Points by Developer */}
       <Typography variant="subtitle1" fontWeight={700} sx={styles.devListTitle}>
